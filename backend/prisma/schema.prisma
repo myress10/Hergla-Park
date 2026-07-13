@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  nom             String
+  email           String   @unique
+  passwordHash    String
+  role            Role     @default(EMPLOYE)
+  assignedSpaceId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  assignedSpace   Espace?  @relation(fields: [assignedSpaceId], references: [id])
+  uploadedObjects Object3D[]
+}
+
+model Espace {
+  id                 String           @id @default(uuid())
+  nom                String
+  categorie          String
+  statut             StatutEspace     @default(FERME)
+  donneesSpecifiques Json?
+  baseSceneUrl       String?          // URL du fichier .glb de la scène de base (export Blender)
+  originalSceneData  Json?            // snapshot JSON de la disposition d'origine des objets (pour le reset)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  employes           User[]
+  placements         ScenePlacement[]
+}
+
+model Object3D {
+  id            String   @id @default(uuid())
+  nom           String
+  categorie     String        // ex: "mobilier", "decoration", "signaletique"
+  modelUrl      String        // URL/chemin du fichier .glb dans le catalogue de base
+  thumbnailUrl  String?       // vignette pour l'affichage dans le panneau catalogue
+  isCustom      Boolean  @default(false)   // true si uploadé par un admin, false si catalogue de base
+  uploadedById  String?
+  uploadedBy    User?    @relation(fields: [uploadedById], references: [id])
+  createdAt     DateTime @default(now())
+  placements    ScenePlacement[]
+}
+
+model ScenePlacement {
+  id          String   @id @default(uuid())
+  espaceId    String
+  espace      Espace   @relation(fields: [espaceId], references: [id], onDelete: Cascade)
+  object3DId  String
+  object3D    Object3D @relation(fields: [object3DId], references: [id])
+  positionX   Float
+  positionY   Float
+  positionZ   Float
+  rotationX   Float    @default(0)
+  rotationY   Float    @default(0)
+  rotationZ   Float    @default(0)
+  scaleX      Float    @default(1)
+  scaleY      Float    @default(1)
+  scaleZ      Float    @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  SUPERADMIN
+  ADMIN
+  EMPLOYE
+}
+
+enum StatutEspace {
+  OUVERT
+  FERME
+  MAINTENANCE
+}

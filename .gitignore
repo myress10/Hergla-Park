@@ -1,0 +1,25 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Environments
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+
+# Local Uploads
+backend/uploads/models/*
+backend/uploads/thumbnails/*
+!backend/uploads/models/.gitkeep
+!backend/uploads/thumbnails/.gitkeep

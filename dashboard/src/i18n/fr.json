@@ -1,0 +1,164 @@
+{
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "spaces": "Espaces",
+    "users": "Utilisateurs",
+    "mySpace": "Mon Espace",
+    "myProfile": "Mon Profil",
+    "editor3d": "Éditeur 3D"
+  },
+  "login": {
+    "title": "Admin Dashboard",
+    "subtitle": "Connectez-vous pour gérer vos opérations",
+    "emailLabel": "Email professionnel",
+    "emailPlaceholder": "admin@herglapark.com",
+    "passwordLabel": "Mot de passe",
+    "forgotPassword": "Oublié ?",
+    "rememberMe": "Rester connecté",
+    "submitButton": "Se connecter",
+    "contactSupport": "Problème d'accès ? Contacter le support IT",
+    "copyright": "© 2024 Hergla Park Admin Ecosystem. Tous droits réservés.",
+    "error": {
+      "invalidCredentials": "Email ou mot de passe incorrect.",
+      "networkError": "Erreur de connexion. Vérifiez votre réseau."
+    }
+  },
+  "spaces": {
+    "title": "Espaces",
+    "subtitle": "Gérez les zones opérationnelles et surveillez leur état en temps réel.",
+    "createButton": "Créer un espace",
+    "stats": {
+      "open": "Ouverts",
+      "closed": "Fermés",
+      "maintenance": "Maintenance",
+      "activeStaff": "Staff Actif"
+    },
+    "card": {
+      "status": "Statut",
+      "noStaff": "Aucun staff"
+    },
+    "recentAlerts": "Alertes Récentes",
+    "viewAll": "Voir tout",
+    "table": {
+      "time": "Heure",
+      "space": "Espace",
+      "type": "Type",
+      "status": "Statut",
+      "actions": "Actions"
+    },
+    "create": {
+      "title": "Créer un espace",
+      "name": "Nom",
+      "category": "Catégorie",
+      "submit": "Créer",
+      "cancel": "Annuler"
+    },
+    "statuses": {
+      "OUVERT": "Ouvert",
+      "FERME": "Fermé",
+      "MAINTENANCE": "Maintenance"
+    }
+  },
+  "mySpace": {
+    "operationalStatus": "STATUT OPÉRATIONNEL",
+    "updateAccessibility": "Mettre à jour l'accessibilité",
+    "openTrack": "Ouvrir",
+    "maintenance": "Maintenance",
+    "emergencyClose": "Fermeture d'urgence",
+    "dailyReport": "Rapport Journalier",
+    "metrics": "Métriques en temps réel",
+    "quickStats": "Statistiques rapides",
+    "saveUpdate": "Enregistrer la mise à jour",
+    "specificData": "Données spécifiques",
+    "keyLabel": "Clé",
+    "valueLabel": "Valeur",
+    "addField": "Ajouter un champ",
+    "removeField": "Supprimer",
+    "updateSuccess": "Espace mis à jour avec succès",
+    "updateError": "Erreur lors de la mise à jour"
+  },
+  "users": {
+    "title": "Utilisateurs",
+    "subtitle": "Gérez les accès et les rôles de l'équipe Hergla Park.",
+    "addButton": "Ajouter un utilisateur",
+    "search": "Rechercher un utilisateur...",
+    "filter": "Filtrer",
+    "export": "Exporter",
+    "tabs": {
+      "all": "Tous",
+      "admins": "Admins",
+      "employees": "Employés"
+    },
+    "table": {
+      "user": "Utilisateur",
+      "role": "Rôle",
+      "assignedSpace": "Espace assigné",
+      "status": "Statut",
+      "actions": "Actions",
+      "wholeSystem": "Système Entier",
+      "noSpace": "—"
+    },
+    "stats": {
+      "total": "TOTAL UTILISATEURS",
+      "activeToday": "ACTIFS AUJOURD'HUI",
+      "admins": "ADMINS",
+      "pending": "EN ATTENTE"
+    },
+    "userStatus": {
+      "connected": "Connecté",
+      "online": "En ligne",
+      "offline": "Hors ligne",
+      "inService": "En service"
+    },
+    "create": {
+      "title": "Ajouter un utilisateur",
+      "name": "Nom complet",
+      "email": "Email",
+      "password": "Mot de passe",
+      "role": "Rôle",
+      "assignedSpace": "Espace assigné",
+      "noSpace": "Aucun espace",
+      "submit": "Créer",
+      "cancel": "Annuler"
+    },
+    "edit": {
+      "title": "Modifier l'utilisateur",
+      "submit": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "delete": {
+      "confirm": "Supprimer cet utilisateur ?",
+      "yes": "Supprimer",
+      "no": "Annuler"
+    },
+    "pagination": {
+      "showing": "Affichage de {{from}}-{{to}} sur {{total}} utilisateurs"
+    },
+    "recentActivity": "Activités Récentes",
+    "globalSystem": "Système Global",
+    "securityLock": "Verrouillage de Sécurité",
+    "autoAssign": "Auto-Assignation",
+    "securityAudit": "Audit de Sécurité Global"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "retry": "Réessayer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "close": "Fermer",
+    "confirm": "Confirmer",
+    "back": "Retour",
+    "logout": "Se déconnecter",
+    "profile": "Profil",
+    "version": "v2.4.0-stable",
+    "systemOnline": "Système Actif"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "subtitle": "La page que vous recherchez n'existe pas.",
+    "back": "Retour au tableau de bord"
+  }
+}
