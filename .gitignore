@@ -27,3 +27,7 @@ backend/uploads/models/*
 backend/uploads/thumbnails/*
 !backend/uploads/models/.gitkeep
 !backend/uploads/thumbnails/.gitkeep
+
+# Demo credentials
+SEED_CREDENTIALS.md
+backend/SEED_CREDENTIALS.md

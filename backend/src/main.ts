@@ -12,8 +12,28 @@ async function bootstrap() {
   // Serve static assets from uploads folder
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
 
-  // Enable CORS
-  app.enableCors();
+  // Enable CORS with dynamic origins (development & production/preview Vercel URLs)
+  app.enableCors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      const isAllowed =
+        origin.startsWith('http://localhost') ||
+        /\.vercel\.app$/.test(origin) ||
+        origin.includes('hergla-park');
+      
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type,Accept,Authorization',
+  });
 
   // Set up global validation pipe (whiteslisting non-whitelisted params)
   app.useGlobalPipes(
