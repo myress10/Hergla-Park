@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+
+<html dir="ltr" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hergla Park - Space Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#191c1e",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#ffdad9",
+                        "primary-container": "#353e54",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#342608",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#fffbff",
+                        "surface-bright": "#f7f9fb",
+                        "on-secondary-fixed-variant": "#920022",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-surface": "#2d3133",
+                        "tertiary-fixed": "#f9dfb3",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-error": "#ffffff",
+                        "on-background": "#191c1e",
+                        "primary": "#1f283d",
+                        "on-secondary-fixed": "#400009",
+                        "on-surface-variant": "#45464d",
+                        "status-error": "#EF4444",
+                        "secondary-container": "#e8063c",
+                        "on-primary-container": "#a0a9c3",
+                        "background": "#f7f9fb",
+                        "status-success": "#10B981",
+                        "surface-container-low": "#f2f4f6",
+                        "surface": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#bdc6e1",
+                        "tertiary-fixed-dim": "#dcc399",
+                        "on-primary-fixed": "#121b2f",
+                        "status-warning": "#F59E0B",
+                        "accent-yellow": "#FFD600",
+                        "surface-sidebar": "#1E293B",
+                        "tertiary-container": "#4c3c1c",
+                        "secondary": "#ba002d",
+                        "primary-fixed": "#d9e2fe",
+                        "secondary-fixed-dim": "#ffb3b3",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#554424",
+                        "on-tertiary-container": "#bea77e",
+                        "surface-container": "#eceef0",
+                        "outline-variant": "#c6c6cd",
+                        "surface-dim": "#d8dadc",
+                        "status-closed": "#64748B",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#261901",
+                        "inverse-primary": "#bdc6e1",
+                        "surface-tint": "#555e76",
+                        "on-primary-fixed-variant": "#3d465d",
+                        "outline": "#76777d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit-sm": "8px",
+                        "sidebar-width": "260px",
+                        "container-max": "1440px",
+                        "unit-md": "16px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "unit-xs": "4px",
+                        "unit-lg": "24px",
+                        "sidebar-collapsed": "72px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "data-tabular": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        
+        .active-nav-scale { transition: transform 0.2s; }
+        .active-nav-scale:active { transform: scale(0.98); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen">
+<!-- Sidebar Shell -->
+<aside class="docked fixed h-full w-[260px] start-0 flex flex-col bg-surface-sidebar z-50 transition-all duration-300 transform md:translate-x-0 -translate-x-full" id="side-nav">
+<div class="py-unit-lg flex flex-col h-full">
+<div class="px-gutter mb-unit-lg">
+<h1 class="text-headline-md font-headline-md font-bold text-on-primary">Hergla Park</h1>
+<p class="text-label-md font-label-md text-on-primary/60">Admin Dashboard</p>
+</div>
+<nav class="flex-1 flex flex-col gap-unit-sm">
+<!-- Dashboard (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<!-- Spaces (Active for this context) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary rounded-xl mx-2 active-nav-scale" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">map</span>
+<span class="text-label-md font-label-md">Spaces</span>
+</a>
+<!-- Users (Hidden/Disabled for Employee Role) -->
+<!-- My Profile (Inactive) -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors group mt-auto" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-md font-label-md">My Profile</span>
+</a>
+</nav>
+<div class="px-4 mt-unit-lg border-t border-on-primary/10 pt-unit-md mx-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold">
+                        JD
+                    </div>
+<div>
+<p class="text-body-sm font-bold text-on-primary">Jean Dupont</p>
+<p class="text-label-sm text-on-primary/60">Piste Karting Lead</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Content Area -->
+<main class="md:ms-[260px] min-h-screen flex flex-col">
+<!-- Top Bar Shell -->
+<header class="docked full-width top-0 sticky h-16 bg-surface border-b border-outline-variant z-40 flex items-center px-gutter justify-between">
+<div class="flex items-center gap-unit-md">
+<button class="md:hidden text-primary" onclick="document.getElementById('side-nav').classList.toggle('-translate-x-full')">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="text-headline-sm font-headline-sm font-bold text-primary">Piste Karting</h2>
+</div>
+<div class="flex items-center gap-unit-md">
+<div class="hidden md:flex gap-4 items-center me-4">
+<span class="text-primary font-bold border-b-2 border-primary pb-1 text-label-md font-label-md cursor-pointer">FR</span>
+<span class="text-on-surface-variant text-label-md font-label-md hover:text-primary cursor-pointer">AR</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">language</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full"></span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Workspace -->
+<div class="p-gutter max-w-container-max mx-auto w-full space-y-unit-lg">
+<!-- Hero Space Card -->
+<section class="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+<!-- Track Visual Header -->
+<div class="relative h-72 md:h-96 w-full">
+<div class="bg-cover bg-center w-full h-full grayscale-[0.2]" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLsWSlVcfLL8M65D_Eu8L8rSJOs3FutKdnimTWVBAFCB08IGwt18yos8VbbZxLGroOmP3tPnrqnDQ3DlDaRKFaoKIm5bETIbFI2T2tCMzpnQYjmjUBfXwoBbJhi7VgdKp0wNKXs9xxpNYEM2EmRVLYWezeegNHgDQajerPKBXucN79vmCml2UcfZwnzuA9vm5Azlrrev0R1AZhvv4QgTZ16q2VreWVqHgT7zp0RC0S1DA4WK8th1HzYSNXpb')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-unit-lg text-on-primary">
+<div class="flex items-center gap-2 mb-unit-xs">
+<span class="bg-status-success/20 text-status-success px-3 py-1 rounded-full text-label-md font-label-md flex items-center gap-1 backdrop-blur-md border border-status-success/30">
+<span class="w-2 h-2 rounded-full bg-status-success"></span>
+                                Currently Open
+                            </span>
+</div>
+<h3 class="text-headline-lg font-headline-lg">Circuit Principal - Hergla Kart</h3>
+<p class="text-body-lg opacity-80">1.2km Technical Track • Professional Grade Asphalt</p>
+</div>
+</div>
+<!-- Quick Action Status Bar -->
+<div class="p-gutter border-b border-outline-variant flex flex-col md:flex-row md:items-center justify-between gap-gutter bg-surface-container-low/50">
+<div>
+<p class="text-label-md font-label-md uppercase tracking-wider text-on-surface-variant mb-1">Operational Status</p>
+<h4 class="text-headline-sm font-headline-sm">Update Track Accessibility</h4>
+</div>
+<div class="flex flex-wrap gap-unit-md">
+<button class="flex items-center gap-2 px-6 py-3 rounded-full bg-status-success text-on-primary font-bold transition-all active:scale-95 shadow-lg shadow-status-success/20" id="btn-open" onclick="setStatus('open')">
+<span class="material-symbols-outlined">check_circle</span>
+                            Open Track
+                        </button>
+<button class="flex items-center gap-2 px-6 py-3 rounded-full bg-surface-container-highest text-on-surface font-bold hover:bg-status-warning/20 transition-all active:scale-95" id="btn-maint" onclick="setStatus('maintenance')">
+<span class="material-symbols-outlined">build</span>
+                            Maintenance
+                        </button>
+<button class="flex items-center gap-2 px-6 py-3 rounded-full bg-surface-container-highest text-on-surface font-bold hover:bg-status-error/20 transition-all active:scale-95" id="btn-closed" onclick="setStatus('closed')">
+<span class="material-symbols-outlined">block</span>
+                            Emergency Close
+                        </button>
+</div>
+</div>
+<!-- Data Entry Form & Metrics Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-outline-variant">
+<!-- Column 1: Performance Form -->
+<div class="p-gutter lg:col-span-2">
+<h5 class="text-headline-sm font-headline-sm mb-unit-lg">Daily Track Report</h5>
+<form class="grid grid-cols-1 md:grid-cols-2 gap-unit-lg">
+<div class="space-y-unit-xs">
+<label class="text-label-md font-label-md text-on-surface-variant">Record Holder Name</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-body-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none" type="text" value="Sami Ben Ali"/>
+</div>
+<div class="space-y-unit-xs">
+<label class="text-label-md font-label-md text-on-surface-variant">Fastest Lap Time (s)</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-data-tabular focus:ring-2 focus:ring-primary focus:border-transparent outline-none" type="text" value="54.230"/>
+</div>
+<div class="space-y-unit-xs">
+<label class="text-label-md font-label-md text-on-surface-variant">Track Temperature (°C)</label>
+<input class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-body-md focus:ring-2 focus:ring-primary focus:border-transparent outline-none" type="number" value="28"/>
+</div>
+<div class="space-y-unit-xs">
+<label class="text-label-md font-label-md text-on-surface-variant">Grip Conditions</label>
+<select class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-body-md focus:ring-2 focus:ring-primary outline-none">
+<option>Optimal (Dry)</option>
+<option>Low (Dusty)</option>
+<option>Dangerous (Wet)</option>
+</select>
+</div>
+<div class="md:col-span-2 space-y-unit-xs">
+<label class="text-label-md font-label-md text-on-surface-variant">Safety Notes / Incidents</label>
+<textarea class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-3 text-body-md focus:ring-2 focus:ring-primary outline-none" placeholder="Enter any technical observations..." rows="3"></textarea>
+</div>
+<div class="md:col-span-2 pt-unit-md">
+<button class="w-full bg-primary text-on-primary py-4 rounded-xl font-bold hover:bg-primary-container transition-all flex items-center justify-center gap-2" type="submit">
+<span class="material-symbols-outlined">save</span>
+                                    Save Track Update
+                                </button>
+</div>
+</form>
+</div>
+<!-- Column 2: Live Usage Metrics -->
+<div class="p-gutter bg-surface-container-low/30">
+<h5 class="text-headline-sm font-headline-sm mb-unit-lg">Real-time Metrics</h5>
+<div class="space-y-unit-lg">
+<div class="bg-surface-container-lowest p-unit-md border border-outline-variant rounded-xl">
+<div class="flex justify-between items-start mb-2">
+<span class="text-label-md font-label-md text-on-surface-variant">Active Karts</span>
+<span class="text-status-success font-bold">8 / 12</span>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-status-success h-full w-[66%]"></div>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-unit-md border border-outline-variant rounded-xl">
+<div class="flex justify-between items-start mb-2">
+<span class="text-label-md font-label-md text-on-surface-variant">Average Wait Time</span>
+<span class="text-on-surface font-bold text-data-tabular">15 mins</span>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[40%]"></div>
+</div>
+</div>
+<div class="pt-unit-md border-t border-outline-variant">
+<p class="text-label-md font-label-md text-on-surface-variant mb-unit-sm uppercase">Quick Stats</p>
+<ul class="space-y-3">
+<li class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Today's Sessions</span>
+<span class="font-bold">42</span>
+</li>
+<li class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Fuel Consumption</span>
+<span class="font-bold">120L</span>
+</li>
+<li class="flex justify-between text-body-sm">
+<span class="text-on-surface-variant">Staff on Duty</span>
+<span class="font-bold">4</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Information Grid (Additional context) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<div class="bg-surface-container-high/40 p-gutter rounded-xl border border-outline-variant">
+<div class="flex items-center gap-unit-md mb-unit-md">
+<span class="material-symbols-outlined text-secondary">warning</span>
+<h6 class="text-headline-sm font-headline-sm">Safety Protocol</h6>
+</div>
+<p class="text-body-md text-on-surface-variant leading-relaxed">
+                        Track conditions are currently optimal. Ensure all pilots wear Grade-A helmets. Fuel storage area must remain locked between sessions.
+                    </p>
+</div>
+<div class="bg-surface-container-high/40 p-gutter rounded-xl border border-outline-variant">
+<div class="flex items-center gap-unit-md mb-unit-md">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<h6 class="text-headline-sm font-headline-sm">Shift Handover</h6>
+</div>
+<p class="text-body-md text-on-surface-variant leading-relaxed">
+                        Night shift starts at 18:00. Please ensure floodlight diagnostics are complete before sun-down.
+                    </p>
+</div>
+</div>
+</div>
+<!-- Footer Shell -->
+<footer class="mt-auto py-unit-lg px-gutter border-t border-outline-variant text-center md:text-start">
+<p class="text-label-sm text-on-surface-variant">© 1996 - 2024 Hergla Park Admin Ecosystem. Authorized Personnel Only.</p>
+</footer>
+</main>
+<script>
+        function setStatus(status) {
+            const btns = {
+                open: document.getElementById('btn-open'),
+                maintenance: document.getElementById('btn-maint'),
+                closed: document.getElementById('btn-closed')
+            };
+
+            // Reset all
+            Object.values(btns).forEach(btn => {
+                btn.className = "flex items-center gap-2 px-6 py-3 rounded-full bg-surface-container-highest text-on-surface font-bold transition-all active:scale-95";
+            });
+
+            // Apply active styles
+            if (status === 'open') {
+                btns.open.className = "flex items-center gap-2 px-6 py-3 rounded-full bg-status-success text-on-primary font-bold transition-all active:scale-95 shadow-lg shadow-status-success/20";
+            } else if (status === 'maintenance') {
+                btns.maintenance.className = "flex items-center gap-2 px-6 py-3 rounded-full bg-status-warning text-on-primary font-bold transition-all active:scale-95 shadow-lg shadow-status-warning/20";
+            } else if (status === 'closed') {
+                btns.closed.className = "flex items-center gap-2 px-6 py-3 rounded-full bg-status-error text-on-primary font-bold transition-all active:scale-95 shadow-lg shadow-status-error/20";
+            }
+        }
+    </script>
+</body></html>

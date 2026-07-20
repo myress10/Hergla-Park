@@ -1,6 +1,5 @@
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
 
 export class UpdateUserDto {
   @ApiProperty({
@@ -32,13 +31,13 @@ export class UpdateUserDto {
   password?: string;
 
   @ApiProperty({
-    description: 'Le rôle de l\'utilisateur (uniquement modifiable par SUPERADMIN)',
-    enum: Role,
+    description: "Le nom du rôle (uniquement modifiable par SUPERADMIN ou ROOT). Ex: 'ADMIN', 'Responsable Café'.",
+    example: 'ADMIN',
     required: false,
   })
-  @IsEnum(Role, { message: 'Rôle invalide' })
+  @IsString()
   @IsOptional()
-  role?: Role;
+  role?: string;
 
   @ApiProperty({
     description: 'L\'ID de l\'espace du parc assigné (uniquement modifiable par SUPERADMIN)',

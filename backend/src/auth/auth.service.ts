@@ -13,7 +13,7 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const { nom, email, password, role, assignedSpaceId } = registerDto;
+    const { nom, email, password, role, assignedSpaceId, companyId } = registerDto;
 
     // Check if email already registered
     const userExists = await this.prisma.user.findUnique({
@@ -24,13 +24,24 @@ export class AuthService {
       throw new BadRequestException('Un utilisateur avec cet email existe déjà');
     }
 
-    // Validate if assignedSpaceId exists in Espace table
+    // Validate company exists (if provided)
+    if (companyId) {
+      const company = await this.prisma.company.findUnique({ where: { id: companyId } });
+      if (!company) {
+        throw new BadRequestException("L'entreprise spécifiée n'existe pas");
+      }
+    }
+
+    // Validate if assignedSpaceId exists and belongs to the same company
     if (assignedSpaceId) {
-      const space = await this.prisma.espace.findUnique({
-        where: { id: assignedSpaceId },
+      const space = await this.prisma.espace.findFirst({
+        where: {
+          id: assignedSpaceId,
+          ...(companyId ? { companyId } : {}),
+        },
       });
       if (!space) {
-        throw new BadRequestException('L\'espace assigné spécifié n\'existe pas');
+        throw new BadRequestException("L'espace assigné spécifié n'existe pas ou n'appartient pas à cette entreprise");
       }
     }
 
@@ -38,25 +49,55 @@ export class AuthService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
+    // Resolve target role to assign (default EMPLOYE)
+    const targetRoleName = role || 'EMPLOYE';
+    const roleRecord = await this.prisma.role.findFirst({
+      where: {
+        nom: targetRoleName,
+        OR: [
+          { companyId: null },
+          { companyId: companyId || undefined },
+        ],
+      },
+    });
+    if (!roleRecord) {
+      throw new BadRequestException(`Le rôle "${targetRoleName}" n'existe pas.`);
+    }
+
     // Save user profile
     const user = await this.prisma.user.create({
       data: {
         nom,
         email: email.toLowerCase(),
         passwordHash,
-        role: role || 'EMPLOYE',
+        companyId: companyId || null,
         assignedSpaceId: assignedSpaceId || null,
+        roles: {
+          create: {
+            roleId: roleRecord.id,
+          },
+        },
+      },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
       },
     });
 
-    // Generate JWT token
-    const token = this.generateToken(user.id, user.role);
+    const rolesList = user.roles.map((ur) => ur.role.nom);
+    const token = this.generateToken(user.id, rolesList, user.companyId);
 
     // Exclude passwordHash from response
-    const { passwordHash: _, ...result } = user;
+    const { passwordHash: _, roles, ...result } = user;
     return {
       success: true,
-      data: result,
+      data: {
+        ...result,
+        role: targetRoleName,
+      },
       token,
     };
   }
@@ -66,6 +107,13 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
 
     if (!user) {
@@ -77,19 +125,22 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides (email ou mot de passe incorrect)');
     }
 
-    // Generate JWT token
-    const token = this.generateToken(user.id, user.role);
+    const rolesList = user.roles.map((ur) => ur.role.nom);
+    const token = this.generateToken(user.id, rolesList, user.companyId);
 
-    const { passwordHash: _, ...result } = user;
+    const { passwordHash: _, roles, ...result } = user;
     return {
       success: true,
-      data: result,
+      data: {
+        ...result,
+        role: rolesList[0] || 'EMPLOYE',
+      },
       token,
     };
   }
 
-  private generateToken(userId: string, role: string): string {
-    const payload = { sub: userId, role: role };
+  private generateToken(userId: string, roles: string[], companyId: string | null): string {
+    const payload = { sub: userId, roles, companyId };
     return this.jwtService.sign(payload);
   }
 }

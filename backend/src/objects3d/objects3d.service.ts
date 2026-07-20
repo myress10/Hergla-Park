@@ -2,22 +2,31 @@ import { Injectable, BadRequestException, NotFoundException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../common/storage.service';
 import { CreateObject3dDto } from './dto/create-object3d.dto';
+import { AuditLogService } from '../common/audit-log.service';
+
+type AuthUser = { id: string; role: string; companyId: string | null; isRoot?: boolean };
 
 @Injectable()
 export class Objects3dService {
   constructor(
     private prisma: PrismaService,
     private storageService: StorageService,
+    private auditLogService: AuditLogService,
   ) {}
 
-  async findAll(categorie?: string) {
+  /**
+   * Find all 3D objects.
+   * Standard users are locked to their own companyId.
+   * ROOT users can target a specific companyId or view globally.
+   */
+  async findAll(user: AuthUser, targetCompanyId?: string) {
     const where: any = {};
-    if (categorie) {
-      where.categorie = {
-        equals: categorie,
-        mode: 'insensitive',
-      };
+    if (!user.isRoot) {
+      where.companyId = user.companyId;
+    } else if (targetCompanyId) {
+      where.companyId = targetCompanyId;
     }
+
     const items = await this.prisma.object3D.findMany({
       where,
       orderBy: { createdAt: 'desc' },
@@ -28,7 +37,12 @@ export class Objects3dService {
     };
   }
 
-  async createBase(dto: CreateObject3dDto) {
+  async createBase(dto: CreateObject3dDto, user: AuthUser, targetCompanyId?: string, reason?: string) {
+    const companyId = user.isRoot ? targetCompanyId : user.companyId;
+    if (!companyId) {
+      throw new BadRequestException("Une entreprise cible ('companyId') est requise.");
+    }
+
     const object3d = await this.prisma.object3D.create({
       data: {
         nom: dto.nom,
@@ -36,8 +50,19 @@ export class Objects3dService {
         modelUrl: dto.modelUrl,
         thumbnailUrl: dto.thumbnailUrl || null,
         isCustom: false,
+        companyId,
       },
     });
+
+    // Write audit log
+    await this.auditLogService.log(
+      user.id,
+      companyId,
+      'object3d.create',
+      'Object3D',
+      object3d.id,
+      { nom: dto.nom, modelUrl: dto.modelUrl, reason },
+    );
 
     return {
       success: true,
@@ -45,7 +70,15 @@ export class Objects3dService {
     };
   }
 
-  async uploadCustom(nom: string, categorie: string, glbFile: any, thumbFile: any, user: { id: string; role: string }) {
+  async uploadCustom(
+    nom: string,
+    categorie: string,
+    glbFile: any,
+    thumbFile: any,
+    user: AuthUser,
+    targetCompanyId?: string,
+    reason?: string,
+  ) {
     if (!nom || !categorie) {
       throw new BadRequestException('Nom et catégorie sont requis.');
     }
@@ -53,12 +86,17 @@ export class Objects3dService {
       throw new BadRequestException('Fichier de modèle (.glb) manquant.');
     }
 
+    const companyId = user.isRoot ? targetCompanyId : user.companyId;
+    if (!companyId) {
+      throw new BadRequestException("Une entreprise cible ('companyId') est requise.");
+    }
+
     // Save GLB model using StorageService
     const modelUrl = await this.storageService.saveFile(
       glbFile,
       'models',
       ['.glb'],
-      10 * 1024 * 1024 // 10 MB limit
+      10 * 1024 * 1024, // 10 MB limit
     );
 
     // Save thumbnail if provided
@@ -68,7 +106,7 @@ export class Objects3dService {
         thumbFile,
         'thumbnails',
         ['.png', '.jpg', '.jpeg', '.webp'],
-        2 * 1024 * 1024 // 2 MB limit
+        2 * 1024 * 1024, // 2 MB limit
       );
     }
 
@@ -80,8 +118,19 @@ export class Objects3dService {
         thumbnailUrl,
         isCustom: true,
         uploadedById: user.id,
+        companyId,
       },
     });
+
+    // Write audit log
+    await this.auditLogService.log(
+      user.id,
+      companyId,
+      'object3d.upload',
+      'Object3D',
+      object3d.id,
+      { nom, modelUrl, reason },
+    );
 
     return {
       success: true,
@@ -89,23 +138,40 @@ export class Objects3dService {
     };
   }
 
-  async remove(id: string, user: { id: string; role: string }) {
-    const object3d = await this.prisma.object3D.findUnique({
-      where: { id },
+  async remove(id: string, user: AuthUser, reason?: string) {
+    const where: any = { id };
+    if (!user.isRoot) {
+      where.companyId = user.companyId;
+    }
+
+    const object3d = await this.prisma.object3D.findFirst({
+      where,
     });
 
     if (!object3d) {
       throw new NotFoundException(`Objet 3D avec l'ID ${id} introuvable`);
     }
 
-    // Authorization: SUPERADMIN can delete anything. Owners can delete their custom objects.
-    if (user.role !== 'SUPERADMIN' && object3d.uploadedById !== user.id) {
+    const targetCompanyId = object3d.companyId;
+
+    // Authorization: SUPERADMIN/ROOT can delete anything. Owners can delete their custom objects.
+    if (!user.isRoot && user.role !== 'SUPERADMIN' && object3d.uploadedById !== user.id) {
       throw new ForbiddenException('Non autorisé à supprimer cet objet du catalogue.');
     }
 
     await this.prisma.object3D.delete({
       where: { id },
     });
+
+    // Write audit log
+    await this.auditLogService.log(
+      user.id,
+      targetCompanyId,
+      'object3d.delete',
+      'Object3D',
+      id,
+      { deletedObject: object3d, reason },
+    );
 
     return {
       success: true,

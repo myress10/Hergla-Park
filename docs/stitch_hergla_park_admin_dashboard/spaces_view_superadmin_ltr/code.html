@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+
+<html dir="ltr" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hergla Park Admin - Espaces</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#191c1e",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#ffdad9",
+                        "primary-container": "#353e54",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#342608",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#fffbff",
+                        "surface-bright": "#f7f9fb",
+                        "on-secondary-fixed-variant": "#920022",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-surface": "#2d3133",
+                        "tertiary-fixed": "#f9dfb3",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-error": "#ffffff",
+                        "on-background": "#191c1e",
+                        "primary": "#1f283d",
+                        "on-secondary-fixed": "#400009",
+                        "on-surface-variant": "#45464d",
+                        "status-error": "#EF4444",
+                        "secondary-container": "#e8063c",
+                        "on-primary-container": "#a0a9c3",
+                        "background": "#f7f9fb",
+                        "status-success": "#10B981",
+                        "surface-container-low": "#f2f4f6",
+                        "surface": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#bdc6e1",
+                        "tertiary-fixed-dim": "#dcc399",
+                        "on-primary-fixed": "#121b2f",
+                        "status-warning": "#F59E0B",
+                        "accent-yellow": "#FFD600",
+                        "surface-sidebar": "#1E293B",
+                        "tertiary-container": "#4c3c1c",
+                        "secondary": "#ba002d",
+                        "primary-fixed": "#d9e2fe",
+                        "secondary-fixed-dim": "#ffb3b3",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#554424",
+                        "on-tertiary-container": "#bea77e",
+                        "surface-container": "#eceef0",
+                        "outline-variant": "#c6c6cd",
+                        "surface-dim": "#d8dadc",
+                        "status-closed": "#64748B",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#261901",
+                        "inverse-primary": "#bdc6e1",
+                        "surface-tint": "#555e76",
+                        "on-primary-fixed-variant": "#3d465d",
+                        "outline": "#76777d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit-sm": "8px",
+                        "sidebar-width": "260px",
+                        "container-max": "1440px",
+                        "unit-md": "16px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "unit-xs": "4px",
+                        "unit-lg": "24px",
+                        "sidebar-collapsed": "72px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "data-tabular": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .toggle-switch {
+            width: 32px;
+            height: 18px;
+            background-color: #cbd5e1;
+            border-radius: 9px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background-color: white;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+        .toggle-switch.active { background-color: #1f283d; }
+        .toggle-switch.active::after { transform: translateX(14px); }
+        .custom-shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
+    </style>
+</head>
+<body class="bg-background text-on-surface min-h-screen">
+<!-- Sidebar -->
+<aside class="fixed inset-y-0 left-0 w-[260px] bg-surface-sidebar flex flex-col z-50">
+<div class="p-unit-lg flex flex-col gap-unit-sm">
+<div class="flex items-center gap-3 mb-8">
+<img alt="Hergla Park Logo" class="w-12 h-12 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtjAiSXBwkiJhpvs_KsDOdsLDFa_ksW-B_K5smeMYWqJASy7Gi39nSPYaJEIdsy-3QwRfePc1HZUMYwLxPyWJjVxA60bvbZrufnBcZY0PyC_klM5ADwzf0QC5abytld3__txK2zsMDkbeNfqgdF9188TnWwej5uGDfQ3kVC2GmQAUjkQKOynIcdQ9ZIOHDp4WlJfnZHr7GN415mOSb8arsrFIKZf8pfLUQik2y0VYLvVBdjFwXWIzs6Hk0"/>
+<div>
+<h1 class="text-on-primary font-headline-md text-headline-md font-bold leading-tight">Hergla Park</h1>
+<p class="text-on-primary-container text-label-sm font-label-sm opacity-80 uppercase tracking-wider">Admin Dashboard</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-body-md font-body-md">Dashboard</span>
+</a>
+<!-- Active Tab: Spaces -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary rounded-xl mx-2 scale-[0.98] transition-all duration-200" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-body-md font-body-md">Spaces</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-body-md font-body-md">Users</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-body-md font-body-md">My Profile</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-unit-lg border-t border-white/10">
+<div class="flex items-center gap-3 px-2">
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary text-xs font-bold">JD</div>
+<div class="flex flex-col">
+<span class="text-on-primary text-label-md font-label-md">Super Admin</span>
+<span class="text-on-primary-container text-[10px] font-label-sm">v2.4.0-stable</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Wrapper -->
+<main class="pl-[260px] min-h-screen">
+<!-- Top Navbar -->
+<header class="sticky top-0 z-40 bg-surface border-b border-outline-variant h-16 flex items-center justify-between px-gutter">
+<div class="flex items-center gap-4">
+<span class="text-primary font-headline-sm text-headline-sm font-bold">Global View</span>
+<div class="h-4 w-[1px] bg-outline-variant"></div>
+<div class="relative group">
+<button class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-label-md font-label-md">
+<span class="material-symbols-outlined text-[18px]">language</span>
+<span>FR</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<!-- Simple dropdown simulated -->
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">notifications</span></button>
+<button class="hover:text-primary transition-colors"><span class="material-symbols-outlined">account_circle</span></button>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female administrative manager in her 40s, wearing a crisp dark blazer. The lighting is soft studio lighting against a clean, neutral background, conveying authority and approachability in a corporate light-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuASsFCxwqNvKKyvbSz_Kr6VLmrZIzTvUZeNIkIjDVyqpKzPAFA4QkP09a0YbB_dxWEGz3b8z_aZPiKcY2j-C-6SG-fFLsICv5hHUSr7jDSsWavSb8bD5UtlWuAxhmDG_An87oRLVJRb0BR91u_YMqAFvF5fpYH5Yg3AtUetjaclnOJCH9p7MbWH9OHgK211Uer908Tw9eCdpNYOlfK0jFzxSYijUpPfsq42fXS-iJw_XwYk8snLoDy5-g"/>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<div class="p-gutter max-w-container-max mx-auto">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-unit-lg">
+<div>
+<h2 class="text-headline-lg font-headline-lg text-primary mb-1">Espaces</h2>
+<p class="text-body-md font-body-md text-on-surface-variant">Gérez les zones opérationnelles et surveillez leur état en temps réel.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-5 py-2.5 rounded-xl font-label-md text-label-md hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    Créer un espace
+                </button>
+</div>
+<!-- Dashboard Filters / Stats Bar -->
+<div class="grid grid-cols-4 gap-gutter mb-unit-lg">
+<div class="bg-surface-container-lowest p-4 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
+<div class="bg-status-success/10 p-2 rounded-lg text-status-success">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Ouverts</p>
+<p class="text-headline-sm font-headline-sm">12</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
+<div class="bg-status-error/10 p-2 rounded-lg text-status-error">
+<span class="material-symbols-outlined">cancel</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Fermés</p>
+<p class="text-headline-sm font-headline-sm">3</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
+<div class="bg-status-warning/10 p-2 rounded-lg text-status-warning">
+<span class="material-symbols-outlined">construction</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Maintenance</p>
+<p class="text-headline-sm font-headline-sm">1</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl custom-shadow border border-outline-variant flex items-center gap-4">
+<div class="bg-primary/10 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">groups</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Staff Actif</p>
+<p class="text-headline-sm font-headline-sm">24</p>
+</div>
+</div>
+</div>
+<!-- Spaces Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+<!-- Piste Karting -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden custom-shadow border border-outline-variant group hover:border-primary/50 transition-all">
+<div class="h-40 relative overflow-hidden">
+<img alt="Piste Karting" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AP1WRLsWSlVcfLL8M65D_Eu8L8rSJOs3FutKdnimTWVBAFCB08IGwt18yos8VbbZxLGroOmP3tPnrqnDQ3DlDaRKFaoKIm5bETIbFI2T2tCMzpnQYjmjUBfXwoBbJhi7VgdKp0wNKXs9xxpNYEM2EmRVLYWezeegNHgDQajerPKBXucN79vmCml2UcfZwnzuA9vm5Azlrrev0R1AZhvv4QgTZ16q2VreWVqHgT7zp0RC0S1DA4WK8th1HzYSNXpb"/>
+<div class="absolute top-3 right-3">
+<span class="bg-status-success/20 text-status-success backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse"></span>
+                                Ouvert
+                            </span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-primary">Piste Karting</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Zone Vitesse A</p>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-40">toys</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-outline-variant">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-300"></div>
+<div class="flex items-center justify-center w-6 h-6 rounded-full border-2 border-white bg-primary text-[8px] text-white">+3</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Statut</span>
+<div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Restaurant -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden custom-shadow border border-outline-variant group hover:border-primary/50 transition-all">
+<div class="h-40 relative overflow-hidden">
+<img alt="Restaurant" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AP1WRLvd-PbGFrvYsJzwSP8L_6vjZNViOzC0Zwrfbbhc7AsZvdPS3EvgZvv09jpi_oU8aGpkOG3Y7HN0H2oxZrOkF1zg1y5bo7BMX1ge1Hb4-u7hdo9BzawEW_rVCToh09cEYvMbLy_-e2cw8Xit5tPV38t-73chBwcq0zo5x9XnAiikCVmPCJeyFtmV8kbFHlewmRdC0lbRpike5x2UjJYJyLKn9KswQPXz99uz6E1iMkWFjqEDirfZw74tGgc"/>
+<div class="absolute top-3 right-3">
+<span class="bg-status-success/20 text-status-success backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse"></span>
+                                Ouvert
+                            </span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-primary">Restaurant</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Terrasse &amp; Buffet</p>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-40">restaurant</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-outline-variant">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-400"></div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Statut</span>
+<div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Paintball -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden custom-shadow border border-outline-variant group hover:border-primary/50 transition-all">
+<div class="h-40 relative overflow-hidden">
+<img alt="Paintball" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida/AP1WRLtD9Pik6dH8iDsyOHP_m-2w4ALEt02tVsMO3z2129yhJKlpHSDAaEAE3lXSt48ywmtnKHSb1PQzL_q6e1Kl9tkefHvZJ8Ha9C2B39CnAsBbEWqbOJBAZurkx6dfi0a7d0tVLGIiZ0Qi95yauoV7jOeWrRpn6fB0pBPSVuyO3nTYLOFYgCce9LIndNcVXcFHP5iTBrvs9M3EvjvgVNIS3GFOasiPDnNYMeW19b-xts1OTVNgPnorMy1gPtM"/>
+<div class="absolute top-3 right-3">
+<span class="bg-status-warning/20 text-status-warning backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1">
+                                Maintenance
+                            </span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-primary">Paintball</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Zone Tactique</p>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-40">target</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-outline-variant">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-300"></div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Statut</span>
+<div class="toggle-switch" onclick="this.classList.toggle('active')"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Zone Enfants -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden custom-shadow border border-outline-variant group hover:border-primary/50 transition-all">
+<div class="h-40 relative overflow-hidden bg-surface-container-high flex items-center justify-center">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant and safe children's indoor play area featuring soft colorful padding in yellow, blue, and red. The space includes small plastic slides and a ball pit, all brightly lit with daylight through large windows. The overall tone is playful and energetic, matching a professional recreation management UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6ydws8VwrSOO9L7i6VuKe-QBaMYDPY0DPsgFBVaFlnMpc363DbRXZOdjCuX9hxmCcED25sdMQdePpkG44liHUMaDU1K5825FHVH1YrRcPhANaAwND17S-yogqLjP-_eu4gcUaesWxyIvVm4sEmegXoY_EF2-f4YPg0yTuSo2H2JHTUj1dUmvDK2OdI5K-SxjncKhIO7H0qGExtE_dis5sHzj9jSmqqMNhXsHDBFKER2z0L_LwVNFOwQ"/>
+<div class="absolute top-3 right-3">
+<span class="bg-status-closed text-white backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1">
+                                Fermé
+                            </span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-primary">Zone Enfants</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Aire de jeux</p>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-40">child_care</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-outline-variant">
+<div class="flex -space-x-2">
+<span class="text-label-sm italic text-on-surface-variant opacity-60">Aucun staff</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Statut</span>
+<div class="toggle-switch" onclick="this.classList.toggle('active')"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Café -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden custom-shadow border border-outline-variant group hover:border-primary/50 transition-all">
+<div class="h-40 relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A modern and minimalist cafe interior with warm wood accents and charcoal gray industrial finishes. A professional espresso machine sits on a clean counter, and soft sunlight filters through glass panes onto small bistro tables. The mood is calm and sophisticated, following the park's administrative brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBT5Fmq68_6zo3dt2yweVO2-y6CXbgB8nTXPtkJvbeAAJXn0Lf0RIuZaBbJDnkOrs3QH0f7t9WQjRcrhPhzvJqNp5zrIa_u63x4bPOdw5LAzIQCLgb4FcFb_MLkuzrkCOhxUHDU9RivK811hxy1SDs6Je5ot8PXXz8XJ-B4K7AVIH9Judy8gnRMOhDksUC9Zt2csw2OE08WSllUgHr2X_jKLJmHZ9hPBPTWx_ubQCT108Jbixo-zGlUSQ"/>
+<div class="absolute top-3 right-3">
+<span class="bg-status-success/20 text-status-success backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success animate-pulse"></span>
+                                Ouvert
+                            </span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-3">
+<div>
+<h3 class="text-headline-sm font-headline-sm text-primary">Café Central</h3>
+<p class="text-label-sm font-label-sm text-on-surface-variant">Snacks &amp; Coffee</p>
+</div>
+<span class="material-symbols-outlined text-primary-container opacity-40">coffee</span>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-outline-variant">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border-2 border-white bg-slate-200"></div>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-label-sm font-label-sm text-on-surface-variant">Statut</span>
+<div class="toggle-switch active" onclick="this.classList.toggle('active')"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Alerts Section (High Density Table) -->
+<div class="mt-unit-lg bg-surface-container-lowest rounded-xl custom-shadow border border-outline-variant">
+<div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center">
+<h3 class="text-headline-sm font-headline-sm text-primary">Alertes Récentes</h3>
+<button class="text-label-md font-label-md text-secondary hover:underline transition-all">Voir tout</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant border-b border-outline-variant">
+<th class="px-6 py-3 text-label-md font-label-md">Heure</th>
+<th class="px-6 py-3 text-label-md font-label-md">Espace</th>
+<th class="px-6 py-3 text-label-md font-label-md">Type</th>
+<th class="px-6 py-3 text-label-md font-label-md">Statut</th>
+<th class="px-6 py-3 text-label-md font-label-md text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-3 text-data-tabular font-data-tabular">14:23</td>
+<td class="px-6 py-3 text-data-tabular font-data-tabular font-bold">Piste Karting</td>
+<td class="px-6 py-3 text-data-tabular font-data-tabular text-on-surface-variant">Maintenance Circuit</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-warning/10 text-status-warning border border-status-warning/20">
+                                        En cours
+                                    </span>
+</td>
+<td class="px-6 py-3 text-right">
+<button class="p-1 opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high transition-colors group">
+<td class="px-6 py-3 text-data-tabular font-data-tabular">13:05</td>
+<td class="px-6 py-3 text-data-tabular font-data-tabular font-bold">Restaurant</td>
+<td class="px-6 py-3 text-data-tabular font-data-tabular text-on-surface-variant">Changement de Shift</td>
+<td class="px-6 py-3">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-status-success/10 text-status-success border border-status-success/20">
+                                        Terminé
+                                    </span>
+</td>
+<td class="px-6 py-3 text-right">
+<button class="p-1 opacity-0 group-hover:opacity-100 transition-opacity text-on-surface-variant hover:text-primary">
+<span class="material-symbols-outlined text-[18px]">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Simple Micro-interaction for sidebar links
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function() {
+                document.querySelectorAll('nav a').forEach(l => {
+                    l.classList.remove('bg-primary-container', 'text-on-primary', 'scale-[0.98]');
+                    l.classList.add('text-on-primary-container', 'hover:bg-primary-container/50');
+                });
+                this.classList.add('bg-primary-container', 'text-on-primary', 'scale-[0.98]');
+                this.classList.remove('text-on-primary-container', 'hover:bg-primary-container/50');
+            });
+        });
+    </script>
+</body></html>

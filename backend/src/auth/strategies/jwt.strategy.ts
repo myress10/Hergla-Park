@@ -14,10 +14,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    // Standard Passport validate hook. Payload contains { sub: user.id, role: user.role }
-    if (!payload.sub || !payload.role) {
+    // Standard Passport validate hook. Payload contains { sub, roles, companyId }
+    if (!payload.sub || !payload.roles) {
       throw new UnauthorizedException('Payload de token invalide');
     }
-    return { id: payload.sub, role: payload.role };
+    // companyId is null for ROOT-level users (no company affiliation)
+    return {
+      id: payload.sub,
+      roles: payload.roles,
+      role: payload.roles[0] || 'EMPLOYE', // keep string role for backward compatibility
+      companyId: payload.companyId ?? null,
+    };
   }
 }

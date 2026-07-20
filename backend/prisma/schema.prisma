@@ -3,25 +3,31 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
   id              String   @id @default(uuid())
+  companyId       String?
+  company         Company? @relation(fields: [companyId], references: [id])
   nom             String
   email           String   @unique
   passwordHash    String
-  role            Role     @default(EMPLOYE)
   assignedSpaceId String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   assignedSpace   Espace?  @relation(fields: [assignedSpaceId], references: [id])
   uploadedObjects Object3D[]
+  roles           UserRole[]
+  auditLogs       AuditLog[]
 }
 
 model Espace {
   id                 String           @id @default(uuid())
+  companyId          String
+  company            Company          @relation(fields: [companyId], references: [id])
   nom                String
   categorie          String
   statut             StatutEspace     @default(FERME)
@@ -36,6 +42,8 @@ model Espace {
 
 model Object3D {
   id            String   @id @default(uuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id])
   nom           String
   categorie     String        // ex: "mobilier", "decoration", "signaletique"
   modelUrl      String        // URL/chemin du fichier .glb dans le catalogue de base
@@ -66,14 +74,76 @@ model ScenePlacement {
   updatedAt   DateTime @updatedAt
 }
 
-enum Role {
-  SUPERADMIN
-  ADMIN
-  EMPLOYE
-}
-
 enum StatutEspace {
   OUVERT
   FERME
   MAINTENANCE
 }
+
+model Company {
+  id          String   @id @default(uuid())
+  nom         String
+  slug        String   @unique   // ex: "hergla-park", utilisé dans les URLs publiques
+  logoUrl     String?
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  espaces     Espace[]
+  objects3D   Object3D[]
+  roles       Role[]
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  key         String   @unique     // ex: "espace:create", "espace:update", "user:delete", "scene:edit", "role:manage", "logs:view"
+  description String
+  rolePermissions RolePermission[]
+}
+
+model Role {
+  id           String   @id @default(uuid())
+  nom          String                       // ex: "SUPERADMIN", "Responsable Café"
+  isSystem     Boolean  @default(false)      // true pour ROOT, SUPERADMIN, ADMIN, EMPLOYE — protégés
+  companyId    String?                       // null pour les rôles système globaux (ROOT) ou templates par défaut ; renseigné pour les rôles personnalisés d'une entreprise
+  company      Company? @relation(fields: [companyId], references: [id])
+  createdAt    DateTime @default(now())
+
+  permissions  RolePermission[]
+  users        UserRole[]
+
+  @@unique([nom, companyId])   // deux rôles de même nom possibles dans deux entreprises différentes, mais pas dans la même
+}
+
+model RolePermission {
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId  String
+  role    Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model AuditLog {
+  id                 String   @id @default(uuid())
+  companyId          String?                    // null si action globale/plateforme (ex: ROOT consultant les logs)
+  actorId            String
+  actor              User     @relation(fields: [actorId], references: [id])
+  action             String                     // ex: "espace.update", "role.create", "user.delete"
+  entityType         String                     // ex: "Espace", "User", "Role"
+  entityId           String?
+  isRootIntervention Boolean  @default(false)    // true si action effectuée par ROOT
+  metadata           Json?                      // ex: { before: {...}, after: {...}, reason: "Urgent fix" }
+  createdAt          DateTime @default(now())
+}
+

@@ -14,9 +14,8 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { Objects3dService } from './objects3d.service';
 import { JwtAuthGuard } from '../auth/guards/auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { PermissionsGuard } from '../auth/guards/permissions.guard';
+import { RequirePermissions } from '../common/decorators/permissions.decorator';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -24,33 +23,48 @@ import {
   ApiOperation,
   ApiResponse,
   ApiTags,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { CreateObject3dDto } from './dto/create-object3d.dto';
 
 @ApiTags('objects3d')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 @Controller('api/objects3d')
 export class Objects3dController {
   constructor(private readonly objects3dService: Objects3dService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Get 3D objects catalog (filtered by category)' })
+  @RequirePermissions('espace:read') // standard view
+  @ApiOperation({ summary: 'Get 3D objects catalog' })
+  @ApiQuery({ name: 'targetCompanyId', required: false, description: 'Filter by company (ROOT only)' })
   @ApiResponse({ status: 200, description: 'Catalog retrieved successfully' })
-  async findAll(@Query('categorie') categorie?: string) {
-    return this.objects3dService.findAll(categorie);
+  async findAll(
+    @Req() req,
+    @Query('targetCompanyId') targetCompanyId?: string,
+  ) {
+    const caller = { ...req.user, isRoot: req.isRootUser || false };
+    return this.objects3dService.findAll(caller, targetCompanyId);
   }
 
   @Post()
-  @Roles(Role.SUPERADMIN)
-  @ApiOperation({ summary: 'Add standard 3D object to catalog (SUPERADMIN only)' })
+  @RequirePermissions('scene:edit') // standard scene editing rights needed to modify catalogues
+  @ApiOperation({ summary: 'Add standard 3D object to catalog' })
+  @ApiQuery({ name: 'targetCompanyId', required: false, description: 'Target company (ROOT only)' })
+  @ApiQuery({ name: 'reason', required: false, description: 'Reason for write action (ROOT only)' })
   @ApiResponse({ status: 201, description: 'Object created successfully' })
-  async createBase(@Body() dto: CreateObject3dDto) {
-    return this.objects3dService.createBase(dto);
+  async createBase(
+    @Body() dto: CreateObject3dDto,
+    @Req() req,
+    @Query('targetCompanyId') targetCompanyId?: string,
+    @Query('reason') reason?: string,
+  ) {
+    const caller = { ...req.user, isRoot: req.isRootUser || false };
+    return this.objects3dService.createBase(dto, caller, targetCompanyId, reason);
   }
 
   @Post('upload')
-  @Roles(Role.SUPERADMIN)
+  @RequirePermissions('scene:edit')
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'file', maxCount: 1 },
@@ -60,6 +74,8 @@ export class Objects3dController {
   )
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Upload a custom 3D model (.glb) + optional thumbnail' })
+  @ApiQuery({ name: 'targetCompanyId', required: false, description: 'Target company (ROOT only)' })
+  @ApiQuery({ name: 'reason', required: false, description: 'Reason for write action (ROOT only)' })
   @ApiBody({
     schema: {
       type: 'object',
@@ -87,23 +103,37 @@ export class Objects3dController {
   })
   async upload(
     @UploadedFiles()
-    files: {
-      file?: any[];
-      model?: any[];
-      thumbnail?: any[];
-    },
+    files: { file?: any[]; model?: any[]; thumbnail?: any[] },
     @Body('nom') nom: string,
     @Body('categorie') categorie: string,
     @Req() req,
+    @Query('targetCompanyId') targetCompanyId?: string,
+    @Query('reason') reason?: string,
   ) {
     const glbFile = files.model?.[0] || files.file?.[0];
     const thumbFile = files.thumbnail?.[0];
-    return this.objects3dService.uploadCustom(nom, categorie, glbFile, thumbFile, req.user);
+    const caller = { ...req.user, isRoot: req.isRootUser || false };
+    return this.objects3dService.uploadCustom(
+      nom,
+      categorie,
+      glbFile,
+      thumbFile,
+      caller,
+      targetCompanyId,
+      reason,
+    );
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a 3D object from catalog (SUPERADMIN or owner)' })
-  async remove(@Param('id') id: string, @Req() req) {
-    return this.objects3dService.remove(id, req.user);
+  @RequirePermissions('scene:edit')
+  @ApiOperation({ summary: 'Delete a 3D object from catalog' })
+  @ApiQuery({ name: 'reason', required: false, description: 'Reason for write action (ROOT only)' })
+  async remove(
+    @Param('id') id: string,
+    @Req() req,
+    @Query('reason') reason?: string,
+  ) {
+    const caller = { ...req.user, isRoot: req.isRootUser || false };
+    return this.objects3dService.remove(id, caller, reason);
   }
 }

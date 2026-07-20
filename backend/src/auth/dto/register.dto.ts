@@ -1,10 +1,9 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
 
 export class RegisterDto {
   @ApiProperty({
-    description: 'Le nom complet de l\'utilisateur',
+    description: "Le nom complet de l'utilisateur",
     example: 'Rourou Park',
   })
   @IsString()
@@ -12,15 +11,15 @@ export class RegisterDto {
   nom: string;
 
   @ApiProperty({
-    description: 'L\'adresse email de l\'utilisateur (doit être unique)',
+    description: "L'adresse email de l'utilisateur (doit être unique)",
     example: 'rourou@herglapark.com',
   })
   @IsEmail({}, { message: 'Adresse email invalide' })
-  @IsNotEmpty({ message: 'L\'email est obligatoire' })
+  @IsNotEmpty({ message: "L'email est obligatoire" })
   email: string;
 
   @ApiProperty({
-    description: 'Le mot de passe de l\'utilisateur (minimum 6 caractères)',
+    description: "Le mot de passe de l'utilisateur (minimum 6 caractères)",
     example: 'SecurePass123',
   })
   @IsString()
@@ -28,17 +27,16 @@ export class RegisterDto {
   password: string;
 
   @ApiProperty({
-    description: 'Le rôle de l\'utilisateur au sein du parc',
-    enum: Role,
-    default: Role.EMPLOYE,
+    description: "Le nom du rôle à assigner (ex: 'SUPERADMIN', 'ADMIN', 'EMPLOYE', ou un rôle personnalisé). Par défaut: 'EMPLOYE'.",
+    example: 'EMPLOYE',
     required: false,
   })
-  @IsEnum(Role, { message: 'Rôle invalide' })
+  @IsString()
   @IsOptional()
-  role?: Role;
+  role?: string;
 
   @ApiProperty({
-    description: 'L\'ID de l\'espace du parc assigné (facultatif, pour ADMIN et EMPLOYE)',
+    description: "L'ID de l'espace du parc assigné (facultatif, pour ADMIN et EMPLOYE)",
     example: 'a60421e4-399a-41df-96fb-d8d5dfd9748b',
     required: false,
     nullable: true,
@@ -46,4 +44,14 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   assignedSpaceId?: string;
+
+  @ApiProperty({
+    description: "L'ID de l'entreprise (tenant) à laquelle cet utilisateur appartient. Null pour les utilisateurs ROOT globaux.",
+    example: 'b70532f5-4aab-52ef-87gc-e9e6ege0859c',
+    required: false,
+    nullable: true,
+  })
+  @IsUUID()
+  @IsOptional()
+  companyId?: string;
 }
