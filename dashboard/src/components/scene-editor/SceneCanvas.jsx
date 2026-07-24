@@ -2,6 +2,7 @@ import { Suspense, useRef, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, Grid, useGLTF } from '@react-three/drei';
 import SceneObjectMesh from './SceneObjectMesh';
+import CanvasErrorBoundary from './CanvasErrorBoundary';
 
 /**
  * Renders a GLB model as the base scene environment.
@@ -101,26 +102,26 @@ export default function SceneCanvas({
 
         {/* Base scene model */}
         {baseSceneUrl && (
-          <Suspense fallback={null}>
-            <BaseScene url={baseSceneUrl} />
-          </Suspense>
+          <CanvasErrorBoundary fallback={null}>
+            <Suspense fallback={null}>
+              <BaseScene url={baseSceneUrl} />
+            </Suspense>
+          </CanvasErrorBoundary>
         )}
 
-        {/* Ground grid (shown when no base scene) */}
-        {!baseSceneUrl && (
-          <Grid
-            position={[0, -0.01, 0]}
-            args={[100, 100]}
-            cellSize={1}
-            cellThickness={0.5}
-            cellColor="#cbd5e1"
-            sectionSize={5}
-            sectionThickness={1}
-            sectionColor="#94a3b8"
-            fadeDistance={40}
-            infiniteGrid
-          />
-        )}
+        {/* Ground grid */}
+        <Grid
+          position={[0, -0.01, 0]}
+          args={[100, 100]}
+          cellSize={1}
+          cellThickness={0.5}
+          cellColor="#cbd5e1"
+          sectionSize={5}
+          sectionThickness={1}
+          sectionColor="#94a3b8"
+          fadeDistance={40}
+          infiniteGrid
+        />
 
         {/* Drop plane for drag-and-drop positioning */}
         <DropPlane onDrop={onDropPoint} />

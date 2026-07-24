@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import LangSwitcher from '../components/LangSwitcher';
-import { Bell, User } from 'lucide-react';
-import { Toaster } from 'react-hot-toast';
+import { Bell, Building, User } from 'lucide-react';
+import { Toaster, toast } from 'react-hot-toast';
 
 const PAGE_TITLES = {
   '/espaces': 'nav.spaces',
@@ -15,7 +15,7 @@ const PAGE_TITLES = {
 
 export default function DashboardLayout() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, availableCompanies, activeCompanyId, switchCompany } = useAuth();
   const location = useLocation();
 
   const titleKey = PAGE_TITLES[location.pathname] || 'nav.dashboard';
@@ -23,6 +23,18 @@ export default function DashboardLayout() {
   const initials = user?.nom
     ? user.nom.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
     : 'U';
+
+  const handleCompanyChange = async (e) => {
+    const newCompanyId = e.target.value;
+    if (newCompanyId === activeCompanyId) return;
+    try {
+      const comp = await switchCompany(newCompanyId);
+      toast.success(`Entreprise active : ${comp.nom}`);
+      window.location.reload();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de la bascule d\'entreprise');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 flex">
@@ -39,6 +51,25 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Multi-Company Selector */}
+            {availableCompanies && availableCompanies.length > 1 && (
+              <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1 text-xs text-slate-700">
+                <Building size={14} className="text-navy" />
+                <select
+                  value={activeCompanyId || ''}
+                  onChange={handleCompanyChange}
+                  className="bg-transparent font-medium focus:outline-none cursor-pointer text-slate-700"
+                  id="company-switcher-select"
+                >
+                  {availableCompanies.map((comp) => (
+                    <option key={comp.id} value={comp.id}>
+                      {comp.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Notification bell */}
             <button
               className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-500"

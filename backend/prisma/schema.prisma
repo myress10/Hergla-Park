@@ -9,19 +9,20 @@ datasource db {
 }
 
 model User {
-  id              String   @id @default(uuid())
+  id              String        @id @default(uuid())
   companyId       String?
-  company         Company? @relation(fields: [companyId], references: [id])
+  company         Company?      @relation(fields: [companyId], references: [id])
   nom             String
-  email           String   @unique
+  email           String        @unique
   passwordHash    String
   assignedSpaceId String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  assignedSpace   Espace?  @relation(fields: [assignedSpaceId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  assignedSpace   Espace?       @relation(fields: [assignedSpaceId], references: [id])
   uploadedObjects Object3D[]
   roles           UserRole[]
   auditLogs       AuditLog[]
+  userCompanies   UserCompany[]
 }
 
 model Espace {
@@ -89,10 +90,22 @@ model Company {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users       User[]
-  espaces     Espace[]
-  objects3D   Object3D[]
-  roles       Role[]
+  users         User[]
+  espaces       Espace[]
+  objects3D     Object3D[]
+  roles         Role[]
+  userCompanies UserCompany[]
+  auditLogs     AuditLog[]
+}
+
+model UserCompany {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, companyId])
 }
 
 model Permission {
@@ -105,6 +118,7 @@ model Permission {
 model Role {
   id           String   @id @default(uuid())
   nom          String                       // ex: "SUPERADMIN", "Responsable Café"
+  niveau       Int      @default(20)         // 100 = ROOT, 90 = SUPERADMIN, 50 = ADMIN, 20 = EMPLOYE / personnalisé
   isSystem     Boolean  @default(false)      // true pour ROOT, SUPERADMIN, ADMIN, EMPLOYE — protégés
   companyId    String?                       // null pour les rôles système globaux (ROOT) ou templates par défaut ; renseigné pour les rôles personnalisés d'une entreprise
   company      Company? @relation(fields: [companyId], references: [id])
@@ -137,6 +151,7 @@ model UserRole {
 model AuditLog {
   id                 String   @id @default(uuid())
   companyId          String?                    // null si action globale/plateforme (ex: ROOT consultant les logs)
+  company            Company? @relation(fields: [companyId], references: [id])
   actorId            String
   actor              User     @relation(fields: [actorId], references: [id])
   action             String                     // ex: "espace.update", "role.create", "user.delete"

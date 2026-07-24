@@ -84,6 +84,13 @@ export class RootService {
               email: true,
             },
           },
+          company: {
+            select: {
+              id: true,
+              nom: true,
+              slug: true,
+            },
+          },
         },
       }),
     ]);

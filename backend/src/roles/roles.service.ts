@@ -58,6 +58,7 @@ export class RolesService {
     const role = await this.prisma.role.create({
       data: {
         nom,
+        niveau: 20, // Forced server-side: all custom roles are fixed at level 20 (EMPLOYE equivalent)
         companyId,
         isSystem: false,
         permissions: {
@@ -219,7 +220,8 @@ export class RolesService {
     isRoot: boolean,
     reason?: string,
   ) {
-    const { roleIds, mode } = dto;
+    const { roleIds } = dto;
+    const mode = dto.mode || 'add';
 
     // Verify user exists
     const user = await this.prisma.user.findUnique({
@@ -254,6 +256,20 @@ export class RolesService {
       where: { userId: targetUserId },
       include: { role: true },
     });
+
+    // Role Hierarchy Validation for mode: "add"
+    if (mode === 'add') {
+      const currentLevels = beforeRoles.map((ur) => ur.role.niveau);
+      const niveauMaxActuel = currentLevels.length > 0 ? Math.max(...currentLevels) : 0;
+
+      for (const newRole of roles) {
+        if (newRole.niveau > niveauMaxActuel) {
+          throw new BadRequestException(
+            "Ce rôle est supérieur au niveau actuel de l'utilisateur. Utilisez le mode 'replace' pour une promotion explicite."
+          );
+        }
+      }
+    }
 
     await this.prisma.$transaction(async (tx) => {
       if (mode === 'replace') {

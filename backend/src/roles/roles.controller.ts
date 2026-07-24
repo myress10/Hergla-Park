@@ -9,6 +9,8 @@ import {
   UseGuards,
   Req,
   Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesService } from './roles.service';
@@ -73,6 +75,7 @@ export class RolesController {
   }
 
   @Post('users/:id/roles')
+  @HttpCode(HttpStatus.OK)
   @RequirePermissions('role:assign')
   @ApiOperation({ summary: 'Assign roles to a user' })
   @ApiResponse({ status: 200, description: 'User roles updated' })

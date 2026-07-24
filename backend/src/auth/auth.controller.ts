@@ -1,8 +1,10 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Post, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { SwitchCompanyDto } from './dto/switch-company.dto';
+import { JwtAuthGuard } from './guards/auth.guard';
 
 @ApiTags('auth')
 @Controller('api/auth')
@@ -24,5 +26,17 @@ export class AuthController {
   @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Identifiants invalides' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('switch-company')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Switch active company context for multi-company SUPERADMIN or ROOT without re-login' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Bascule réussie, nouveau token JWT généré' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Accès refusé pour cette entreprise' })
+  async switchCompany(@Body() dto: SwitchCompanyDto, @Req() req) {
+    const isRoot = req.isRootUser || req.user?.roles?.includes('ROOT') || false;
+    return this.authService.switchCompany(req.user.id, dto.companyId, isRoot);
   }
 }

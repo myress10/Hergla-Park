@@ -1,16 +1,21 @@
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, Suspense } from 'react';
 import { useGLTF } from '@react-three/drei';
 import { TransformControls } from '@react-three/drei';
 import * as THREE from 'three';
+import CanvasErrorBoundary from './CanvasErrorBoundary';
+
+/**
+ * Loads and clones the GLTF model.
+ */
+function SceneModel({ url }) {
+  const { scene } = useGLTF(url);
+  const clonedScene = scene ? scene.clone(true) : null;
+  return clonedScene ? <primitive object={clonedScene} /> : null;
+}
 
 /**
  * Renders a single placed 3D object from its GLB URL.
  * If selected, wraps it in TransformControls for move/rotate/scale.
- *
- * @param {object}   placement   - { instanceId, object3dId, object3dUrl, position, rotation, scale }
- * @param {boolean}  isSelected  - whether this object is currently selected
- * @param {function} onSelect    - called with instanceId when clicked
- * @param {function} onTransform - called with (instanceId, { position, rotation, scale }) after transform
  */
 export default function SceneObjectMesh({ placement, isSelected, onSelect, onTransform }) {
   const getFullUrl = (url) => {
@@ -21,11 +26,8 @@ export default function SceneObjectMesh({ placement, isSelected, onSelect, onTra
   };
 
   const resolvedUrl = getFullUrl(placement.object3dUrl);
-  const { scene } = useGLTF(resolvedUrl || '');
   const meshRef = useRef(null);
   const transformRef = useRef(null);
-
-  const clonedScene = scene ? scene.clone(true) : null;
 
   const handleTransformChange = useCallback(() => {
     if (!meshRef.current) return;
@@ -61,7 +63,16 @@ export default function SceneObjectMesh({ placement, isSelected, onSelect, onTra
           onSelect(placement.instanceId);
         }}
       >
-        <primitive object={clonedScene} />
+        <CanvasErrorBoundary fallback={
+          <mesh>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial color="#ef4444" opacity={0.7} transparent />
+          </mesh>
+        }>
+          <Suspense fallback={null}>
+            {resolvedUrl ? <SceneModel url={resolvedUrl} /> : null}
+          </Suspense>
+        </CanvasErrorBoundary>
 
         {/* Selection highlight box */}
         {isSelected && (

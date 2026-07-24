@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -77,6 +77,7 @@ export class AuthService {
             roleId: roleRecord.id,
           },
         },
+        ...(companyId ? { userCompanies: { create: { companyId } } } : {}),
       },
       include: {
         roles: {
@@ -99,6 +100,8 @@ export class AuthService {
         role: targetRoleName,
       },
       token,
+      activeCompanyId: user.companyId,
+      availableCompanies: companyId ? [{ id: companyId, nom: '', slug: '' }] : [],
     };
   }
 
@@ -113,6 +116,12 @@ export class AuthService {
             role: true,
           },
         },
+        userCompanies: {
+          include: {
+            company: true,
+          },
+        },
+        company: true,
       },
     });
 
@@ -128,7 +137,25 @@ export class AuthService {
     const rolesList = user.roles.map((ur) => ur.role.nom);
     const token = this.generateToken(user.id, rolesList, user.companyId);
 
-    const { passwordHash: _, roles, ...result } = user;
+    let availableCompanies: { id: string; nom: string; slug: string }[] = [];
+
+    if (user.userCompanies && user.userCompanies.length > 0) {
+      availableCompanies = user.userCompanies.map((uc) => ({
+        id: uc.company.id,
+        nom: uc.company.nom,
+        slug: uc.company.slug,
+      }));
+    } else if (user.company) {
+      availableCompanies = [
+        {
+          id: user.company.id,
+          nom: user.company.nom,
+          slug: user.company.slug,
+        },
+      ];
+    }
+
+    const { passwordHash: _, roles, userCompanies: __, company: ___, ...result } = user;
     return {
       success: true,
       data: {
@@ -136,6 +163,62 @@ export class AuthService {
         role: rolesList[0] || 'EMPLOYE',
       },
       token,
+      activeCompanyId: user.companyId,
+      availableCompanies,
+    };
+  }
+
+  async switchCompany(userId: string, targetCompanyId: string, isRoot: boolean) {
+    const targetCompany = await this.prisma.company.findUnique({
+      where: { id: targetCompanyId },
+    });
+
+    if (!targetCompany) {
+      throw new BadRequestException("L'entreprise cible spécifiée n'existe pas.");
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+        userCompanies: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur non trouvé.');
+    }
+
+    if (!isRoot) {
+      const isSuperAdmin = user.roles.some((ur) => ur.role.nom === 'SUPERADMIN');
+      const isAttached = user.userCompanies.some((uc) => uc.companyId === targetCompanyId);
+
+      if (!isSuperAdmin || !isAttached) {
+        throw new ForbiddenException("Accès refusé. Vous n'êtes pas autorisé à basculer vers cette entreprise.");
+      }
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { companyId: targetCompanyId },
+    });
+
+    const rolesList = user.roles.map((ur) => ur.role.nom);
+    const newToken = this.generateToken(userId, rolesList, targetCompanyId);
+
+    return {
+      success: true,
+      token: newToken,
+      activeCompanyId: targetCompanyId,
+      company: {
+        id: targetCompany.id,
+        nom: targetCompany.nom,
+        slug: targetCompany.slug,
+      },
     };
   }
 

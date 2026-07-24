@@ -5,3 +5,7 @@ export const login = (email, password) =>
 
 export const register = (data) =>
   axiosClient.post('/auth/register', data);
+
+export const switchCompany = (companyId) =>
+  axiosClient.post('/auth/switch-company', { companyId });
+
