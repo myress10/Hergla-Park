@@ -1,0 +1,164 @@
+{
+  "nav": {
+    "dashboard": "لوحة القيادة",
+    "spaces": "المساحات",
+    "users": "المستخدمون",
+    "mySpace": "مساحتي",
+    "myProfile": "ملفي الشخصي",
+    "editor3d": "محرر ثلاثي الأبعاد"
+  },
+  "login": {
+    "title": "لوحة الإدارة",
+    "subtitle": "تسجيل الدخول لإدارة العمليات",
+    "emailLabel": "البريد الإلكتروني المهني",
+    "emailPlaceholder": "admin@herglapark.com",
+    "passwordLabel": "كلمة المرور",
+    "forgotPassword": "نسيت؟",
+    "rememberMe": "تذكرني",
+    "submitButton": "تسجيل الدخول",
+    "contactSupport": "مشكلة في الوصول؟ تواصل مع الدعم التقني",
+    "copyright": "© 2024 Hergla Park. جميع الحقوق محفوظة.",
+    "error": {
+      "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
+      "networkError": "خطأ في الاتصال. تحقق من الشبكة."
+    }
+  },
+  "spaces": {
+    "title": "المساحات",
+    "subtitle": "إدارة وتنسيق جميع المناطق الترفيهية والمرافق في هيرغلا بارك.",
+    "createButton": "إنشاء مساحة",
+    "stats": {
+      "open": "مفتوح الآن",
+      "closed": "مغلق",
+      "maintenance": "تحت الصيانة",
+      "activeStaff": "إجمالي المساحات"
+    },
+    "card": {
+      "status": "حالة التشغيل",
+      "noStaff": "لا يوجد موظفون"
+    },
+    "recentAlerts": "النشاط الأخير في المساحات",
+    "viewAll": "عرض الكل",
+    "table": {
+      "time": "الوقت",
+      "space": "المساحة",
+      "type": "الإجراء",
+      "status": "بواسطة",
+      "actions": "الإجراءات"
+    },
+    "create": {
+      "title": "إنشاء مساحة جديدة",
+      "name": "الاسم",
+      "category": "الفئة",
+      "submit": "إنشاء",
+      "cancel": "إلغاء"
+    },
+    "statuses": {
+      "OUVERT": "مفتوح",
+      "FERME": "مغلق",
+      "MAINTENANCE": "صيانة"
+    }
+  },
+  "mySpace": {
+    "operationalStatus": "حالة التشغيل",
+    "updateAccessibility": "تحديث إمكانية الوصول",
+    "openTrack": "فتح",
+    "maintenance": "صيانة",
+    "emergencyClose": "إغلاق طارئ",
+    "dailyReport": "التقرير اليومي",
+    "metrics": "مؤشرات الأداء اللحظية",
+    "quickStats": "إحصائيات سريعة",
+    "saveUpdate": "حفظ التحديث",
+    "specificData": "البيانات الخاصة",
+    "keyLabel": "المفتاح",
+    "valueLabel": "القيمة",
+    "addField": "إضافة حقل",
+    "removeField": "حذف",
+    "updateSuccess": "تم تحديث المساحة بنجاح",
+    "updateError": "حدث خطأ أثناء التحديث"
+  },
+  "users": {
+    "title": "المستخدمون",
+    "subtitle": "إدارة صلاحيات وأدوار فريق هيرغلا بارك.",
+    "addButton": "إضافة مستخدم",
+    "search": "البحث عن مستخدم...",
+    "filter": "تصفية",
+    "export": "تصدير",
+    "tabs": {
+      "all": "الكل",
+      "admins": "المديرون",
+      "employees": "الموظفون"
+    },
+    "table": {
+      "user": "المستخدم",
+      "role": "الدور",
+      "assignedSpace": "المساحة المخصصة",
+      "status": "الحالة",
+      "actions": "الإجراءات",
+      "wholeSystem": "النظام بأكمله",
+      "noSpace": "—"
+    },
+    "stats": {
+      "total": "إجمالي المستخدمين",
+      "activeToday": "نشطون اليوم",
+      "admins": "المديرون",
+      "pending": "في الانتظار"
+    },
+    "userStatus": {
+      "connected": "متصل",
+      "online": "عبر الإنترنت",
+      "offline": "غير متصل",
+      "inService": "في الخدمة"
+    },
+    "create": {
+      "title": "إضافة مستخدم",
+      "name": "الاسم الكامل",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "role": "الدور",
+      "assignedSpace": "المساحة المخصصة",
+      "noSpace": "لا مساحة",
+      "submit": "إنشاء",
+      "cancel": "إلغاء"
+    },
+    "edit": {
+      "title": "تعديل المستخدم",
+      "submit": "حفظ",
+      "cancel": "إلغاء"
+    },
+    "delete": {
+      "confirm": "هل تريد حذف هذا المستخدم؟",
+      "yes": "حذف",
+      "no": "إلغاء"
+    },
+    "pagination": {
+      "showing": "عرض {{from}}-{{to}} من أصل {{total}} مستخدم"
+    },
+    "recentActivity": "الأنشطة الأخيرة",
+    "globalSystem": "النظام العام",
+    "securityLock": "قفل الأمان",
+    "autoAssign": "التعيين التلقائي",
+    "securityAudit": "مراجعة الأمان العامة"
+  },
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ ما",
+    "retry": "إعادة المحاولة",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "close": "إغلاق",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "logout": "تسجيل الخروج",
+    "profile": "الملف الشخصي",
+    "version": "v2.4.0-stable",
+    "systemOnline": "النظام نشط"
+  },
+  "notFound": {
+    "title": "الصفحة غير موجودة",
+    "subtitle": "الصفحة التي تبحث عنها غير موجودة.",
+    "back": "العودة إلى لوحة التحكم"
+  }
+}

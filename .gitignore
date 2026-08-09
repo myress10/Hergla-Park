@@ -1,3 +1,4 @@
+
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -10,3 +11,37 @@ UserSettings/
 *.csproj
 *.sln
 *.tmp
+
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+build/
+*.log
+
+# Environments
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+**/.env
+**/.env.local
+
+# IDEs
+.vscode/
+.idea/
+.DS_Store
+
+# Local Uploads
+backend/uploads/models/*
+backend/uploads/thumbnails/*
+!backend/uploads/models/.gitkeep
+!backend/uploads/thumbnails/.gitkeep
+
+# Demo credentials
+SEED_CREDENTIALS.md
+backend/SEED_CREDENTIALS.md

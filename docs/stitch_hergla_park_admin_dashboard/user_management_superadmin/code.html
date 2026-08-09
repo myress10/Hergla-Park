@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+
+<html dir="ltr" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hergla Park - Gestion des Utilisateurs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#191c1e",
+                        "on-primary": "#ffffff",
+                        "secondary-fixed": "#ffdad9",
+                        "primary-container": "#353e54",
+                        "on-tertiary": "#ffffff",
+                        "tertiary": "#342608",
+                        "surface-container-highest": "#e0e3e5",
+                        "on-secondary-container": "#fffbff",
+                        "surface-bright": "#f7f9fb",
+                        "on-secondary-fixed-variant": "#920022",
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e6e8ea",
+                        "inverse-surface": "#2d3133",
+                        "tertiary-fixed": "#f9dfb3",
+                        "inverse-on-surface": "#eff1f3",
+                        "on-error": "#ffffff",
+                        "on-background": "#191c1e",
+                        "primary": "#1f283d",
+                        "on-secondary-fixed": "#400009",
+                        "on-surface-variant": "#45464d",
+                        "status-error": "#EF4444",
+                        "secondary-container": "#e8063c",
+                        "on-primary-container": "#a0a9c3",
+                        "background": "#f7f9fb",
+                        "status-success": "#10B981",
+                        "surface-container-low": "#f2f4f6",
+                        "surface": "#f7f9fb",
+                        "on-error-container": "#93000a",
+                        "primary-fixed-dim": "#bdc6e1",
+                        "tertiary-fixed-dim": "#dcc399",
+                        "on-primary-fixed": "#121b2f",
+                        "status-warning": "#F59E0B",
+                        "accent-yellow": "#FFD600",
+                        "surface-sidebar": "#1E293B",
+                        "tertiary-container": "#4c3c1c",
+                        "secondary": "#ba002d",
+                        "primary-fixed": "#d9e2fe",
+                        "secondary-fixed-dim": "#ffb3b3",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#554424",
+                        "on-tertiary-container": "#bea77e",
+                        "surface-container": "#eceef0",
+                        "outline-variant": "#c6c6cd",
+                        "surface-dim": "#d8dadc",
+                        "status-closed": "#64748B",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed": "#261901",
+                        "inverse-primary": "#bdc6e1",
+                        "surface-tint": "#555e76",
+                        "on-primary-fixed-variant": "#3d465d",
+                        "outline": "#76777d"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit-sm": "8px",
+                        "sidebar-width": "260px",
+                        "container-max": "1440px",
+                        "unit-md": "16px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "unit-xs": "4px",
+                        "unit-lg": "24px",
+                        "sidebar-collapsed": "72px"
+                    },
+                    "fontFamily": {
+                        "headline-sm": ["Hanken Grotesk"],
+                        "headline-lg": ["Hanken Grotesk"],
+                        "label-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-md": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-md": ["Hanken Grotesk"],
+                        "data-tabular": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #F8FAFC;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<!-- Sidebar Shell -->
+<aside class="docked fixed h-full w-[260px] start-0 flex flex-col bg-surface-sidebar py-unit-lg z-50 transition-all duration-300">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-lg" data-alt="The Hergla Park official logo, a stylized and playful typographic design featuring the name 'Hergla Park' in bold reds and deep slates. The logo is set against a clean white background, reflecting a professional yet energetic recreational brand identity suitable for a high-end amusement park administration dashboard." src="https://lh3.googleusercontent.com/aida-public/AB6AXuABA24rmmAxvR9wf5SwgITbaQZoDSw7pVKQDUcuzoiBmga_efNJEIrbhXGydOi4zVp0qlMXPTpZoZ7ivCjg5gYsvm0L4lSzgMAy_-t1IXBwcC6WPz8HcFkoqfY1MyhFy9p1D78iOUBsWXUd8eqwUp4VP9S433XMxGmiUO3sUF9w-qBG0rwTlTmcHzIoySzmnWqR9vLuqyfvQsdHFGVqOvI9T7-FqmRexd7FjlHgRqLsElfvinhXzZ8_DQ"/>
+<div>
+<h1 class="text-headline-sm font-headline-sm text-on-primary">Hergla Park</h1>
+<p class="text-label-sm font-label-sm text-on-primary-container">Admin Dashboard</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-label-md font-label-md">Spaces</span>
+</a>
+<!-- Active Tab: Users -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary rounded-xl mx-2 scale-[0.98] transition-all duration-200 shadow-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="text-label-md font-label-md">Users</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-label-md font-label-md">My Profile</span>
+</a>
+</nav>
+<div class="mt-auto px-4">
+<div class="p-4 bg-primary-container/20 rounded-xl border border-outline-variant/10">
+<p class="text-label-sm font-label-sm text-on-primary-container uppercase tracking-widest mb-2">Role Status</p>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-status-success animate-pulse"></span>
+<span class="text-label-md font-label-md text-on-primary">SUPERADMIN</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ms-[260px] min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="docked full-width top-0 sticky h-16 bg-surface border-b border-outline-variant flex justify-between items-center w-full px-gutter z-40">
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute inset-y-0 start-3 flex items-center text-outline">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</span>
+<input class="bg-surface-container-low border-none rounded-full ps-10 pe-4 py-2 text-body-sm w-80 focus:ring-2 focus:ring-primary/20 placeholder:text-outline transition-all" placeholder="Rechercher un utilisateur..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-primary font-bold border-b-2 border-primary pb-1 cursor-pointer">
+<span class="text-label-md font-label-md">FR</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-all cursor-pointer">
+<span class="text-label-md font-label-md">AR</span>
+</div>
+<div class="h-6 w-px bg-outline-variant mx-2"></div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-all">language</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-all relative">
+                    notifications
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-secondary rounded-full"></span>
+</button>
+<div class="flex items-center gap-3 ps-4 cursor-pointer group">
+<div class="text-right">
+<p class="text-label-md font-label-md text-primary">Admin User</p>
+<p class="text-[10px] text-on-surface-variant">System Master</p>
+</div>
+<img class="w-10 h-10 rounded-full border-2 border-primary/10 group-hover:border-primary/50 transition-all" data-alt="A professional headshot of a mature corporate male administrator in a modern office setting. He is wearing a crisp white shirt, exuding confidence and authority. The lighting is soft and even, highlighting a clean, high-contrast professional environment consistent with an administrative dashboard aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoS609iiisz7SX3Z4UhojIx7Pd2hYxG8L1TqOZ_b_ZD0yH0N8eyaHMjG9hTE3gfzQ_Kg4O_ubll9kFLsthgZXvL-pzqE1Vq2k8VrHBMlAlVtUnPHJXA3n0KB74QHpw27N-sQpd1TUsIIwUlqngn8z-LkOhK8n1jCLWwoZj_bIXTUA7aBjZDQOSfLxRIA9yGS5S1UEa5gTCOwQ8ZvZdejCM4RD_M3z3yUMmQAIDjyOcwcq0oi8AKCIqrA"/>
+</div>
+</div>
+</header>
+<!-- Main Workspace -->
+<div class="p-unit-lg max-w-container-max mx-auto w-full flex flex-col gap-6">
+<!-- Page Header -->
+<div class="flex justify-between items-end">
+<div>
+<nav class="flex items-center gap-2 text-label-sm font-label-sm text-outline mb-1">
+<span>Dashboard</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary">Gestion des Utilisateurs</span>
+</nav>
+<h2 class="text-headline-lg font-headline-lg text-primary">Utilisateurs</h2>
+<p class="text-body-sm text-on-surface-variant">Gérez les accès et les rôles de l'équipe Hergla Park.</p>
+</div>
+<button class="bg-primary text-on-primary px-6 py-2.5 rounded-full font-label-md text-label-md flex items-center gap-2 hover:bg-primary-container transition-all active:scale-95 shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                    Ajouter un utilisateur
+                </button>
+</div>
+<!-- Stats Overview (Asymmetric Mini-Grid) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/5 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">group</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline uppercase">Total Utilisateurs</p>
+<p class="text-headline-md font-headline-md">124</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-status-success/10 flex items-center justify-center text-status-success">
+<span class="material-symbols-outlined">how_to_reg</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline uppercase">Actifs Aujourd'hui</p>
+<p class="text-headline-md font-headline-md">82</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-accent-yellow/10 flex items-center justify-center text-status-warning">
+<span class="material-symbols-outlined">admin_panel_settings</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline uppercase">Admins</p>
+<p class="text-headline-md font-headline-md">12</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+<div>
+<p class="text-label-sm font-label-sm text-outline uppercase">En attente</p>
+<p class="text-headline-md font-headline-md">3</p>
+</div>
+</div>
+</div>
+<!-- Users Table Container -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant shadow-sm overflow-hidden">
+<!-- Table Filters -->
+<div class="px-6 py-4 border-b border-outline-variant bg-surface-container-low/50 flex justify-between items-center">
+<div class="flex gap-2">
+<button class="px-4 py-1.5 rounded-full bg-primary text-on-primary text-label-md font-label-md">Tous</button>
+<button class="px-4 py-1.5 rounded-full hover:bg-surface-container-high text-on-surface-variant text-label-md font-label-md transition-all">Admins</button>
+<button class="px-4 py-1.5 rounded-full hover:bg-surface-container-high text-on-surface-variant text-label-md font-label-md transition-all">Employés</button>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 text-on-surface-variant text-label-md font-label-md hover:text-primary px-3 py-1.5 rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                            Filtrer
+                        </button>
+<button class="flex items-center gap-1.5 text-on-surface-variant text-label-md font-label-md hover:text-primary px-3 py-1.5 rounded-lg border border-outline-variant">
+<span class="material-symbols-outlined text-[18px]">download</span>
+                            Exporter
+                        </button>
+</div>
+</div>
+<!-- Actual Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/30 border-b border-outline-variant">
+<th class="px-6 py-4 text-label-md font-label-md text-outline uppercase tracking-wider">Utilisateur</th>
+<th class="px-6 py-4 text-label-md font-label-md text-outline uppercase tracking-wider">Rôle</th>
+<th class="px-6 py-4 text-label-md font-label-md text-outline uppercase tracking-wider">Espace Assigné</th>
+<th class="px-6 py-4 text-label-md font-label-md text-outline uppercase tracking-wider">Statut</th>
+<th class="px-6 py-4 text-label-md font-label-md text-outline uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/50">
+<!-- Row 1: SUPERADMIN -->
+<tr class="group hover:bg-surface-container-low/40 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-fixed flex items-center justify-center text-primary font-bold">MK</div>
+<div>
+<p class="text-body-md font-semibold text-primary">Mehdi Kolsi</p>
+<p class="text-label-sm font-label-sm text-outline">mehdi.k@herglapark.tn</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary-container text-on-primary text-[11px] font-bold tracking-tight">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+                                        SUPERADMIN
+                                    </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-sm text-on-surface-variant italic">Système Entier</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-status-success font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        Connecté
+                                    </div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:text-primary hover:bg-primary-fixed transition-all" title="Modifier">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:text-error hover:bg-error-container/20 transition-all" title="Supprimer">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: ADMIN -->
+<tr class="group hover:bg-surface-container-low/40 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A focused professional female administrator with a pleasant expression, set in a clean contemporary office with blurred background details. She is wearing business-casual attire. The image adheres to the park's administrative visual guidelines, focusing on professional management and clarity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC27nV_oRZ6Xacfx1pl1ni-Z1rpeSiuadoTtaUTgJp5EZ3S4_K9lqcLVlkNLv4-nsSuzmPCLjU-1woHBM_Ukcl0OnnP9m1MT38AlMSuf_eHFqbDjHcDtWRDZwemJQvBN9yhHBFlk95SGGNgZRWuJ7WzNMXC0SioS62OQI98n7UWyGv6QH7TP4yCCE0fbKJa_xoezmKrUQhebAkNf6PNXcTTSU9gfNPqBCuxbg3-tvAB0x1lQJuf7J5iPA"/>
+<div>
+<p class="text-body-md font-semibold text-primary">Sonia Ben Romdhane</p>
+<p class="text-label-sm font-label-sm text-outline">s.romdhane@herglapark.tn</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-fixed text-on-tertiary-fixed text-[11px] font-bold tracking-tight">
+<span class="material-symbols-outlined text-[14px]">admin_panel_settings</span>
+                                        ADMIN
+                                    </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-sm text-on-surface-variant">Zone Aquatique</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-status-success font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        En ligne
+                                    </div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:text-primary hover:bg-primary-fixed transition-all">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:text-error hover:bg-error-container/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: EMPLOYE -->
+<tr class="group hover:bg-surface-container-low/40 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-on-surface-variant font-bold">AJ</div>
+<div>
+<p class="text-body-md font-semibold text-primary">Anis Jbali</p>
+<p class="text-label-sm font-label-sm text-outline">anis.j@herglapark.tn</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-bold tracking-tight border border-outline-variant">
+<span class="material-symbols-outlined text-[14px]">badge</span>
+                                        EMPLOYE
+                                    </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-sm text-on-surface-variant">Manège & Attractions</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-outline font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        Hors ligne
+                                    </div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:text-primary hover:bg-primary-fixed transition-all">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:text-error hover:bg-error-container/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: EMPLOYE Maintenance -->
+<tr class="group hover:bg-surface-container-low/40 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="A focused male employee wearing a high-visibility park maintenance uniform, looking directly at the camera with a helpful and professional demeanor. The background shows a portion of a clean, well-maintained amusement park setting under bright morning light, capturing the spirit of efficient facility management." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCCFaegLTpgMgkGF-ulDVaCOWeaen988rK-XHHh6RL1k4_h1TclptPgt3Ue0VJAdok-pQTphJLpNI89YzjIrC57LK2Fd_vJQ_XO-06BuF0e0X04P1wGjuVZcr3kMvHEV8GgTRLDUUjykELmAt3ZyuIVViqye1WwG5sa-d6SNLCKFfi8JizyRJBLjAXuE1nYMS2SZjOcgTze5iYfVKioXzjZww5Tsfy_EkLqbNnutye0NbLVvTascYsR1Q"/>
+<div>
+<p class="text-body-md font-semibold text-primary">Sami Gharbi</p>
+<p class="text-label-sm font-label-sm text-outline">s.gharbi@herglapark.tn</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-[11px] font-bold tracking-tight border border-outline-variant">
+<span class="material-symbols-outlined text-[14px]">badge</span>
+                                        EMPLOYE
+                                    </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-sm text-on-surface-variant">Maintenance Technique</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1.5 text-status-success font-label-md text-label-md">
+<span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                                        En service
+                                    </div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:text-primary hover:bg-primary-fixed transition-all">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center text-outline hover:text-error hover:bg-error-container/20 transition-all">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="px-6 py-4 border-t border-outline-variant flex justify-between items-center bg-surface-container-low/20">
+<p class="text-label-sm font-label-sm text-outline">Affichage de 1-4 sur 124 utilisateurs</p>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-outline hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-on-primary font-label-md text-label-md">1</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-outline hover:bg-surface-container-high font-label-md text-label-md transition-all">2</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-outline hover:bg-surface-container-high font-label-md text-label-md transition-all">3</button>
+<button class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-outline hover:bg-surface-container-high transition-all">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Role Distribution (Bento Style) -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Activity Feed -->
+<div class="lg:col-span-2 bg-surface-container-lowest rounded-xl border border-outline-variant p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-headline-sm font-headline-sm text-primary">Activités Récentes</h3>
+<button class="text-primary text-label-md font-label-md hover:underline">Voir tout</button>
+</div>
+<div class="space-y-4">
+<div class="flex gap-4 items-start">
+<div class="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+<div>
+<p class="text-body-md text-on-surface"><strong>Mehdi Kolsi</strong> a mis à jour les permissions du rôle <span class="text-secondary font-semibold">ADMIN</span>.</p>
+<p class="text-label-sm font-label-sm text-outline">Il y a 14 minutes</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<div class="w-2 h-2 rounded-full bg-status-success mt-2 flex-shrink-0"></div>
+<div>
+<p class="text-body-md text-on-surface"><strong>Sonia Ben Romdhane</strong> a assigné 3 nouveaux employés à la <span class="text-primary font-semibold">Zone Aquatique</span>.</p>
+<p class="text-label-sm font-label-sm text-outline">Il y a 2 heures</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<div class="w-2 h-2 rounded-full bg-status-warning mt-2 flex-shrink-0"></div>
+<div>
+<p class="text-body-md text-on-surface">Tentative de connexion échouée pour le compte <span class="text-error font-semibold">h.karim@herglapark.tn</span>.</p>
+<p class="text-label-sm font-label-sm text-outline">Il y a 5 heures</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Actions Panel -->
+<div class="bg-primary text-on-primary rounded-xl p-6 shadow-xl shadow-primary/20 relative overflow-hidden">
+<div class="absolute -top-12 -right-12 w-32 h-32 bg-on-primary/10 rounded-full blur-2xl"></div>
+<div class="relative z-10">
+<h3 class="text-headline-sm font-headline-sm mb-4">Système Global</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-body-md">Verrouillage de Sécurité</span>
+<div class="w-10 h-5 bg-on-primary/20 rounded-full relative cursor-pointer">
+<div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-body-md">Auto-Assignation</span>
+<div class="w-10 h-5 bg-status-success/80 rounded-full relative cursor-pointer">
+<div class="absolute right-1 top-1 w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+<hr class="border-on-primary/10"/>
+<button class="w-full py-3 rounded-lg bg-secondary text-on-primary font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-secondary-container transition-all">
+<span class="material-symbols-outlined text-[20px]">priority_high</span>
+                                Audit de Sécurité Global
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Info -->
+<footer class="mt-auto py-6 px-gutter border-t border-outline-variant flex justify-between items-center bg-surface-container-low/30">
+<p class="text-label-sm font-label-sm text-outline">© 2024 Hergla Park Management. Propriété du groupe HP. Tous droits réservés.</p>
+<div class="flex gap-4">
+<a class="text-label-sm font-label-sm text-outline hover:text-primary" href="#">Conditions d'utilisation</a>
+<a class="text-label-sm font-label-sm text-outline hover:text-primary" href="#">Politique de confidentialité</a>
+</div>
+</footer>
+</main>
+<!-- Floating Quick Action (Help/Support) -->
+<button class="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-white text-primary border border-outline-variant shadow-lg flex items-center justify-center hover:scale-110 transition-transform z-50">
+<span class="material-symbols-outlined">support_agent</span>
+</button>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.classList.add('scale-95');
+                setTimeout(() => this.classList.remove('scale-95'), 100);
+            });
+        });
+
+        // Search bar focus effect
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.classList.add('w-96');
+            searchInput.classList.remove('w-80');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.classList.add('w-80');
+            searchInput.classList.remove('w-96');
+        });
+    </script>
+</body></html>

@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id              String        @id @default(uuid())
+  companyId       String?
+  company         Company?      @relation(fields: [companyId], references: [id])
+  nom             String
+  email           String        @unique
+  passwordHash    String
+  assignedSpaceId String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  assignedSpace   Espace?       @relation(fields: [assignedSpaceId], references: [id])
+  uploadedObjects Object3D[]
+  roles           UserRole[]
+  auditLogs       AuditLog[]
+  userCompanies   UserCompany[]
+}
+
+model Espace {
+  id                 String           @id @default(uuid())
+  companyId          String
+  company            Company          @relation(fields: [companyId], references: [id])
+  nom                String
+  categorie          String
+  statut             StatutEspace     @default(FERME)
+  donneesSpecifiques Json?
+  baseSceneUrl       String?          // URL du fichier .glb de la scène de base (export Blender)
+  originalSceneData  Json?            // snapshot JSON de la disposition d'origine des objets (pour le reset)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  employes           User[]
+  placements         ScenePlacement[]
+}
+
+model Object3D {
+  id            String   @id @default(uuid())
+  companyId     String
+  company       Company  @relation(fields: [companyId], references: [id])
+  nom           String
+  categorie     String        // ex: "mobilier", "decoration", "signaletique"
+  modelUrl      String        // URL/chemin du fichier .glb dans le catalogue de base
+  thumbnailUrl  String?       // vignette pour l'affichage dans le panneau catalogue
+  isCustom      Boolean  @default(false)   // true si uploadé par un admin, false si catalogue de base
+  uploadedById  String?
+  uploadedBy    User?    @relation(fields: [uploadedById], references: [id])
+  createdAt     DateTime @default(now())
+  placements    ScenePlacement[]
+}
+
+model ScenePlacement {
+  id          String   @id @default(uuid())
+  espaceId    String
+  espace      Espace   @relation(fields: [espaceId], references: [id], onDelete: Cascade)
+  object3DId  String
+  object3D    Object3D @relation(fields: [object3DId], references: [id])
+  positionX   Float
+  positionY   Float
+  positionZ   Float
+  rotationX   Float    @default(0)
+  rotationY   Float    @default(0)
+  rotationZ   Float    @default(0)
+  scaleX      Float    @default(1)
+  scaleY      Float    @default(1)
+  scaleZ      Float    @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum StatutEspace {
+  OUVERT
+  FERME
+  MAINTENANCE
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  nom         String
+  slug        String   @unique   // ex: "hergla-park", utilisé dans les URLs publiques
+  logoUrl     String?
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users         User[]
+  espaces       Espace[]
+  objects3D     Object3D[]
+  roles         Role[]
+  userCompanies UserCompany[]
+  auditLogs     AuditLog[]
+}
+
+model UserCompany {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, companyId])
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  key         String   @unique     // ex: "espace:create", "espace:update", "user:delete", "scene:edit", "role:manage", "logs:view"
+  description String
+  rolePermissions RolePermission[]
+}
+
+model Role {
+  id           String   @id @default(uuid())
+  nom          String                       // ex: "SUPERADMIN", "Responsable Café"
+  niveau       Int      @default(20)         // 100 = ROOT, 90 = SUPERADMIN, 50 = ADMIN, 20 = EMPLOYE / personnalisé
+  isSystem     Boolean  @default(false)      // true pour ROOT, SUPERADMIN, ADMIN, EMPLOYE — protégés
+  companyId    String?                       // null pour les rôles système globaux (ROOT) ou templates par défaut ; renseigné pour les rôles personnalisés d'une entreprise
+  company      Company? @relation(fields: [companyId], references: [id])
+  createdAt    DateTime @default(now())
+
+  permissions  RolePermission[]
+  users        UserRole[]
+
+  @@unique([nom, companyId])   // deux rôles de même nom possibles dans deux entreprises différentes, mais pas dans la même
+}
+
+model RolePermission {
+  roleId       String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model UserRole {
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roleId  String
+  role    Role   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+}
+
+model AuditLog {
+  id                 String   @id @default(uuid())
+  companyId          String?                    // null si action globale/plateforme (ex: ROOT consultant les logs)
+  company            Company? @relation(fields: [companyId], references: [id])
+  actorId            String
+  actor              User     @relation(fields: [actorId], references: [id])
+  action             String                     // ex: "espace.update", "role.create", "user.delete"
+  entityType         String                     // ex: "Espace", "User", "Role"
+  entityId           String?
+  isRootIntervention Boolean  @default(false)    // true si action effectuée par ROOT
+  metadata           Json?                      // ex: { before: {...}, after: {...}, reason: "Urgent fix" }
+  createdAt          DateTime @default(now())
+}
+

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hergla Park - Spaces Admin (Arabic)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;family=Noto+Sans+Arabic:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-surface": "#191c1e",
+                "on-primary": "#ffffff",
+                "secondary-fixed": "#ffdad9",
+                "primary-container": "#353e54",
+                "on-tertiary": "#ffffff",
+                "tertiary": "#342608",
+                "surface-container-highest": "#e0e3e5",
+                "on-secondary-container": "#fffbff",
+                "surface-bright": "#f7f9fb",
+                "on-secondary-fixed-variant": "#920022",
+                "surface-variant": "#e0e3e5",
+                "on-secondary": "#ffffff",
+                "surface-container-high": "#e6e8ea",
+                "inverse-surface": "#2d3133",
+                "tertiary-fixed": "#f9dfb3",
+                "inverse-on-surface": "#eff1f3",
+                "on-error": "#ffffff",
+                "on-background": "#191c1e",
+                "primary": "#1f283d",
+                "on-secondary-fixed": "#400009",
+                "on-surface-variant": "#45464d",
+                "status-error": "#EF4444",
+                "secondary-container": "#e8063c",
+                "on-primary-container": "#a0a9c3",
+                "background": "#f7f9fb",
+                "status-success": "#10B981",
+                "surface-container-low": "#f2f4f6",
+                "surface": "#f7f9fb",
+                "on-error-container": "#93000a",
+                "primary-fixed-dim": "#bdc6e1",
+                "tertiary-fixed-dim": "#dcc399",
+                "on-primary-fixed": "#121b2f",
+                "status-warning": "#F59E0B",
+                "accent-yellow": "#FFD600",
+                "surface-sidebar": "#1E293B",
+                "tertiary-container": "#4c3c1c",
+                "secondary": "#ba002d",
+                "primary-fixed": "#d9e2fe",
+                "secondary-fixed-dim": "#ffb3b3",
+                "surface-container-lowest": "#ffffff",
+                "error": "#ba1a1a",
+                "on-tertiary-fixed-variant": "#554424",
+                "on-tertiary-container": "#bea77e",
+                "surface-container": "#eceef0",
+                "outline-variant": "#c6c6cd",
+                "surface-dim": "#d8dadc",
+                "status-closed": "#64748B",
+                "error-container": "#ffdad6",
+                "on-tertiary-fixed": "#261901",
+                "inverse-primary": "#bdc6e1",
+                "surface-tint": "#555e76",
+                "on-primary-fixed-variant": "#3d465d",
+                "outline": "#76777d"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "unit-sm": "8px",
+                "sidebar-width": "260px",
+                "container-max": "1440px",
+                "unit-md": "16px",
+                "margin-mobile": "16px",
+                "gutter": "24px",
+                "unit-xs": "4px",
+                "unit-lg": "24px",
+                "sidebar-collapsed": "72px"
+            },
+            "fontFamily": {
+                "headline-sm": ["Noto Sans Arabic", "Hanken Grotesk"],
+                "headline-lg": ["Noto Sans Arabic", "Hanken Grotesk"],
+                "label-sm": ["Noto Sans Arabic", "Inter"],
+                "body-lg": ["Noto Sans Arabic", "Inter"],
+                "body-md": ["Noto Sans Arabic", "Inter"],
+                "label-md": ["Noto Sans Arabic", "Inter"],
+                "body-sm": ["Noto Sans Arabic", "Inter"],
+                "headline-md": ["Noto Sans Arabic", "Hanken Grotesk"],
+                "data-tabular": ["Inter"]
+            },
+            "fontSize": {
+                "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}],
+                "headline-lg": ["28px", {"lineHeight": "36px", "fontWeight": "700"}],
+                "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+                "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                "data-tabular": ["13px", {"lineHeight": "18px", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Noto Sans Arabic', 'Inter', sans-serif;
+            background-color: #f7f9fb;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+        [dir="rtl"] .mirror-icon {
+            transform: scaleX(-1);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface">
+<!-- Fixed Right Sidebar (Flipped for RTL) -->
+<aside class="docked fixed h-full w-[260px] end-0 flex flex-col bg-surface-sidebar py-unit-lg z-50">
+<div class="px-6 mb-8">
+<h1 class="text-headline-md font-bold text-on-primary tracking-tight">Hergla Park</h1>
+<p class="text-label-md text-on-primary-container opacity-70">لوحة الإدارة</p>
+</div>
+<nav class="flex flex-col gap-2 flex-grow overflow-y-auto">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
+<span class="text-body-md font-body-md">لوحة القيادة</span>
+</a>
+<!-- Spaces (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary rounded-xl mx-2 scale-[0.98] transition-all duration-200" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-body-md font-body-md">المساحات</span>
+</a>
+<!-- Users -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">group</span>
+<span class="text-body-md font-body-md">المستخدمون</span>
+</a>
+<!-- My Profile -->
+<a class="flex items-center gap-3 px-4 py-3 text-on-primary-container hover:bg-primary-container/50 rounded-xl mx-2 transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">person</span>
+<span class="text-body-md font-body-md">ملفي الشخصي</span>
+</a>
+</nav>
+<div class="mt-auto px-4">
+<div class="p-4 bg-primary-container/30 rounded-xl border border-white/10">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-2 h-2 rounded-full bg-status-success"></div>
+<span class="text-label-sm text-on-primary uppercase tracking-wider">النظام نشط</span>
+</div>
+<p class="text-xs text-on-primary-container">آخر تحديث: قبل دقيقتين</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="me-[260px] min-h-screen flex flex-col">
+<!-- Top Nav Bar -->
+<header class="sticky top-0 h-16 bg-surface border-b border-outline-variant z-40 flex justify-between items-center px-gutter">
+<div class="flex items-center gap-6">
+<h2 class="text-headline-sm font-headline-sm font-bold text-primary">نظرة عامة</h2>
+<div class="relative group">
+<button class="flex items-center gap-2 text-label-md text-on-surface-variant hover:text-primary transition-all">
+<span class="material-symbols-outlined text-[20px]">language</span>
+<span>AR</span>
+<span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+<!-- Simple Dropdown Hidden -->
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-[1px] bg-outline-variant mx-1"></div>
+<div class="flex items-center gap-3 ps-2 cursor-pointer hover:bg-surface-container p-1 rounded-lg transition-all">
+<div class="text-left rtl:text-right">
+<p class="text-label-md font-bold leading-tight">أدمن المستخدم</p>
+<p class="text-[10px] text-on-surface-variant">سوبر أدمن</p>
+</div>
+<img class="w-10 h-10 rounded-full border-2 border-primary-fixed object-cover" data-alt="A professional headshot of a Middle Eastern male executive in his late 40s, wearing a modern business suit. He has a friendly yet authoritative expression. The background is a clean, blurred office setting with high-key lighting that matches a corporate and minimalist UI aesthetic. The color palette is dominated by soft grays and deep blues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAyEbiV8ZeWzHP2pfwmjZmPoSRfir71D2VfQ00zSZI0LEIPXpDWSO__WfHx_cwlC03VAWV5WBJWQbqIm4J6lFxgpGTEyY9IXf3bePdDZ6ky_AzsiGysoB_bDP3fINTm36RytkyY2SyowvitgjK62D1915nspc5OSb8thfq2aGrMP3dGK6F0cXJie0pxyHSb61GMGYOBYXi-uA5rRFpzsEMOxOeCMlJmDixEtlVGgvwp-O2Prv59lkjKTQ"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-gutter max-w-container-max w-full mx-auto">
+<!-- Page Header Actions -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="text-headline-lg font-headline-lg text-primary mb-1">المساحات</h1>
+<p class="text-body-md text-on-surface-variant">إدارة وتنسيق جميع المناطق الترفيهية والمرافق في هيرقلة بارك.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-xl font-bold hover:bg-primary-container transition-all shadow-sm active:scale-95">
+<span class="material-symbols-outlined">add_circle</span>
+<span>إنشاء مساحة</span>
+</button>
+</div>
+<!-- Dashboard Stats Bento (Micro) -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+<div class="bg-surface-container-lowest p-5 rounded-full border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">forest</span>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant uppercase">إجمالي المساحات</p>
+<p class="text-headline-md font-bold">24</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-full border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-status-success/10 flex items-center justify-center text-status-success">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant uppercase">مفتوح الآن</p>
+<p class="text-headline-md font-bold text-status-success">18</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-full border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-status-warning/10 flex items-center justify-center text-status-warning">
+<span class="material-symbols-outlined">build</span>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant uppercase">تحت الصيانة</p>
+<p class="text-headline-md font-bold text-status-warning">4</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-5 rounded-full border border-outline-variant flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-status-error/10 flex items-center justify-center text-status-error">
+<span class="material-symbols-outlined">cancel</span>
+</div>
+<div>
+<p class="text-label-sm text-on-surface-variant uppercase">مغلق</p>
+<p class="text-headline-md font-bold text-status-error">2</p>
+</div>
+</div>
+</div>
+<!-- Main Grid of Spaces -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Space Card 1: Open -->
+<div class="bg-surface-container-lowest rounded-full border border-outline-variant overflow-hidden card-hover transition-all flex flex-col">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover" data-alt="A lush green outdoor park area in Hergla Park with well-maintained walking paths and vibrant Mediterranean flora. The sun is shining brightly, creating soft shadows. The image captures a clean, professional park environment under clear blue skies, reflecting a premium recreational facility. Minimalist aesthetic with focus on natural beauty." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAAaNLmpCt_lO89Vp4gPlPWgc9WhWTl8bmEU7UwifNU1SBnyn8OsilBzBJ3cS4mH_bCeMlj-qGS5EPD_0ByIZUrIAERDAfBbZhX4CLXymjTsDA3DBW-Yf8pwsByYrvHuPluT1jf7mqBMiW5xY6nocoTkOvaVaHAZxQiLnmfvffV8NDm8biBKR4XZVUp_kGKMxKGTPiTqyNOtzTG1bk4d8gno9KXCqq9RG2HSifWFghvtEeRGIIme-6cTg"/>
+<div class="absolute top-4 right-4">
+<span class="bg-status-success/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-label-md flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+                                مفتوح
+                            </span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-headline-md font-bold text-primary mb-1">منطقة النزهة المركزية</h3>
+<p class="text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+                                    القطاع أ - المدخل الرئيسي
+                                </p>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="bg-surface-container-low p-3 rounded-xl border border-outline-variant/50">
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">الاستخدام الحالي</p>
+<p class="text-label-md font-bold text-primary">65%</p>
+</div>
+<div class="bg-surface-container-low p-3 rounded-xl border border-outline-variant/50">
+<p class="text-[10px] text-on-surface-variant uppercase font-bold mb-1">الموظفين</p>
+<p class="text-label-md font-bold text-primary">4 متاحين</p>
+</div>
+</div>
+<div class="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-2">
+<label class="inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="relative w-10 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:end-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+<span class="text-label-sm text-on-surface-variant font-bold">حالة التشغيل</span>
+</div>
+<button class="text-primary font-bold text-label-md hover:underline">التفاصيل</button>
+</div>
+</div>
+</div>
+<!-- Space Card 2: Maintenance -->
+<div class="bg-surface-container-lowest rounded-full border border-outline-variant overflow-hidden card-hover transition-all flex flex-col">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover grayscale-[0.3]" data-alt="Close-up of a modern, brightly colored children's play structure within a park. The background shows slightly out-of-focus maintenance equipment and safety cones, suggesting a professional upgrade or check. High-quality materials, vibrant reds and yellows, under professional daylight photography. Clean, modern, and data-centric aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxxVkggNvA2md04MQTXNuZSaPnUDRTLZEDeramEDYpNwkX0JAuaOul5GmAxTeQ-510cM0xX_xmeqbjIlnz0vgzYePeKaS31-YY51lrFCPYSXnHynHWOWd0ic5FZnhn1yD1JbsLS2r2T2TJvndL09EK0MiOnhDWSo66DkQh-V4MQ2YJ-s7EUldsJzzYrvtynnuaT1cT1qhmNbNcqPrjcOz0X9xbQ2KtyWBKsrYY7Rpdu6jW5tYrCuJleA"/>
+<div class="absolute top-4 right-4">
+<span class="bg-status-warning/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">engineering</span>
+                                صيانة
+                            </span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-headline-md font-bold text-primary mb-1">ساحة الألعاب "المرح"</h3>
+<p class="text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+                                    القطاع ب - المنطقة العائلية
+                                </p>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="bg-status-warning/5 p-4 rounded-xl border border-status-warning/20 mb-6">
+<p class="text-body-sm text-status-warning font-bold mb-1">ملاحظة الصيانة:</p>
+<p class="text-label-sm text-on-surface-variant">فحص سلامة دوري للهياكل الحديدية. من المتوقع الانتهاء غداً الساعة 10 صباحاً.</p>
+</div>
+<div class="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-2">
+<label class="inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="relative w-10 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:end-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+<span class="text-label-sm text-on-surface-variant font-bold">مغلق مؤقتاً</span>
+</div>
+<button class="text-primary font-bold text-label-md hover:underline">السجلات</button>
+</div>
+</div>
+</div>
+<!-- Space Card 3: Closed (Emergency) -->
+<div class="bg-surface-container-lowest rounded-full border border-outline-variant overflow-hidden card-hover transition-all flex flex-col">
+<div class="relative h-48 w-full">
+<img class="w-full h-full object-cover opacity-80" data-alt="A serene artificial lake and fountain feature in a modern corporate park setting. The water is calm, reflecting the deep blue of the evening sky. Professional architectural lighting illuminates the perimeter. The mood is calm but the area is clearly marked with a 'Closed' status in the UI, suggesting a late-night or controlled-access scenario." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCd2NL1EEbE1cX-mVctPg81DjWEWnub_AeH55zq2guE5yBrGBrnwk0E_1pywDgn3oNfK52Ui-y6Z8aeOSCfLZvETouduCKbnvvI_8gBMLnvHRJBz3RmCQClTaBKUFrVoJzMSSuhWfRcLFee_UbvG3aZtH-zJYctF3dLgpek45EGvvFx-mC3djAEzW3mELZK5_cLUcyURblnBWkrUdFdOX_8rz2mvX8Kt7os6WbkaylCO9P4-rt42DGMsA"/>
+<div class="absolute top-4 right-4">
+<span class="bg-status-error/90 backdrop-blur-md text-white px-3 py-1 rounded-lg text-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+                                مغلق
+                            </span>
+</div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h3 class="text-headline-md font-bold text-primary mb-1">منطقة البحيرة الاصطناعية</h3>
+<p class="text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+                                    القطاع ج - الواجهة الخلفية
+                                </p>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+<div class="bg-status-error/5 p-4 rounded-xl border border-status-error/20 mb-6">
+<p class="text-body-sm text-status-error font-bold mb-1">تنبيه:</p>
+<p class="text-label-sm text-on-surface-variant">مغلق بسبب أعمال ترميم طارئة للنافورة المركزية. الدخول محظور لغير الموظفين.</p>
+</div>
+<div class="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-2">
+<label class="inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="relative w-10 h-5 bg-outline-variant peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:end-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+</label>
+<span class="text-label-sm text-on-surface-variant font-bold">مغلق</span>
+</div>
+<button class="text-primary font-bold text-label-md hover:underline">التفاصيل</button>
+</div>
+</div>
+</div>
+</div>
+<!-- List View Alternative / Recent Activity -->
+<div class="mt-12">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-headline-md font-headline-md text-primary">النشاط الأخير في المساحات</h2>
+<button class="text-label-md font-bold text-primary hover:underline">عرض الكل</button>
+</div>
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden">
+<table class="w-full text-right">
+<thead class="bg-surface-container-low border-b border-outline-variant">
+<tr>
+<th class="px-6 py-4 text-label-sm font-bold text-on-surface-variant uppercase">المساحة</th>
+<th class="px-6 py-4 text-label-sm font-bold text-on-surface-variant uppercase">الإجراء</th>
+<th class="px-6 py-4 text-label-sm font-bold text-on-surface-variant uppercase">بواسطة</th>
+<th class="px-6 py-4 text-label-sm font-bold text-on-surface-variant uppercase">الوقت</th>
+<th class="px-6 py-4 text-label-sm font-bold text-on-surface-variant uppercase text-center">الإجراءات</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">forest</span>
+</div>
+<span class="text-body-md font-bold">منطقة النزهة</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-sm bg-status-success/10 text-status-success px-2 py-1 rounded-full font-bold">فتح الموقع</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-sm">سامي خليل</span>
+</td>
+<td class="px-6 py-4 text-data-tabular">اليوم، 08:30 ص</td>
+<td class="px-6 py-4 text-center">
+<button class="text-on-surface-variant hover:text-primary p-1">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-low/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[18px]">toys</span>
+</div>
+<span class="text-body-md font-bold">ساحة الألعاب</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-sm bg-status-warning/10 text-status-warning px-2 py-1 rounded-full font-bold">بدء الصيانة</span>
+</td>
+<td class="px-6 py-4">
+<span class="text-body-sm">أحمد منصور</span>
+</td>
+<td class="px-6 py-4 text-data-tabular">اليوم، 07:15 ص</td>
+<td class="px-6 py-4 text-center">
+<button class="text-on-surface-variant hover:text-primary p-1">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB for Quick Actions (Semantic Mapping for Spaces Screen) -->
+<button class="fixed bottom-8 left-8 w-14 h-14 bg-secondary text-on-primary rounded-full shadow-lg flex items-center justify-center hover:bg-secondary-container transition-all active:scale-90 z-50 group">
+<span class="material-symbols-outlined group-hover:rotate-90 transition-transform">add</span>
+<!-- Tooltip or label on hover could be added here -->
+</button>
+<script>
+        // Simple Interaction logic for RTL specific UI
+        document.addEventListener('DOMContentLoaded', () => {
+            // Logic for active navigation state transitions or search filters
+            const searchInput = document.querySelector('input[type="text"]');
+            if (searchInput) {
+                searchInput.addEventListener('focus', () => {
+                    searchInput.parentElement.classList.add('border-primary');
+                });
+                searchInput.addEventListener('blur', () => {
+                    searchInput.parentElement.classList.remove('border-primary');
+                });
+            }
+        });
+    </script>
+</body></html>

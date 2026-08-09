@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Hergla Park - Virtual Tour Step 1</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-container": "#fffbff",
+                        "secondary-fixed-dim": "#ffb3b1",
+                        "surface-dim": "#dcd9db",
+                        "background": "#fbf8fa",
+                        "surface-container-high": "#eae7e9",
+                        "on-secondary-fixed-variant": "#92001c",
+                        "outline-variant": "#c6c6cd",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ffdad8",
+                        "on-tertiary-fixed-variant": "#554424",
+                        "surface-bright": "#fbf8fa",
+                        "surface-container-highest": "#e4e2e4",
+                        "on-error": "#ffffff",
+                        "surface-container": "#f0edef",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#410007",
+                        "on-primary-fixed-variant": "#3d465d",
+                        "tertiary-fixed-dim": "#dcc399",
+                        "inverse-surface": "#303032",
+                        "error-container": "#ffdad6",
+                        "surface-tint": "#555e76",
+                        "on-surface": "#1b1b1d",
+                        "on-primary": "#ffffff",
+                        "on-primary-container": "#a0a9c3",
+                        "primary-container": "#353e54",
+                        "tertiary": "#342608",
+                        "primary-fixed": "#d9e2fe",
+                        "surface": "#fbf8fa",
+                        "surface-variant": "#e4e2e4",
+                        "inverse-primary": "#bdc6e1",
+                        "secondary": "#b7102a",
+                        "error": "#ba1a1a",
+                        "primary-fixed-dim": "#bdc6e1",
+                        "secondary-container": "#db313f",
+                        "tertiary-container": "#4c3c1c",
+                        "surface-container-lowest": "#ffffff",
+                        "outline": "#76777d",
+                        "on-error-container": "#93000a",
+                        "primary": "#1f283d",
+                        "on-background": "#1b1b1d",
+                        "on-surface-variant": "#45464d",
+                        "inverse-on-surface": "#f3f0f2",
+                        "on-tertiary-container": "#bea77e",
+                        "tertiary-fixed": "#f9dfb3",
+                        "on-tertiary-fixed": "#261901",
+                        "on-primary-fixed": "#121b2f",
+                        "surface-container-low": "#f6f3f5"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "sm": "12px",
+                        "gutter": "24px",
+                        "xl": "80px",
+                        "lg": "48px",
+                        "md": "24px",
+                        "base": "8px",
+                        "container-max": "1200px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Hanken Grotesk"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "display-lg": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Hanken Grotesk"],
+                        "label-caps": ["Hanken Grotesk"],
+                        "title-md": ["Hanken Grotesk"],
+                        "body-sm": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .hero-overlay {
+            background: linear-gradient(to bottom, rgba(31, 40, 61, 0.4), rgba(251, 248, 250, 1) 90%);
+        }
+
+        .progress-pulse {
+            animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 5px rgba(183, 16, 42, 0.5); }
+            50% { opacity: 0.8; box-shadow: 0 0 15px rgba(183, 16, 42, 0.8); }
+        }
+
+        /* Entrance Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.21, 0.6, 0.35, 1) forwards;
+            opacity: 0;
+        }
+
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        .delay-500 { animation-delay: 500ms; }
+
+        /* CTA Breathing */
+        @keyframes breathing {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); box-shadow: 0 0 20px rgba(183, 16, 42, 0.4); }
+        }
+
+        .cta-pulse {
+            animation: breathing 3s ease-in-out infinite;
+        }
+
+        /* Ambient Motion Overlay */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .ambient-shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 10s linear infinite;
+        }
+
+        /* Respect User Preferences */
+        @media (prefers-reduced-motion: reduce) {
+            .animate-fade-up, .cta-pulse, .ambient-shimmer, .animate-bounce, .progress-pulse, .group-hover\:scale-110 {
+                animation: none !important;
+                transition: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-lg overflow-x-hidden">
+<!-- Top Progress Bar (Mandatory 4-Point) -->
+<div class="fixed top-0 left-0 w-full z-[60] h-1.5 flex gap-1 px-1 mt-1">
+<!-- Step 1: Active -->
+<div class="h-full flex-1 bg-secondary rounded-full progress-pulse"></div>
+<!-- Step 2 -->
+<div class="h-full flex-1 bg-outline-variant/30 rounded-full"></div>
+<!-- Step 3 -->
+<div class="h-full flex-1 bg-outline-variant/30 rounded-full"></div>
+<!-- Step 4 -->
+<div class="h-full flex-1 bg-outline-variant/30 rounded-full"></div>
+</div>
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-base bg-surface dark:bg-primary">
+<div class="flex items-center gap-sm">
+<img alt="Hergla Park Logo" class="h-10 w-10 md:h-12 md:w-12 object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtjAiSXBwkiJhpvs_KsDOdsLDFa_ksW-B_K5smeMYWqJASy7Gi39nSPYaJEIdsy-3QwRfePc1HZUMYwLxPyWJjVxA60bvbZrufnBcZY0PyC_klM5ADwzf0QC5abytld3__txK2zsMDkbeNfqgdF9188TnWwej5uGDfQ3kVC2GmQAUjkQKOynIcdQ9ZIOHDp4WlJfnZHr7GN415mOSb8arsrFIKZf8pfLUQik2y0VYLvVBdjFwXWIzs6Hk0"/>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary dark:text-secondary-fixed-dim md:font-headline-lg md:text-headline-lg">Hergla Park</span>
+</div>
+<div class="flex items-center gap-md">
+<!-- Language Selector -->
+<button class="flex items-center gap-xs text-on-surface-variant dark:text-outline-variant font-label-caps text-label-caps hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="language">language</span>
+<span class="hidden md:inline">FR / AR</span>
+</button>
+</div>
+</header>
+<!-- SideNavBar -->
+<nav class="fixed top-16 left-0 w-full z-40 flex justify-center items-center gap-md px-gutter h-12 bg-transparent">
+<div class="flex items-center gap-2 border-b-2 border-secondary dark:border-secondary-fixed-dim text-secondary dark:text-secondary-fixed-dim pb-1 transition-all duration-300">
+<span class="material-symbols-outlined" data-icon="start">start</span>
+<span class="font-label-caps text-label-caps">Welcome</span>
+</div>
+<div class="flex items-center gap-2 text-outline dark:text-outline-variant pb-1 transition-all duration-300 opacity-50">
+<span class="material-symbols-outlined" data-icon="sports_esports">sports_esports</span>
+<span class="font-label-caps text-label-caps hidden md:inline">Controls</span>
+</div>
+<div class="flex items-center gap-2 text-outline dark:text-outline-variant pb-1 transition-all duration-300 opacity-50">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="font-label-caps text-label-caps hidden md:inline">Security</span>
+</div>
+<div class="flex items-center gap-2 text-outline dark:text-outline-variant pb-1 transition-all duration-300 opacity-50">
+<span class="material-symbols-outlined" data-icon="rocket_launch">rocket_launch</span>
+<span class="font-label-caps text-label-caps hidden md:inline">Launch</span>
+</div>
+</nav>
+<!-- Hero Content -->
+<main class="relative min-h-screen pt-32 pb-40">
+<!-- Hero Background -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+<div class="w-[110%] h-[110%] -left-[5%] -top-[5%] bg-cover bg-center absolute transition-transform duration-500 ease-out" id="parallax-bg" style="background-image: url('https://lh3.googleusercontent.com/aida/AP1WRLvFx9iZu2F3QIIvFnIRJfPehfS7a1KYnnYTX_7qoAR0_L_vdCv6izeE6ka8-4zBKPxodXR3AnZtYVpfJOhNoz5IQcTWvTn7xkyTnIUvz8oHlMj5ZdqWVqEWg7ZqdPgCtFc-7S-Av9FngPE6zL4EeGtLuM4bWYapwoESVqteEnNJ9NmwwaqZ0aLwYE4jPbaLOkWAm4623c1oSXq8cJcxofAlpTzXcR9ZrDpDxcXEQct_0ZN4hlj-bwvTdoA')"></div>
+<div class="absolute inset-0 ambient-shimmer"></div>
+<div class="absolute inset-0 hero-overlay"></div>
+</div>
+<div class="relative z-10 max-w-container-max mx-auto px-gutter flex flex-col items-center text-center">
+<!-- Header Text -->
+<div class="mt-xl max-w-3xl">
+<h1 class="font-display-lg text-display-lg text-primary mb-md animate-fade-up">
+                Vivez Hergla Park avant même d'y être
+            </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-lg max-w-xl mx-auto animate-fade-up delay-100">
+                Découvrez notre parc en immersion 3D totale depuis votre navigateur. Un voyage virtuel vers l'adrénaline.
+            </p>
+</div>
+<!-- Mini Gallery Section -->
+<div class="w-full mt-lg animate-fade-up delay-200">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md">
+<!-- Gallery Item 1 -->
+<div class="group relative overflow-hidden rounded-xl shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:ring-2 hover:ring-secondary/20">
+<div class="aspect-[1.45/1] overflow-hidden">
+<img alt="Activity Preview 1" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida/AP1WRLsWSlVcfLL8M65D_Eu8L8rSJOs3FutKdnimTWVBAFCB08IGwt18yos8VbbZxLGroOmP3tPnrqnDQ3DlDaRKFaoKIm5bETIbFI2T2tCMzpnQYjmjUBfXwoBbJhi7VgdKp0wNKXs9xxpNYEM2EmRVLYWezeegNHgDQajerPKBXucN79vmCml2UcfZwnzuA9vm5Azlrrev0R1AZhvv4QgTZ16q2VreWVqHgT7zp0RC0S1DA4WK8th1HzYSNXpb"/>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-80"></div>
+<div class="absolute bottom-0 left-0 p-md w-full text-left">
+<p class="text-on-secondary font-bold font-title-md text-title-md transform transition-transform group-hover:translate-x-2">Karting Pro</p>
+</div>
+</div>
+<!-- Gallery Item 2 -->
+<div class="group relative overflow-hidden rounded-xl shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:ring-2 hover:ring-secondary/20">
+<div class="aspect-[1.46/1] overflow-hidden">
+<img alt="Activity Preview 2" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida/AP1WRLvnKSq8y1OOqdi7F9lD6zLolMxOmuYfjwbtZ2vCfwaad_jzuMpPm0eEgPv6ZAKK2hAZSh5ronuX5yBK1qKrJWdlDB0sWYkrHJy5W1CWTxGHlqL5Dsc7uY8HBkqDGwdWgGPwkGJ6HTc5BdvHFCsGiPBr9CNlOjOZsh8WXxb1m2GhQh0HrOaQyro_2NOWWMjIZfG25AvDBu2dGs_1TU8g_VcGHV0hvesxis5rGnr_KLACg_GT2q5Jg2Uj1ZAl"/>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-80"></div>
+<div class="absolute bottom-0 left-0 p-md w-full text-left">
+<p class="text-on-secondary font-bold font-title-md text-title-md transform transition-transform group-hover:translate-x-2">Family Fun</p>
+</div>
+</div>
+<!-- Gallery Item 3 -->
+<div class="group relative overflow-hidden rounded-xl shadow-lg transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:ring-2 hover:ring-secondary/20">
+<div class="aspect-[1.45/1] overflow-hidden">
+<img alt="Activity Preview 3" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida/AP1WRLvd-PbGFrvYsJzwSP8L_6vjZNViOzC0Zwrfbbhc7AsZvdPS3EvgZvv09jpi_oU8aGpkOG3Y7HN0H2oxZrOkF1zg1y5bo7BMX1ge1Hb4-u7hdo9BzawEW_rVCToh09cEYvMbLy_-e2cw8Xit5tPV38t-73chBwcq0zo5x9XnAiikCVmPCJeyFtmV8kbFHlewmRdC0lbRpike5x2UjJYJyLKn9KswQPXz99uz6E1iMkWFjqEDirfZw74tGgc"/>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-80"></div>
+<div class="absolute bottom-0 left-0 p-md w-full text-left">
+<p class="text-on-secondary font-bold font-title-md text-title-md transform transition-transform group-hover:translate-x-2">Park Events</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Decorative Element -->
+<div class="mt-xl flex flex-col items-center opacity-40 animate-fade-up delay-500">
+<span class="material-symbols-outlined text-primary scale-150 animate-bounce" data-icon="keyboard_double_arrow_down">keyboard_double_arrow_down</span>
+<p class="font-label-caps text-label-caps mt-base">Scrollez pour plus d'infos</p>
+</div>
+</div>
+</main>
+<!-- Footer Shell -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-md bg-surface-container-low dark:bg-primary-container backdrop-blur-md rounded-t-xl shadow-lg dark:shadow-[0_0_15px_rgba(219,49,63,0.3)]">
+<div class="hidden md:flex gap-md">
+<a class="font-body-sm text-body-sm text-primary dark:text-secondary-fixed-dim hover:underline transition-all" href="#">Privacy Policy</a>
+<a class="font-body-sm text-body-sm text-primary dark:text-secondary-fixed-dim hover:underline transition-all" href="#">Help Center</a>
+</div>
+<div class="flex-1 flex justify-center md:justify-end">
+<button class="bg-secondary text-on-secondary rounded-lg px-xl py-sm font-bold active:scale-95 transition-all duration-200 flex items-center gap-base group cta-pulse" onclick="window.location.href='#next'">
+            Commencer
+            <span class="material-symbols-outlined transition-transform group-hover:translate-x-1" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+<div class="hidden md:block ml-md font-body-sm text-body-sm text-primary dark:text-secondary-fixed-dim">
+        © 2024 Hergla Park Authority
+    </div>
+</footer>
+<!-- Interactive Layer: Cursor effect -->
+<div class="pointer-events-none fixed top-0 left-0 w-32 h-32 bg-secondary/10 rounded-full blur-2xl z-[100] -translate-x-1/2 -translate-y-1/2 transition-opacity duration-300 opacity-0" id="glow-cursor"></div>
+<script>
+    // Smooth Cursor Follower
+    const cursor = document.getElementById('glow-cursor');
+    const parallaxBg = document.getElementById('parallax-bg');
+    
+    document.addEventListener('mousemove', (e) => {
+        // Cursor Follower
+        cursor.style.left = e.clientX + 'px';
+        cursor.style.top = e.clientY + 'px';
+        cursor.style.opacity = '1';
+
+        // Subtle Parallax Effect
+        const xOffset = (window.innerWidth / 2 - e.clientX) / 40;
+        const yOffset = (window.innerHeight / 2 - e.clientY) / 40;
+        
+        if (window.matchMedia('(prefers-reduced-motion: no-preference)').matches) {
+            parallaxBg.style.transform = `translate(${xOffset}px, ${yOffset}px) scale(1.05)`;
+        }
+    });
+    
+    document.addEventListener('mouseleave', () => {
+        cursor.style.opacity = '0';
+        parallaxBg.style.transform = `translate(0, 0) scale(1.05)`;
+    });
+
+    // Button interaction
+    const startBtn = document.querySelector('button');
+    startBtn.addEventListener('mousedown', () => {
+        startBtn.classList.add('scale-95');
+    });
+    startBtn.addEventListener('mouseup', () => {
+        startBtn.classList.remove('scale-95');
+    });
+</script>
+</body></html>

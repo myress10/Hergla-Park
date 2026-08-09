@@ -1,0 +1,538 @@
+/**
+ * prisma/seed.ts
+ *
+ * Seed script for SaaS dynamic roles, permissions, audit logging,
+ * and the default company "Hergla Park".
+ *
+ * Usage:
+ *   npm run db:seed
+ */
+
+import { PrismaClient, StatutEspace } from '@prisma/client';
+import * as bcrypt from 'bcryptjs';
+import * as fs from 'fs';
+import * as path from 'path';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log('🌱 Starting expanded multi-tenant seed...\n');
+
+  // ── 1. Create permissions catalogue ────────────────────────────────────────
+  const permissionsData = [
+    { key: 'espace:create', description: 'Créer un espace de parc' },
+    { key: 'espace:read', description: 'Consulter la liste et les détails des espaces' },
+    { key: 'espace:update', description: 'Modifier un espace (statut, métadonnées)' },
+    { key: 'espace:delete', description: 'Supprimer un espace' },
+    
+    { key: 'user:create', description: 'Créer un nouvel utilisateur' },
+    { key: 'user:read', description: 'Consulter les profils utilisateurs' },
+    { key: 'user:update', description: 'Modifier un profil utilisateur' },
+    { key: 'user:delete', description: 'Supprimer un compte utilisateur' },
+    
+    { key: 'role:create', description: 'Créer un rôle personnalisé' },
+    { key: 'role:update', description: 'Modifier un rôle personnalisé' },
+    { key: 'role:delete', description: 'Supprimer un rôle personnalisé' },
+    { key: 'role:assign', description: 'Attribuer des rôles aux utilisateurs' },
+    
+    { key: 'scene:edit', description: 'Éditer et enregistrer les placements 3D' },
+    { key: 'scene:reset', description: 'Réinitialiser la scène 3D à son état original' },
+    
+    { key: 'logs:view', description: 'Consulter le journal d\'activité (réservé ROOT)' },
+  ];
+
+  console.log('Inserting permissions...');
+  for (const perm of permissionsData) {
+    await prisma.permission.upsert({
+      where: { key: perm.key },
+      update: { description: perm.description },
+      create: perm,
+    });
+  }
+  console.log('✅ Permissions inserted.');
+
+  // ── 2. Create base system roles ────────────────────────────────────────────
+  const systemRoles = [
+    { id: 'system-role-root', nom: 'ROOT', niveau: 100, isSystem: true, companyId: null },
+    { id: 'system-role-superadmin', nom: 'SUPERADMIN', niveau: 90, isSystem: true, companyId: null },
+    { id: 'system-role-admin', nom: 'ADMIN', niveau: 50, isSystem: true, companyId: null },
+    { id: 'system-role-employe', nom: 'EMPLOYE', niveau: 20, isSystem: true, companyId: null },
+  ];
+
+  console.log('Inserting base system roles...');
+  for (const r of systemRoles) {
+    await prisma.role.upsert({
+      where: { id: r.id },
+      update: { nom: r.nom, niveau: r.niveau, isSystem: r.isSystem, companyId: r.companyId },
+      create: r,
+    });
+  }
+  console.log('✅ System roles inserted.');
+
+  // ── 3. Associate permissions to system roles ────────────────────────────────
+  const allPermissions = await prisma.permission.findMany();
+  const permMap = new Map(allPermissions.map((p) => [p.key, p.id]));
+
+  const rolePermissionMappings: { [roleId: string]: string[] } = {
+    'system-role-root': allPermissions.map((p) => p.key), // ROOT gets EVERYTHING
+    'system-role-superadmin': allPermissions.map((p) => p.key).filter((k) => k !== 'logs:view'), // All except logs:view
+    'system-role-admin': ['espace:read', 'espace:update', 'user:read'],
+    'system-role-employe': ['espace:read', 'espace:update', 'scene:edit'],
+  };
+
+  console.log('Mapping permissions to system roles...');
+  for (const [roleId, permKeys] of Object.entries(rolePermissionMappings)) {
+    await prisma.rolePermission.deleteMany({
+      where: { roleId },
+    });
+
+    for (const key of permKeys) {
+      const permissionId = permMap.get(key);
+      if (permissionId) {
+        await prisma.rolePermission.create({
+          data: {
+            roleId,
+            permissionId,
+          },
+        });
+      }
+    }
+  }
+  console.log('✅ Role-Permission associations seeded.');
+
+  // ── 4. Create default company "Hergla Park" & 2nd company "Gloulou Test Co" ───
+  const company = await prisma.company.upsert({
+    where: { slug: 'hergla-park' },
+    update: {},
+    create: {
+      nom: 'Hergla Park',
+      slug: 'hergla-park',
+      logoUrl: '/uploads/logo.png',
+      actif: true,
+    },
+  });
+  console.log(`✅ Company 1: ${company.nom} (id: ${company.id})`);
+
+  const companyGloulou = await prisma.company.upsert({
+    where: { slug: 'gloulou-test' },
+    update: {},
+    create: {
+      nom: 'Gloulou Test Co',
+      slug: 'gloulou-test',
+      logoUrl: '/uploads/logo.png',
+      actif: true,
+    },
+  });
+  console.log(`✅ Company 2: ${companyGloulou.nom} (id: ${companyGloulou.id})`);
+
+  // ── 5. Create Custom Roles ──────────────────────────────────────────────────
+  // Custom role specific to Hergla Park (Responsable Café - level 20)
+  const customRoleName = 'Responsable Café';
+  const customRole = await prisma.role.upsert({
+    where: { nom_companyId: { nom: customRoleName, companyId: company.id } },
+    update: { niveau: 20 },
+    create: {
+      nom: customRoleName,
+      niveau: 20,
+      isSystem: false,
+      companyId: company.id,
+    },
+  });
+  console.log(`✅ Custom Role 1: ${customRole.nom} (id: ${customRole.id})`);
+
+  // Assign permissions to the custom role ("Responsable Café" can read/update spaces and edit scene)
+  const customRolePermKeys = ['espace:read', 'espace:update', 'scene:edit'];
+  await prisma.rolePermission.deleteMany({
+    where: { roleId: customRole.id },
+  });
+  for (const key of customRolePermKeys) {
+    const permissionId = permMap.get(key);
+    if (permissionId) {
+      await prisma.rolePermission.create({
+        data: {
+          roleId: customRole.id,
+          permissionId,
+        },
+      });
+    }
+  }
+
+  // Custom role specific to Gloulou Test Co (Manager VIP - level 20)
+  const gloulouCustomRoleName = 'Manager VIP';
+  const gloulouCustomRole = await prisma.role.upsert({
+    where: { nom_companyId: { nom: gloulouCustomRoleName, companyId: companyGloulou.id } },
+    update: { niveau: 20 },
+    create: {
+      nom: gloulouCustomRoleName,
+      niveau: 20,
+      isSystem: false,
+      companyId: companyGloulou.id,
+    },
+  });
+  console.log(`✅ Custom Role 2: ${gloulouCustomRole.nom} (id: ${gloulouCustomRole.id})`);
+
+  // ── 6. Create Spaces for both companies ─────────────────────────────────────
+  console.log('Seeding spaces for Hergla Park & Gloulou Test Co...');
+  
+  const spaceCafe = await prisma.espace.upsert({
+    where: { id: 'space-cafe-demo-id' },
+    update: {},
+    create: {
+      id: 'space-cafe-demo-id',
+      companyId: company.id,
+      nom: 'Café',
+      categorie: 'Café & Détente',
+      statut: StatutEspace.OUVERT,
+      baseSceneUrl: '/uploads/models/cafe_base.glb',
+      donneesSpecifiques: {
+        tablesCount: 15,
+        hasTerrace: true,
+        specialty: 'Café Tunisien',
+      },
+    },
+  });
+
+  const spaceRestaurant = await prisma.espace.upsert({
+    where: { id: 'space-resto-demo-id' },
+    update: {},
+    create: {
+      id: 'space-resto-demo-id',
+      companyId: company.id,
+      nom: 'Restaurant',
+      categorie: 'Restauration',
+      statut: StatutEspace.FERME,
+      baseSceneUrl: '/uploads/models/restaurant_base.glb',
+      donneesSpecifiques: {
+        capacity: 120,
+        cuisineType: 'Méditerranéenne',
+        menuOfTheDay: 'Couscous de poissons',
+      },
+    },
+  });
+
+  const spaceKarting = await prisma.espace.upsert({
+    where: { id: 'space-karting-demo-id' },
+    update: {},
+    create: {
+      id: 'space-karting-demo-id',
+      companyId: company.id,
+      nom: 'Piste Karting',
+      categorie: 'Sports & Loisirs',
+      statut: StatutEspace.MAINTENANCE,
+      baseSceneUrl: '/uploads/models/karting_track.glb',
+      donneesSpecifiques: {
+        trackLengthMeters: 800,
+        kartsAvailable: 12,
+        maintenanceReason: 'Refoulement de la piste principale',
+      },
+    },
+  });
+
+  // Spaces for Gloulou Test Co
+  const spaceGloulouLounge = await prisma.espace.upsert({
+    where: { id: 'space-gloulou-lounge-id' },
+    update: {},
+    create: {
+      id: 'space-gloulou-lounge-id',
+      companyId: companyGloulou.id,
+      nom: 'Gloulou Lounge VIP',
+      categorie: 'Lounge',
+      statut: StatutEspace.OUVERT,
+      baseSceneUrl: '/uploads/models/lounge_base.glb',
+      donneesSpecifiques: {
+        capacity: 50,
+        vipAccess: true,
+      },
+    },
+  });
+
+  const spaceGloulouTrack = await prisma.espace.upsert({
+    where: { id: 'space-gloulou-track-id' },
+    update: {},
+    create: {
+      id: 'space-gloulou-track-id',
+      companyId: companyGloulou.id,
+      nom: 'Gloulou Circuit Pro',
+      categorie: 'Sports & Loisirs',
+      statut: StatutEspace.OUVERT,
+      baseSceneUrl: '/uploads/models/track_base.glb',
+      donneesSpecifiques: {
+        trackLengthMeters: 1200,
+      },
+    },
+  });
+
+  console.log('✅ Spaces seeded for both companies.');
+
+  // ── 7. Seeding 3D Objects catalogue ──────────────────────────────────────────
+  console.log('Seeding catalogue 3D objects...');
+  const catalogObjects = [
+    { id: 'obj-table-id', nom: 'Table', categorie: 'mobilier', modelUrl: '/uploads/models/table.glb', thumbnailUrl: '/uploads/thumbnails/table.png' },
+    { id: 'obj-chaise-id', nom: 'Chaise', categorie: 'mobilier', modelUrl: '/uploads/models/chaise.glb', thumbnailUrl: '/uploads/thumbnails/chaise.png' },
+    { id: 'obj-plante-id', nom: 'Plante verte', categorie: 'decoration', modelUrl: '/uploads/models/plante.glb', thumbnailUrl: '/uploads/thumbnails/plante.png' },
+    { id: 'obj-panneau-id', nom: 'Panneau indicateur', categorie: 'signaletique', modelUrl: '/uploads/models/panneau.glb', thumbnailUrl: '/uploads/thumbnails/panneau.png' },
+    { id: 'obj-karting-id', nom: 'Karting Standard', categorie: 'equipement', modelUrl: '/uploads/models/karting.glb', thumbnailUrl: '/uploads/thumbnails/karting.png' },
+    { id: 'obj-sofa-id', nom: 'Sofa Lounge', categorie: 'mobilier', modelUrl: '/uploads/models/sofa.glb', thumbnailUrl: '/uploads/thumbnails/sofa.png' },
+  ];
+
+  for (const obj of catalogObjects) {
+    await prisma.object3D.upsert({
+      where: { id: obj.id },
+      update: { nom: obj.nom, categorie: obj.categorie, modelUrl: obj.modelUrl, thumbnailUrl: obj.thumbnailUrl },
+      create: {
+        id: obj.id,
+        companyId: company.id,
+        nom: obj.nom,
+        categorie: obj.categorie,
+        modelUrl: obj.modelUrl,
+        thumbnailUrl: obj.thumbnailUrl,
+        isCustom: false,
+      },
+    });
+  }
+
+  // 3D Objects for Gloulou Test Co
+  const gloulouCatalogObjects = [
+    { id: 'obj-gloulou-bar-id', nom: 'Bar Cocktail VIP', categorie: 'mobilier', modelUrl: '/uploads/models/bar.glb', thumbnailUrl: '/uploads/thumbnails/bar.png' },
+  ];
+  for (const obj of gloulouCatalogObjects) {
+    await prisma.object3D.upsert({
+      where: { id: obj.id },
+      update: { nom: obj.nom, categorie: obj.categorie, modelUrl: obj.modelUrl, thumbnailUrl: obj.thumbnailUrl },
+      create: {
+        id: obj.id,
+        companyId: companyGloulou.id,
+        nom: obj.nom,
+        categorie: obj.categorie,
+        modelUrl: obj.modelUrl,
+        thumbnailUrl: obj.thumbnailUrl,
+        isCustom: false,
+      },
+    });
+  }
+
+  console.log('✅ 3D Objects seeded.');
+
+  // ── 8. Seeding Placements for Café scene ────────────────────────────────────
+  console.log('Seeding scene placements for Café...');
+  const placements = [
+    { id: 'place-cafe-table-1', espaceId: spaceCafe.id, object3DId: 'obj-table-id', positionX: 0.0, positionY: 0.0, positionZ: 0.0, rotationX: 0.0, rotationY: 0.0, rotationZ: 0.0, scaleX: 1.0, scaleY: 1.0, scaleZ: 1.0 },
+    { id: 'place-cafe-chaise-1', espaceId: spaceCafe.id, object3DId: 'obj-chaise-id', positionX: 0.6, positionY: 0.0, positionZ: 0.0, rotationX: 0.0, rotationY: 1.57, rotationZ: 0.0, scaleX: 1.0, scaleY: 1.0, scaleZ: 1.0 },
+    { id: 'place-cafe-chaise-2', espaceId: spaceCafe.id, object3DId: 'obj-chaise-id', positionX: -0.6, positionY: 0.0, positionZ: 0.0, rotationX: 0.0, rotationY: -1.57, rotationZ: 0.0, scaleX: 1.0, scaleY: 1.0, scaleZ: 1.0 },
+    { id: 'place-cafe-plante-1', espaceId: spaceCafe.id, object3DId: 'obj-plante-id', positionX: 1.5, positionY: 0.0, positionZ: 1.5, rotationX: 0.0, rotationY: 0.0, rotationZ: 0.0, scaleX: 1.2, scaleY: 1.2, scaleZ: 1.2 },
+  ];
+
+  await prisma.scenePlacement.deleteMany({
+    where: { espaceId: spaceCafe.id },
+  });
+
+  for (const pl of placements) {
+    await prisma.scenePlacement.create({
+      data: pl,
+    });
+  }
+
+  const originalSceneData = placements.map(({ object3DId, positionX, positionY, positionZ, rotationX, rotationY, rotationZ, scaleX, scaleY, scaleZ }) => ({
+    object3DId,
+    position: [positionX, positionY, positionZ],
+    rotation: [rotationX ?? 0, rotationY ?? 0, rotationZ ?? 0],
+    scale: [scaleX ?? 1, scaleY ?? 1, scaleZ ?? 1],
+  }));
+
+  await prisma.espace.update({
+    where: { id: spaceCafe.id },
+    data: { originalSceneData },
+  });
+  console.log('✅ Café scene placements & originalSceneData seeded.');
+
+  // ── 9. Create QA accounts ──────────────────────────────────────────────────
+  console.log('Seeding QA users...');
+  
+  const demoPassword = 'DemoSecurePass!2026';
+  const salt = bcrypt.genSaltSync(10);
+  const passwordHash = bcrypt.hashSync(demoPassword, salt);
+
+  // 1. ROOT
+  const userRoot = await prisma.user.upsert({
+    where: { email: 'root_demo@herglapark.com' },
+    update: { passwordHash },
+    create: {
+      email: 'root_demo@herglapark.com',
+      nom: 'Alex (ROOT)',
+      passwordHash,
+      companyId: null, // Global
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: userRoot.id } });
+  await prisma.userRole.create({ data: { userId: userRoot.id, roleId: 'system-role-root' } });
+
+  // 2. SUPERADMIN (Multi-company: Hergla Park + Gloulou Test Co)
+  const userSuperadmin = await prisma.user.upsert({
+    where: { email: 'superadmin_demo@herglapark.com' },
+    update: { passwordHash },
+    create: {
+      email: 'superadmin_demo@herglapark.com',
+      nom: 'Sami (SuperAdmin)',
+      passwordHash,
+      companyId: company.id,
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: userSuperadmin.id } });
+  await prisma.userRole.create({ data: { userId: userSuperadmin.id, roleId: 'system-role-superadmin' } });
+
+  // Seed UserCompany records for multi-company access for userSuperadmin
+  await prisma.userCompany.deleteMany({ where: { userId: userSuperadmin.id } });
+  await prisma.userCompany.createMany({
+    data: [
+      { userId: userSuperadmin.id, companyId: company.id },
+      { userId: userSuperadmin.id, companyId: companyGloulou.id },
+    ],
+  });
+
+  // 3. ADMIN Hergla Park
+  const userAdmin = await prisma.user.upsert({
+    where: { email: 'admin_demo@herglapark.com' },
+    update: { passwordHash, assignedSpaceId: spaceCafe.id },
+    create: {
+      email: 'admin_demo@herglapark.com',
+      nom: 'Mariem (Admin Café)',
+      passwordHash,
+      companyId: company.id,
+      assignedSpaceId: spaceCafe.id,
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: userAdmin.id } });
+  await prisma.userRole.create({ data: { userId: userAdmin.id, roleId: 'system-role-admin' } });
+  await prisma.userRole.create({ data: { userId: userAdmin.id, roleId: customRole.id } });
+
+  // 4. EMPLOYE Hergla Park
+  const userEmploye = await prisma.user.upsert({
+    where: { email: 'employe_demo@herglapark.com' },
+    update: { passwordHash, assignedSpaceId: spaceKarting.id },
+    create: {
+      email: 'employe_demo@herglapark.com',
+      nom: 'Yassine (Employé Karting)',
+      passwordHash,
+      companyId: company.id,
+      assignedSpaceId: spaceKarting.id,
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: userEmploye.id } });
+  await prisma.userRole.create({ data: { userId: userEmploye.id, roleId: 'system-role-employe' } });
+
+  // 5. SUPERADMIN Gloulou Test Co (Mono-company)
+  const userGloulouSuperadmin = await prisma.user.upsert({
+    where: { email: 'superadmin_gloulou@glouloutest.com' },
+    update: { passwordHash },
+    create: {
+      email: 'superadmin_gloulou@glouloutest.com',
+      nom: 'Karim (SuperAdmin Gloulou)',
+      passwordHash,
+      companyId: companyGloulou.id,
+    },
+  });
+  await prisma.userRole.deleteMany({ where: { userId: userGloulouSuperadmin.id } });
+  await prisma.userRole.create({ data: { userId: userGloulouSuperadmin.id, roleId: 'system-role-superadmin' } });
+
+  console.log('✅ QA Users seeded.');
+
+  // ── 10. Seeding Audit Logs ─────────────────────────────────────────────────
+  console.log('Seeding audit logs...');
+  const auditLogsData = [
+    {
+      companyId: company.id,
+      actorId: userSuperadmin.id,
+      action: 'company.create',
+      entityType: 'Company',
+      entityId: company.id,
+      isRootIntervention: true,
+      metadata: { nom: 'Hergla Park', slug: 'hergla-park' },
+    },
+    {
+      companyId: companyGloulou.id,
+      actorId: userGloulouSuperadmin.id,
+      action: 'company.create',
+      entityType: 'Company',
+      entityId: companyGloulou.id,
+      isRootIntervention: false,
+      metadata: { nom: 'Gloulou Test Co', slug: 'gloulou-test' },
+    },
+    {
+      companyId: company.id,
+      actorId: userSuperadmin.id,
+      action: 'user.create',
+      entityType: 'User',
+      entityId: userAdmin.id,
+      isRootIntervention: false,
+      metadata: { email: userAdmin.email, role: 'ADMIN' },
+    },
+    {
+      companyId: companyGloulou.id,
+      actorId: userGloulouSuperadmin.id,
+      action: 'role.create',
+      entityType: 'Role',
+      entityId: gloulouCustomRole.id,
+      isRootIntervention: false,
+      metadata: { nom: 'Manager VIP' },
+    },
+  ];
+
+  await prisma.auditLog.deleteMany();
+  for (const log of auditLogsData) {
+    await prisma.auditLog.create({
+      data: log,
+    });
+  }
+  console.log('✅ Audit logs seeded.');
+
+  // ── 11. Write Credentials file locally ──────────────────────────────────────
+  const rootDir = path.join(__dirname, '..', '..');
+  const backendDir = __dirname;
+  
+  const credentialsContent = `# QA Credentials — Hergla-Park & Multi-Tenant
+
+Ce fichier a été généré automatiquement par le script de seed.
+
+### Comptes de démo et de test QA :
+
+| Rôle | Email | Mot de passe | Description |
+| :--- | :--- | :--- | :--- |
+| **ROOT** | \`root_demo@herglapark.com\` | \`${demoPassword}\` | Super-utilisateur global, accès à tous les logs et rôles de toutes les entreprises. |
+| **SUPERADMIN (Multi)** | \`superadmin_demo@herglapark.com\` | \`${demoPassword}\` | SuperAdmin rattaché à Hergla Park ET Gloulou Test Co (bascule possible sans reconnexion). |
+| **SUPERADMIN (Gloulou)** | \`superadmin_gloulou@glouloutest.com\` | \`${demoPassword}\` | SuperAdmin rattaché uniquement à Gloulou Test Co. |
+| **ADMIN** | \`admin_demo@herglapark.com\` | \`${demoPassword}\` | Rôles cumulés (ADMIN + Responsable Café). Assigné à l'espace Café. |
+| **EMPLOYE** | \`employe_demo@herglapark.com\` | \`${demoPassword}\` | Rôle EMPLOYE. Assigné à l'espace Piste Karting. |
+
+### Entreprises créées :
+1. **Hergla Park** (ID: \`${company.id}\`, Slug: \`hergla-park\`)
+2. **Gloulou Test Co** (ID: \`${companyGloulou.id}\`, Slug: \`gloulou-test\`)
+
+Date de génération : ${new Date().toISOString()}
+`;
+
+  fs.writeFileSync(path.join(rootDir, 'SEED_CREDENTIALS.md'), credentialsContent);
+  fs.writeFileSync(path.join(backendDir, 'SEED_CREDENTIALS.md'), credentialsContent);
+  
+  console.log('\n🔐 Credentials file updated.');
+
+  // ── 12. Summary ─────────────────────────────────────────────────────────────
+  console.log('📊 Database statistics:');
+  console.log(`   Companies     : ${await prisma.company.count()}`);
+  console.log(`   UserCompanies : ${await prisma.userCompany.count()}`);
+  console.log(`   Espaces       : ${await prisma.espace.count()}`);
+  console.log(`   Object3Ds     : ${await prisma.object3D.count()}`);
+  console.log(`   Users         : ${await prisma.user.count()}`);
+  console.log(`   Roles         : ${await prisma.role.count()}`);
+  console.log(`   Permissions   : ${await prisma.permission.count()}`);
+  console.log(`   Audit Logs    : ${await prisma.auditLog.count()}`);
+  console.log('\n🎉 Seed completed successfully!');
+}
+
+main()
+  .catch((e) => {
+    console.error('❌ Error during seeding:', e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

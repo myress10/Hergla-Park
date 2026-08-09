@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-secondary-container": "#fffbff",
+                    "secondary-fixed-dim": "#ffb3b1",
+                    "surface-dim": "#dcd9db",
+                    "background": "#fbf8fa",
+                    "surface-container-high": "#eae7e9",
+                    "on-secondary-fixed-variant": "#92001c",
+                    "outline-variant": "#c6c6cd",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed": "#ffdad8",
+                    "on-tertiary-fixed-variant": "#554424",
+                    "surface-bright": "#fbf8fa",
+                    "surface-container-highest": "#e4e2e4",
+                    "on-error": "#ffffff",
+                    "surface-container": "#f0edef",
+                    "on-tertiary": "#ffffff",
+                    "on-secondary-fixed": "#410007",
+                    "on-primary-fixed-variant": "#3d465d",
+                    "tertiary-fixed-dim": "#dcc399",
+                    "inverse-surface": "#303032",
+                    "error-container": "#ffdad6",
+                    "surface-tint": "#555e76",
+                    "on-surface": "#1b1b1d",
+                    "on-primary": "#ffffff",
+                    "on-primary-container": "#a0a9c3",
+                    "primary-container": "#353e54",
+                    "tertiary": "#342608",
+                    "primary-fixed": "#d9e2fe",
+                    "surface": "#fbf8fa",
+                    "surface-variant": "#e4e2e4",
+                    "inverse-primary": "#bdc6e1",
+                    "secondary": "#b7102a",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#bdc6e1",
+                    "secondary-container": "#db313f",
+                    "tertiary-container": "#4c3c1c",
+                    "surface-container-lowest": "#ffffff",
+                    "outline": "#76777d",
+                    "on-error-container": "#93000a",
+                    "primary": "#1f283d",
+                    "on-background": "#1b1b1d",
+                    "on-surface-variant": "#45464d",
+                    "inverse-on-surface": "#f3f0f2",
+                    "on-tertiary-container": "#bea77e",
+                    "tertiary-fixed": "#f9dfb3",
+                    "on-tertiary-fixed": "#261901",
+                    "on-primary-fixed": "#121b2f",
+                    "surface-container-low": "#f6f3f5"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "sm": "12px",
+                    "gutter": "24px",
+                    "xl": "80px",
+                    "lg": "48px",
+                    "md": "24px",
+                    "base": "8px",
+                    "container-max": "1200px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "display-lg": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Hanken Grotesk"],
+                    "label-caps": ["Hanken Grotesk"],
+                    "title-md": ["Hanken Grotesk"],
+                    "body-sm": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                    "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0a0b14; /* Deep Navy/Near Black as requested */
+            color: #ffffff;
+            font-family: 'Hanken Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .neon-border {
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.4), inset 0 0 5px rgba(138, 43, 226, 0.2);
+            border: 1px solid rgba(138, 43, 226, 0.6);
+        }
+
+        .glass-card {
+            background: rgba(31, 40, 61, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glow-text-violet {
+            text-shadow: 0 0 10px rgba(138, 43, 226, 0.8);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .step-active {
+            box-shadow: 0 0 15px #db313f;
+        }
+
+        @keyframes pulse-violet {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        .animate-pulse-violet {
+            animation: pulse-violet 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-base bg-surface dark:bg-primary">
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary dark:text-secondary-fixed-dim">
+            Hergla Park
+        </div>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary dark:text-inverse-primary cursor-pointer hover:opacity-80 transition-opacity">language</span>
+</div>
+</header>
+<!-- Navigation Shell (Secondary) -->
+<nav class="fixed top-16 left-0 w-full z-40 flex justify-center items-center gap-md px-gutter h-12 bg-transparent">
+<div class="flex items-center gap-2 text-outline dark:text-outline-variant pb-1 font-label-caps text-label-caps">
+<span class="material-symbols-outlined">start</span> Welcome
+        </div>
+<div class="flex items-center gap-2 text-outline dark:text-outline-variant pb-1 font-label-caps text-label-caps">
+<span class="material-symbols-outlined">sports_esports</span> Controls
+        </div>
+<div class="flex items-center gap-2 border-b-2 border-secondary dark:border-secondary-fixed-dim text-secondary dark:text-secondary-fixed-dim pb-1 font-label-caps text-label-caps">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span> Security
+        </div>
+<div class="flex items-center gap-2 text-outline dark:text-outline-variant pb-1 font-label-caps text-label-caps opacity-50">
+<span class="material-symbols-outlined">rocket_launch</span> Launch
+        </div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-32 pb-24 px-gutter flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Atmospheric Background Animation -->
+
+<!-- Progress Tracker (Step 3 Active) -->
+<div class="w-full max-w-md flex items-center justify-between mb-lg relative z-10">
+<div class="h-1 flex-1 bg-secondary rounded-full mr-xs"></div>
+<div class="h-1 flex-1 bg-secondary rounded-full mr-xs"></div>
+<div class="h-1 flex-1 bg-secondary rounded-full mr-xs step-active shadow-[0_0_10px_#db313f]"></div>
+<div class="h-1 flex-1 bg-primary-container rounded-full opacity-30"></div>
+</div>
+<!-- Section Title -->
+<div class="text-center mb-lg relative z-10">
+<h1 class="font-display-lg text-display-lg mb-base glow-text-violet tracking-tight">Sécurité &amp; Prérequis</h1>
+<p class="font-body-lg text-body-lg text-on-primary-container max-w-lg mx-auto">
+                Préparez-vous à l'aventure en toute simplicité.
+            </p>
+</div>
+<!-- Bento-style Requirement Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-md w-full max-w-container-max relative z-10">
+<!-- Requirement 1: Hardware -->
+<div class="glass-card neon-border rounded-xl p-lg flex flex-col items-center text-center group hover:scale-[1.02] transition-transform duration-300">
+<div class="w-16 h-16 rounded-full bg-secondary-container flex items-center justify-center mb-md shadow-[0_0_20px_rgba(219,49,63,0.4)]">
+<span class="material-symbols-outlined text-white text-[32px]">headset</span>
+</div>
+<h3 class="font-title-md text-title-md text-secondary-fixed-dim mb-xs">Contrôles</h3>
+<p class="font-body-sm text-body-sm text-outline-variant">Souris + Clavier ou Casque VR</p>
+<div class="mt-base flex gap-xs">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-sm">keyboard</span>
+<span class="material-symbols-outlined text-secondary-fixed-dim text-sm">mouse</span>
+</div>
+</div>
+<!-- Requirement 2: Duration -->
+<div class="glass-card neon-border rounded-xl p-lg flex flex-col items-center text-center group hover:scale-[1.02] transition-transform duration-300 border-opacity-40">
+<div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-on-primary-container text-[32px]">timer</span>
+</div>
+<h3 class="font-title-md text-title-md text-white mb-xs">Durée estimée</h3>
+<p class="font-body-sm text-body-sm text-outline-variant">5-10 mins</p>
+</div>
+<!-- Requirement 3: Age -->
+<div class="glass-card neon-border rounded-xl p-lg flex flex-col items-center text-center group hover:scale-[1.02] transition-transform duration-300 border-opacity-40">
+<div class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-on-primary-container text-[32px]">family_restroom</span>
+</div>
+<h3 class="font-title-md text-title-md text-white mb-xs">Âge recommandé</h3>
+<p class="font-body-sm text-body-sm text-outline-variant">7 ans +</p>
+</div>
+</div>
+<!-- Safety Illustration / Preview -->
+<div class="mt-xl w-full max-w-2xl relative z-10">
+<div class="glass-card p-base rounded-xl overflow-hidden relative">
+<div class="aspect-video rounded-lg overflow-hidden relative border border-white/10">
+<div class="w-full h-full bg-cover bg-center" data-alt="A cinematic, wide-angle view of a futuristic virtual racing cockpit inside Hergla Park. The scene is illuminated by glowing electric violet and neon red HUD elements reflected on sleek metallic surfaces. A pilot is seen wearing a minimalist high-tech VR headset, prepared for an immersive experience. The overall mood is intense, technological, and atmospheric with a dark navy background fading into shadows." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA6J1JCzwEYsh3YJdRfWtQZFcpiB7C6shkAEZaaR92SeeAOOyrMS8i81znHywpTjzq5RqD6vZ8eWmoO260Vpf6PTlVFsgGbzLD_wnaYRvnr4oEl2up4d92UqbAaNIeR5FSW2Pibge7OIvvfEzWmZjeqmZnF2Z7HoHyQItLhP1HWBBHkFM_KXA57rrDhTOV2Sop_KZpLS476qrdrR6S3hi01i8pubn4DPGo-WxF4jandeTj67bRqQAGxjg')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-md">
+<div class="flex items-center gap-sm">
+<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+<span class="font-label-caps text-label-caps text-white tracking-widest">SYSTEM READY</span>
+</div>
+</div>
+</div>
+<!-- Glowing corner accent -->
+<div class="absolute -top-4 -right-4 w-12 h-12 bg-secondary opacity-20 blur-xl animate-pulse-violet"></div>
+</div>
+</div>
+</main>
+<!-- Footer Action Shell -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-gutter py-md max-w-container-max mx-auto bg-surface-container-low dark:bg-primary-container backdrop-blur-md rounded-t-xl shadow-lg dark:shadow-[0_0_15px_rgba(219,49,63,0.3)]">
+<div class="flex flex-col">
+<p class="font-body-sm text-body-sm text-primary dark:text-secondary-fixed-dim">Étape 3 sur 4</p>
+<p class="text-[10px] uppercase tracking-widest text-outline-variant opacity-60">SÉCURITÉ VALIDÉE</p>
+</div>
+<div class="flex gap-sm">
+<button class="border-2 border-secondary text-secondary rounded-lg px-lg py-sm font-bold active:scale-95 transition-transform duration-200 hover:bg-secondary-container hover:text-on-secondary-container">
+                Précédent
+            </button>
+<button class="bg-secondary text-on-secondary rounded-lg px-lg py-sm font-bold active:scale-95 transition-transform duration-200 shadow-[0_0_20px_rgba(183,16,42,0.4)] flex items-center gap-xs">
+                Suivant
+                <span class="material-symbols-outlined text-base">arrow_forward</span>
+</button>
+</div>
+</footer>
+<!-- Invisible background decorative layer -->
+<div class="fixed top-0 left-0 w-full h-full pointer-events-none">
+<div class="absolute top-[20%] left-[-5%] w-[40%] h-[40%] bg-secondary/5 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] bg-primary-container/10 rounded-full blur-[150px]"></div>
+</div>
+<script>
+        // Micro-interactions for interactive elements
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                const glow = btn.querySelector('.material-symbols-outlined');
+                if(glow) glow.style.transform = 'translateX(4px)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                const glow = btn.querySelector('.material-symbols-outlined');
+                if(glow) glow.style.transform = 'translateX(0)';
+            });
+        });
+
+        // Simulating loading of requirements
+        window.addEventListener('load', () => {
+            const cards = document.querySelectorAll('.glass-card');
+            cards.forEach((card, i) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 200 + (i * 150));
+            });
+        });
+    </script>
+</body></html>

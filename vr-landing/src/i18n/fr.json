@@ -1,0 +1,81 @@
+{
+  "nav": {
+    "welcome": "Accueil",
+    "controls": "Commandes",
+    "security": "Sécurité",
+    "launch": "Lancer"
+  },
+  "welcome": {
+    "title": "Vivez Hergla Park avant même d'y être",
+    "subtitle": "Découvrez notre parc en immersion 3D totale depuis votre navigateur. Un voyage virtuel vers l'adrénaline.",
+    "galleryTitle": "Explorez les attractions",
+    "startBtn": "Commencer",
+    "scrollDown": "Scrollez pour plus d'infos",
+    "categories": {
+      "karting": "Karting Pro",
+      "family": "Family Fun",
+      "events": "Park Events"
+    }
+  },
+  "controls": {
+    "badge": "Étape 2: Commandes",
+    "title": "Prenez le Contrôle de votre Immersion",
+    "subtitle": "Familiarisez-vous avec les commandes de vol et de navigation pour explorer le parc Hergla comme si vous y étiez.",
+    "moveText": "Z/Q/S/D pour se déplacer dans l'espace virtuel.",
+    "interactText": "E pour interagir (monter dans un kart, commander au café).",
+    "movementLabel": "Déplacement",
+    "actionLabel": "Action Contextuelle",
+    "interactTitle": "Interagir",
+    "interactDesc": "Utilisez cette touche pour valider vos choix ou activer des éléments du décor."
+  },
+  "safety": {
+    "badge": "Étape 3: Prérequis",
+    "title": "Sécurité & Prérequis",
+    "subtitle": "Préparez-vous à l'aventure en toute simplicité.",
+    "cards": {
+      "controls": {
+        "title": "Contrôles",
+        "desc": "Souris + Clavier ou Casque VR"
+      },
+      "duration": {
+        "title": "Durée estimée",
+        "desc": "5-10 mins"
+      },
+      "age": {
+        "title": "Âge recommandé",
+        "desc": "7 ans +"
+      }
+    },
+    "status": "SÉCURITÉ VALIDÉE",
+    "sessionReady": "SESSION PRÊTE",
+    "systemCheck": "ALL GREEN",
+    "pressStart": "CLIQUEZ SUR 'SUIVANT' POUR COMMENCER"
+  },
+  "launch": {
+    "badge": "Système Prêt • Phase 04",
+    "title": "LANCER LA VISITE VIRTUELLE",
+    "loading": "INITIALIZING WEBGL ENVIRONMENT",
+    "connecting": "CONNECTING TO RENDER PIPELINE...",
+    "streaming": "STREAMING ASSETS...",
+    "starting": "STARTING IMMERSIVE VIEW...",
+    "status": {
+      "uplink": "UP-LINK: STABLE",
+      "latency": "LATENCY: 14MS",
+      "immersion": "IMMERSION SCALE: 99.8%"
+    },
+    "placeholder": {
+      "title": "Visite Virtuelle 3D — Hergla Park",
+      "subtitle": "Le lecteur WebGL Unity sera chargé ici au Mois 2 (Semaine 8).",
+      "btnText": "Simuler une action Unity (Retour)",
+      "integrationDoc": "Pour intégrer le build Unity WebGL, remplacez ce composant par le script de loader Unity (createUnityInstance)."
+    }
+  },
+  "actions": {
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "privacy": "Privacy Policy",
+    "help": "Help Center",
+    "copyright": "© 2024 Hergla Park Authority"
+  }
+}
