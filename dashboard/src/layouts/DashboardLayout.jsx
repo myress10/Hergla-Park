@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import LangSwitcher from '../components/LangSwitcher';
-import { Bell, Building, Globe, UserCircle2 } from 'lucide-react';
+import { Bell, Building, Globe, UserCircle2, Search } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 
 const PAGE_TITLES = {
@@ -50,14 +50,21 @@ export default function DashboardLayout() {
       {/* Main content — offset by sidebar width */}
       <div className="flex-1 ms-[250px] flex flex-col min-h-screen">
         {/* Topbar matching screen.jpg benchmark */}
-        <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-8 py-3.5 flex items-center justify-between">
+        <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-6 sm:px-8 py-3 flex items-center justify-between shadow-sm">
+          {/* Universal Search Bar */}
           <div className="flex items-center gap-3">
-            <h1 className="font-bold text-slate-900 text-sm sm:text-base tracking-tight">
-              {pageTitle}
-            </h1>
+            <div className="relative flex items-center">
+              <Search size={15} className="absolute start-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Rechercher un utilisateur..."
+                className="bg-slate-100/80 text-slate-800 text-xs font-medium rounded-xl ps-9 pe-4 py-2 w-64 sm:w-80 border border-slate-200/50 focus:border-slate-400 focus:bg-white focus:outline-none transition-all placeholder:text-slate-400"
+                id="topbar-search-input"
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-4 sm:gap-5">
             {/* Multi-Company Selector */}
             {availableCompanies && availableCompanies.length > 1 && (
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1 text-xs text-slate-700">
@@ -80,10 +87,12 @@ export default function DashboardLayout() {
             {/* Language Switcher (FR / AR Minimalist Tab) */}
             <LangSwitcher variant="minimal" />
 
+            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
             {/* Global Settings / Web Icon */}
             <button
               type="button"
-              className="p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+              className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
               id="topbar-global-btn"
               title="Paramètres Globaux"
             >
@@ -93,7 +102,7 @@ export default function DashboardLayout() {
             {/* Notification Bell with Red Badge Dot */}
             <button
               type="button"
-              className="relative p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+              className="relative p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
               id="topbar-notifications-btn"
               title="Notifications"
             >
@@ -101,15 +110,22 @@ export default function DashboardLayout() {
               <span className="absolute top-1 end-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
             </button>
 
-            {/* User Profile Avatar Icon */}
-            <button
-              type="button"
-              className="p-1 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center"
-              id="topbar-profile-btn"
-              title={`${user?.nom || 'Utilisateur'} (${user?.role})`}
-            >
-              <UserCircle2 size={22} className="text-slate-800 stroke-[1.75]" />
-            </button>
+            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+            {/* User Profile Info Pill */}
+            <div className="flex items-center gap-2.5">
+              <div className="text-end hidden sm:block">
+                <p className="text-xs font-bold text-slate-800 leading-tight">
+                  {user?.nom || 'Admin User'}
+                </p>
+                <p className="text-[10px] font-medium text-slate-400">
+                  {user?.role === 'SUPERADMIN' ? 'System Master' : user?.role === 'ROOT' ? 'Root Controller' : user?.role || 'User'}
+                </p>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-slate-800 text-white flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-slate-100">
+                {user?.nom ? user.nom.charAt(0).toUpperCase() : 'A'}
+              </div>
+            </div>
           </div>
         </header>
 
