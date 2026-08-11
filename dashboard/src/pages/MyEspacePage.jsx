@@ -18,6 +18,7 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
+import RootVerificationModal from '../components/RootVerificationModal';
 import toast from 'react-hot-toast';
 
 // Helper to determine space configurations & preset metadata
@@ -378,13 +379,17 @@ export default function MyEspacePage() {
     fetchSpaceData();
   }, [fetchSpaceData]);
 
-  // Operational Status Change handler
-  const handleStatusChange = async (newStatus) => {
+  // ROOT Security Modal State
+  const [rootModalOpen, setRootModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null); // { type: 'status'|'report', payload: any, label: string }
+
+  // Execute space status update
+  const performStatusUpdate = async (newStatus, reason) => {
     if (!espace) return;
     const previous = espace.statut;
     setEspace((prev) => ({ ...prev, statut: newStatus })); // optimistic update
     try {
-      const res = await updateEspace(espace.id, { statut: newStatus });
+      const res = await updateEspace(espace.id, { statut: newStatus }, reason);
       setEspace(res.data.data || res.data);
       toast.success(
         newStatus === 'OUVERT'
@@ -399,11 +404,40 @@ export default function MyEspacePage() {
     }
   };
 
-  // Submit Daily Report Form handler
-  const handleSubmitReport = async (e) => {
-    if (e) e.preventDefault();
+  // Operational Status Change handler
+  const handleStatusChange = (newStatus) => {
+    if (!espace) return;
+    if (user?.role === 'ROOT') {
+      setPendingAction({
+        type: 'status',
+        newStatus,
+        label: `Modification statut (${espace.statut} ➔ ${newStatus})`,
+      });
+      setRootModalOpen(true);
+      return;
+    }
+    performStatusUpdate(newStatus);
+  };
+
+  // Execute daily report form submit
+  const performReportSubmit = async (mergedDonnees, reason) => {
     if (!espace) return;
     setSaving(true);
+    try {
+      const res = await updateEspace(espace.id, { donneesSpecifiques: mergedDonnees }, reason);
+      setEspace(res.data.data || res.data);
+      toast.success('Rapport journalier enregistré avec succès !');
+    } catch (err) {
+      toast.error(err.response?.data?.message || t('mySpace.updateError'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Submit Daily Report Form handler
+  const handleSubmitReport = (e) => {
+    if (e) e.preventDefault();
+    if (!espace) return;
 
     const mergedDonnees = {
       ...(espace.donneesSpecifiques || {}),
@@ -421,15 +455,30 @@ export default function MyEspacePage() {
       }
     });
 
-    try {
-      const res = await updateEspace(espace.id, { donneesSpecifiques: mergedDonnees });
-      setEspace(res.data.data || res.data);
-      toast.success('Rapport journalier enregistré avec succès !');
-    } catch (err) {
-      toast.error(err.response?.data?.message || t('mySpace.updateError'));
-    } finally {
-      setSaving(false);
+    if (user?.role === 'ROOT') {
+      setPendingAction({
+        type: 'report',
+        mergedDonnees,
+        label: `Mise à jour rapport journalier (${espace.nom})`,
+      });
+      setRootModalOpen(true);
+      return;
     }
+
+    performReportSubmit(mergedDonnees);
+  };
+
+  // Handle ROOT confirmation with passcode and audit reason
+  const handleRootConfirm = ({ passcode, reason }) => {
+    if (!pendingAction) return;
+    const auditReason = `${reason} [Validé avec code ${passcode}]`;
+
+    if (pendingAction.type === 'status') {
+      performStatusUpdate(pendingAction.newStatus, auditReason);
+    } else if (pendingAction.type === 'report') {
+      performReportSubmit(pendingAction.mergedDonnees, auditReason);
+    }
+    setPendingAction(null);
   };
 
   const handleFieldChange = (key, val) => {
@@ -856,6 +905,15 @@ export default function MyEspacePage() {
           </div>
         </div>
       </div>
+
+      {/* ROOT Verification Security Modal */}
+      <RootVerificationModal
+        isOpen={rootModalOpen}
+        onClose={() => { setRootModalOpen(false); setPendingAction(null); }}
+        onConfirm={handleRootConfirm}
+        title="Validation Sécurité ROOT Required"
+        actionName={pendingAction?.label || "Modification d'espace"}
+      />
     </div>
   );
 }

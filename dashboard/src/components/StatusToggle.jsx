@@ -13,10 +13,16 @@ const STATUS_OPTIONS = [
  * 3-state status dropdown for OUVERT / FERME / MAINTENANCE.
  * Optimistic UI update with rollback on error.
  */
+import { useAuth } from '../context/AuthContext';
+import RootVerificationModal from './RootVerificationModal';
+
 export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabled = false }) {
+  const { user } = useAuth();
   const [optimistic, setOptimistic] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [rootModalOpen, setRootModalOpen] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState(null);
   const ref = useRef(null);
 
   // Sync if parent updates the status externally
@@ -33,21 +39,37 @@ export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabl
 
   const current = STATUS_OPTIONS.find((o) => o.value === optimistic) || STATUS_OPTIONS[0];
 
-  const handleSelect = async (newStatus) => {
-    if (loading || disabled || newStatus === optimistic) { setOpen(false); return; }
+  const performUpdate = async (newStatus, reason) => {
     const previous = optimistic;
     setOptimistic(newStatus);
-    setOpen(false);
     setLoading(true);
     try {
-      const response = await updateEspace(espaceId, { statut: newStatus });
+      const response = await updateEspace(espaceId, { statut: newStatus }, reason);
       if (onUpdate) onUpdate(response.data.data || response.data);
+      toast.success(`Statut mis à jour vers ${newStatus}`);
     } catch (error) {
       setOptimistic(previous);
       toast.error(error.response?.data?.message || 'Erreur lors de la mise à jour du statut');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSelect = (newStatus) => {
+    if (loading || disabled || newStatus === optimistic) { setOpen(false); return; }
+    setOpen(false);
+    if (user?.role === 'ROOT') {
+      setPendingStatus(newStatus);
+      setRootModalOpen(true);
+      return;
+    }
+    performUpdate(newStatus);
+  };
+
+  const handleRootConfirm = ({ passcode, reason }) => {
+    if (!pendingStatus) return;
+    performUpdate(pendingStatus, `${reason} [Validé avec code ${passcode}]`);
+    setPendingStatus(null);
   };
 
   return (
@@ -83,6 +105,15 @@ export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabl
           ))}
         </div>
       )}
+
+      {/* ROOT Security Verification Modal */}
+      <RootVerificationModal
+        isOpen={rootModalOpen}
+        onClose={() => { setRootModalOpen(false); setPendingStatus(null); }}
+        onConfirm={handleRootConfirm}
+        title="Validation Sécurité ROOT Required"
+        actionName={`Changement de statut (➔ ${pendingStatus})`}
+      />
     </div>
   );
 }
