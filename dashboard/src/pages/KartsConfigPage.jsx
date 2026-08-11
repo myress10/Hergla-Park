@@ -8,6 +8,7 @@ import KartList from '../components/karts/KartList';
 import KartPreviewCanvas from '../components/karts/KartPreviewCanvas';
 import { PRESET_COLORS } from '../components/karts/KartFormRow';
 import { Flag, Save, Loader2, Layers, AlertCircle, ChevronDown, CheckCircle } from 'lucide-react';
+import RootVerificationModal from '../components/RootVerificationModal';
 import toast from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -211,8 +212,10 @@ export default function KartsConfigPage() {
     setIsDirty(true);
   };
 
+  const [rootKartModalOpen, setRootKartModalOpen] = useState(false);
+
   // Save changes to backend
-  const handleSave = async () => {
+  const performSave = async (reason) => {
     if (!selectedEspaceId) return;
     if (hasValidationErrors) {
       toast.error('Veuillez corriger les erreurs de numéro avant de sauvegarder.');
@@ -223,7 +226,7 @@ export default function KartsConfigPage() {
     try {
       // 1. Delete removed karts
       for (const id of deletedKartIds) {
-        await deleteKart(selectedEspaceId, id);
+        await deleteKart(selectedEspaceId, id, reason);
       }
 
       // 2. Create or update karts
@@ -261,6 +264,18 @@ export default function KartsConfigPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSave = () => {
+    if (user?.role === 'ROOT') {
+      setRootKartModalOpen(true);
+      return;
+    }
+    performSave();
+  };
+
+  const handleRootKartConfirm = ({ passcode, reason }) => {
+    performSave(`${reason} [Validé avec code ${passcode}]`);
   };
 
   const isKartingCategory =
@@ -423,6 +438,15 @@ export default function KartsConfigPage() {
           </div>
         </div>
       </div>
+
+      {/* ROOT Verification Security Modal */}
+      <RootVerificationModal
+        isOpen={rootKartModalOpen}
+        onClose={() => setRootKartModalOpen(false)}
+        onConfirm={handleRootKartConfirm}
+        title="Validation Sécurité ROOT — Configuration Karts"
+        actionName={`Enregistrer les modifications / suppressions de la flotte karts`}
+      />
     </div>
   );
 }

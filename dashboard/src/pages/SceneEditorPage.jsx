@@ -11,6 +11,7 @@ import SceneToolbar from '../components/scene-editor/SceneToolbar';
 import { Loader2, ChevronDown, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
+import RootVerificationModal from '../components/RootVerificationModal';
 
 /**
  * Main scene editor page.
@@ -45,6 +46,10 @@ export default function SceneEditorPage() {
 
   // Upload modal
   const [uploadOpen, setUploadOpen] = useState(false);
+
+  // ROOT verification modal
+  const [rootSceneModalOpen, setRootSceneModalOpen] = useState(false);
+  const [pendingSceneAction, setPendingSceneAction] = useState(null); // { type: 'reset'|'set-original' }
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -175,25 +180,11 @@ export default function SceneEditorPage() {
     }
   }, [selectedEspaceId, placements]);
 
-  // ── Set as Original (SUPERADMIN only) ────────────────────────────────────
-  const handleSetAsOriginal = useCallback(async () => {
-    if (!selectedEspaceId) return;
-    setSettingOriginal(true);
-    try {
-      await setAsOriginalSpaceScene(selectedEspaceId);
-      toast.success('Disposition actuelle définie comme version officielle');
-    } catch {
-      toast.error('Erreur lors de la définition de la version originale');
-    } finally {
-      setSettingOriginal(false);
-    }
-  }, [selectedEspaceId]);
-
-  // ── Reset ─────────────────────────────────────────────────────────────────
-  const handleReset = useCallback(async () => {
+  // ── Reset ────────────────────────────────────────────────────────────────────────────
+  const performReset = useCallback(async (reason) => {
     if (!selectedEspaceId) return;
     try {
-      const res = await resetSpaceScene(selectedEspaceId);
+      const res = await resetSpaceScene(selectedEspaceId, reason);
       const data = res.data.data || res.data;
       setPlacements(
         (data.placements || []).map((p) => {
@@ -218,6 +209,49 @@ export default function SceneEditorPage() {
       toast.error('Erreur lors de la réinitialisation');
     }
   }, [selectedEspaceId, objects]);
+
+  const handleReset = useCallback(() => {
+    if (user?.role === 'ROOT') {
+      setPendingSceneAction({ type: 'reset' });
+      setRootSceneModalOpen(true);
+      return;
+    }
+    performReset();
+  }, [user, performReset]);
+
+  // ── Set as Original ────────────────────────────────────────────────────────────────────
+  const performSetAsOriginal = useCallback(async (reason) => {
+    if (!selectedEspaceId) return;
+    setSettingOriginal(true);
+    try {
+      await setAsOriginalSpaceScene(selectedEspaceId, reason);
+      toast.success('Disposition actuelle définie comme version officielle');
+    } catch {
+      toast.error('Erreur lors de la définition de la version originale');
+    } finally {
+      setSettingOriginal(false);
+    }
+  }, [selectedEspaceId]);
+
+  const handleSetAsOriginal = useCallback(() => {
+    if (user?.role === 'ROOT') {
+      setPendingSceneAction({ type: 'set-original' });
+      setRootSceneModalOpen(true);
+      return;
+    }
+    performSetAsOriginal();
+  }, [user, performSetAsOriginal]);
+
+  // ROOT scene action confirmation
+  const handleRootSceneConfirm = ({ passcode, reason }) => {
+    const auditReason = `${reason} [Validé avec code ${passcode}]`;
+    if (pendingSceneAction?.type === 'reset') {
+      performReset(auditReason);
+    } else if (pendingSceneAction?.type === 'set-original') {
+      performSetAsOriginal(auditReason);
+    }
+    setPendingSceneAction(null);
+  };
 
   // ── Catalog drag start (store in sessionStorage to bridge HTML5 drag ↔ R3F)
   const handleCatalogDragStart = useCallback((obj) => {
@@ -324,6 +358,19 @@ export default function SceneEditorPage() {
         isOpen={uploadOpen}
         onClose={() => setUploadOpen(false)}
         onUploaded={handleUploaded}
+      />
+
+      {/* ROOT Security Verification Modal */}
+      <RootVerificationModal
+        isOpen={rootSceneModalOpen}
+        onClose={() => { setRootSceneModalOpen(false); setPendingSceneAction(null); }}
+        onConfirm={handleRootSceneConfirm}
+        title="Validation Sécurité ROOT — Scène 3D"
+        actionName={
+          pendingSceneAction?.type === 'reset'
+            ? "Réinitialisation irréversible de la scène (retour état initial)"
+            : "Définition de la disposition actuelle comme version originale officielle"
+        }
       />
     </div>
   );

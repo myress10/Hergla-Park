@@ -12,6 +12,8 @@ import {
   CheckCircle, XCircle, Wrench, Users, Plus, RefreshCw, Map,
   Flag, Box, ShieldCheck, ArrowRight, Activity, Zap, Layers, AlertTriangle, Loader2
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import RootVerificationModal from '../components/RootVerificationModal';
 import toast from 'react-hot-toast';
 
 const CATEGORIES = ['Karting', 'Restaurant', 'Paintball', 'Zone Enfants', 'Café', 'Aquatique', 'Jardin', 'Autre'];
@@ -127,13 +129,15 @@ export default function EspacesOverviewPage() {
     toast.success('Statut de l\'espace mis à jour');
   }, []);
 
+  const { user } = useAuth();
+  const [rootCreateModalOpen, setRootCreateModalOpen] = useState(false);
+
   // ── CREATE ────────────────────────────────────────────────────────────────
-  const handleCreate = async (e) => {
-    e.preventDefault();
+  const performCreate = async (reason) => {
     if (!newEspace.nom || !newEspace.categorie) return;
     setCreating(true);
     try {
-      const res = await createEspace({ nom: newEspace.nom, categorie: newEspace.categorie, statut: newEspace.statut });
+      const res = await createEspace({ nom: newEspace.nom, categorie: newEspace.categorie, statut: newEspace.statut }, reason);
       setEspaces((prev) => [...prev, res.data.data || res.data]);
       setCreateModalOpen(false);
       setNewEspace({ nom: '', categorie: '', statut: 'OUVERT' });
@@ -143,6 +147,20 @@ export default function EspacesOverviewPage() {
     } finally {
       setCreating(false);
     }
+  };
+
+  const handleCreate = (e) => {
+    if (e) e.preventDefault();
+    if (!newEspace.nom || !newEspace.categorie) return;
+    if (user?.role === 'ROOT') {
+      setRootCreateModalOpen(true);
+      return;
+    }
+    performCreate();
+  };
+
+  const handleRootCreateConfirm = ({ passcode, reason }) => {
+    performCreate(`${reason} [Validé avec code ${passcode}]`);
   };
 
   // Computed stats
@@ -376,6 +394,15 @@ export default function EspacesOverviewPage() {
           </div>
         </form>
       </Modal>
+
+      {/* ROOT Verification Security Modal */}
+      <RootVerificationModal
+        isOpen={rootCreateModalOpen}
+        onClose={() => setRootCreateModalOpen(false)}
+        onConfirm={handleRootCreateConfirm}
+        title="Création d'Espace — Validation ROOT"
+        actionName={`Créer l'espace : ${newEspace.nom} (${newEspace.categorie})`}
+      />
     </div>
   );
 }

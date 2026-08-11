@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getUsers, updateUser, deleteUser, createUser, updateUserPassword } from '../api/usersApi';
 import { getEspaces } from '../api/espacesApi';
+import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
+import RootVerificationModal from '../components/RootVerificationModal';
 import {
   Users, UserCheck, Shield, Clock, Search, Plus, Edit2, Trash2, Loader2, Key
 } from 'lucide-react';
@@ -40,6 +42,7 @@ const ITEMS_PER_PAGE = 10;
 
 export default function UsersPage() {
   const { t } = useTranslation();
+  const { user: currentUser } = useAuth();
 
   const [users, setUsers] = useState([]);
   const [espaces, setEspaces] = useState([]);
@@ -67,6 +70,7 @@ export default function UsersPage() {
   // Delete confirm
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [rootDeleteModalOpen, setRootDeleteModalOpen] = useState(false);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -167,19 +171,32 @@ export default function UsersPage() {
   };
 
   // Delete
-  const handleDelete = async () => {
+  const handleDeleteRequest = (u) => {
+    setDeleteTarget(u);
+    if (currentUser?.role === 'ROOT') {
+      setRootDeleteModalOpen(true);
+    }
+  };
+
+  const performDelete = async (reason) => {
     if (!deleteTarget) return;
     setDeleting(true);
     try {
-      await deleteUser(deleteTarget.id);
+      await deleteUser(deleteTarget.id, reason);
       setUsers((p) => p.filter((u) => u.id !== deleteTarget.id));
       setDeleteTarget(null);
+      setRootDeleteModalOpen(false);
       toast.success('Utilisateur supprimé');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Erreur lors de la suppression');
     } finally {
       setDeleting(false);
     }
+  };
+
+  const handleDelete = () => performDelete();
+  const handleRootDeleteConfirm = ({ passcode, reason }) => {
+    performDelete(`${reason} [Validé avec code ${passcode}]`);
   };
 
   return (
@@ -325,7 +342,7 @@ export default function UsersPage() {
                           <Key size={15} />
                         </button>
                         <button
-                          onClick={() => setDeleteTarget(u)}
+                          onClick={() => handleDeleteRequest(u)}
                           className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title={t('common.delete')}
                           id={`delete-user-${u.id}`}
@@ -522,31 +539,42 @@ export default function UsersPage() {
         )}
       </Modal>
 
-      {/* DELETE CONFIRM MODAL */}
-      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title={t('users.delete.confirm')} size="sm">
-        <div className="space-y-4">
-          <p className="text-slate-600 text-sm">
-            Supprimer <strong>{deleteTarget?.nom}</strong> ({deleteTarget?.email}) ?
-            Cette action est irréversible.
-          </p>
-          <div className="flex gap-3">
-            <button
-              onClick={handleDelete}
-              disabled={deleting}
-              id="confirm-delete-btn"
-              className="flex-1 bg-red-500 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-red-600 disabled:opacity-60"
-            >
-              {deleting ? <Loader2 size={16} className="animate-spin mx-auto" /> : t('users.delete.yes')}
-            </button>
-            <button
-              onClick={() => setDeleteTarget(null)}
-              className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200"
-            >
-              {t('users.delete.no')}
-            </button>
+      {/* DELETE CONFIRM MODAL — for non-ROOT users */}
+      {!currentUser?.role?.includes('ROOT') && (
+        <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title={t('users.delete.confirm')} size="sm">
+          <div className="space-y-4">
+            <p className="text-slate-600 text-sm">
+              Supprimer <strong>{deleteTarget?.nom}</strong> ({deleteTarget?.email}) ?
+              Cette action est irréversible.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                id="confirm-delete-btn"
+                className="flex-1 bg-red-500 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-red-600 disabled:opacity-60"
+              >
+                {deleting ? <Loader2 size={16} className="animate-spin mx-auto" /> : t('users.delete.yes')}
+              </button>
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200"
+              >
+                {t('users.delete.no')}
+              </button>
+            </div>
           </div>
-        </div>
-      </Modal>
+        </Modal>
+      )}
+
+      {/* ROOT SECURITY VERIFICATION MODAL — for ROOT users deleting a user */}
+      <RootVerificationModal
+        isOpen={rootDeleteModalOpen}
+        onClose={() => { setRootDeleteModalOpen(false); setDeleteTarget(null); }}
+        onConfirm={handleRootDeleteConfirm}
+        title="Suppression Utilisateur — Validation ROOT"
+        actionName={`Supprimer définitivement l'utilisateur : ${deleteTarget?.nom} (${deleteTarget?.email})`}
+      />
 
       {/* PASSWORD CHANGE MODAL */}
       <Modal isOpen={passwordOpen} onClose={() => { setPasswordOpen(false); setPasswordTarget(null); setNewPassword(''); }} title="Modifier le mot de passe">
