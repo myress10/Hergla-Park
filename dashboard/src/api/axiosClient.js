@@ -21,13 +21,33 @@ const axiosClient = axios.create({
   timeout: 15000,
 });
 
-// Request interceptor: attach JWT token
+// Request interceptor: attach JWT token & auto-attach ROOT audit reason for write operations
 axiosClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('hergla_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Attach mandatory audit reason for ROOT write operations if not explicitly provided
+    const isWrite = ['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase());
+    if (isWrite) {
+      try {
+        const userStr = localStorage.getItem('hergla_user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          if (user?.role === 'ROOT') {
+            config.params = config.params || {};
+            if (!config.params.reason) {
+              config.params.reason = "Intervention d'administration ROOT";
+            }
+          }
+        }
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
