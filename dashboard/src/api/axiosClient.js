@@ -1,16 +1,24 @@
 import axios from 'axios';
 
-const defaultBaseUrl =
-  typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
-    ? 'https://backend-app-nine-mu.vercel.app/api'
-    : 'http://localhost:5000/api';
+// Priority order:
+// 1. VITE_API_URL env var (set in Vercel dashboard for production)
+// 2. Production backend URL (always safe to use — CORS is configured for all dashboard domains)
+// 3. localhost for local dev
+const PROD_BACKEND = 'https://backend-app-nine-mu.vercel.app/api';
+const isLocalDev =
+  typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const defaultBaseUrl = isLocalDev
+  ? 'http://localhost:5000/api'
+  : PROD_BACKEND;
 
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || defaultBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 15000,
 });
 
 // Request interceptor: attach JWT token

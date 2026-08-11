@@ -27,10 +27,15 @@ export default function LoginPage() {
       const route = getDefaultRoute(userData.role);
       navigate(route, { replace: true });
     } catch (err) {
-      const message =
-        err.response?.status === 401
-          ? t('login.error.invalidCredentials')
-          : err.response?.data?.message || t('login.error.networkError');
+      let message;
+      if (!err.response) {
+        // No response at all — network error or timeout
+        message = 'Impossible de joindre le serveur. Vérifiez votre connexion ou réessayez dans quelques secondes.';
+      } else if (err.response.status === 401) {
+        message = t('login.error.invalidCredentials');
+      } else {
+        message = err.response?.data?.message || t('login.error.networkError');
+      }
       toast.error(message);
     } finally {
       setLoading(false);
