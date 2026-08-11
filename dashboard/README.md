@@ -149,6 +149,16 @@ src/
 
 ---
 
+### Configuration des karts (SUPERADMIN, ADMIN, EMPLOYE)
+- Onglet dédié **"Configuration Karts"** (route `/espaces/:id/karts` et `/configuration-karts`) pour les espaces Karting.
+- Formulaire d'édition interactive par kart (`numero` de course 1 à 3 caractères, `couleur` carrosserie hexadécimale, toggle `actif` pour maintenance).
+- Validation stricte de l'unicité des numéros de karts en temps réel.
+- Réordonnancement par flèches haut/bas et mise à jour batch de l'ordre d'affichage (`ordre`).
+- **Aperçu 3D en direct (React Three Fiber)** : rendu temps réel des karts 3D sur piste avec carrosserie colorée et badge de numéro de course 3D mis à jour dynamiquement à chaque modification avant sauvegarde.
+- Sauvegarde synchronisée avec les endpoints NestJS (`POST`, `PUT`, `DELETE /api/espaces/:id/karts` et `PUT /api/espaces/:id/karts/reorder`).
+
+---
+
 ## Build de production
 
 ```bash
@@ -164,3 +174,4 @@ Les fichiers de production sont générés dans `dist/`.
 - **Pas de données mockées** : tout est connecté à l'API backend
 - **Images d'espaces** : générées dynamiquement depuis Unsplash par catégorie (pas de champ `imageUrl` dans le schéma actuel)
 - **CORS** : assurez-vous que le backend autorise `http://localhost:5173` en développement
+

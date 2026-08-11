@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
 import LangSwitcher from '../components/LangSwitcher';
-import { Bell, Building, User } from 'lucide-react';
+import { Bell, Building, Globe, UserCircle2 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
 
 const PAGE_TITLES = {
@@ -11,6 +11,9 @@ const PAGE_TITLES = {
   '/mon-espace': 'nav.mySpace',
   '/utilisateurs': 'nav.users',
   '/mon-profil': 'nav.myProfile',
+  '/editeur-3d': 'nav.editor3d',
+  '/configuration-karts': 'Configuration Karts',
+  '/audit-logs': "Logs d'Audit",
 };
 
 export default function DashboardLayout() {
@@ -18,11 +21,15 @@ export default function DashboardLayout() {
   const { user, availableCompanies, activeCompanyId, switchCompany } = useAuth();
   const location = useLocation();
 
-  const titleKey = PAGE_TITLES[location.pathname] || 'nav.dashboard';
-
-  const initials = user?.nom
-    ? user.nom.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
-    : 'U';
+  // Dynamic Title Determination
+  let pageTitle = 'Piste Karting';
+  if (location.pathname.startsWith('/espaces/')) {
+    pageTitle = 'Piste Karting';
+  } else if (PAGE_TITLES[location.pathname]) {
+    pageTitle = t(PAGE_TITLES[location.pathname]);
+  } else if (location.pathname === '/mon-espace') {
+    pageTitle = 'Piste Karting';
+  }
 
   const handleCompanyChange = async (e) => {
     const newCompanyId = e.target.value;
@@ -37,20 +44,20 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex">
+    <div className="min-h-screen bg-slate-100 flex font-sans">
       <Sidebar />
 
-      {/* Main content — offset by sidebar width, RTL-compatible */}
+      {/* Main content — offset by sidebar width */}
       <div className="flex-1 ms-[250px] flex flex-col min-h-screen">
-        {/* Topbar */}
-        <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between">
+        {/* Topbar matching screen.jpg benchmark */}
+        <header className="sticky top-0 z-20 bg-white border-b border-slate-200 px-8 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="font-semibold text-slate-700 text-sm">{t(titleKey)}</h1>
-            <span className="text-slate-300">|</span>
-            <LangSwitcher variant="toggle" />
+            <h1 className="font-bold text-slate-900 text-sm sm:text-base tracking-tight">
+              {pageTitle}
+            </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4 sm:gap-6">
             {/* Multi-Company Selector */}
             {availableCompanies && availableCompanies.length > 1 && (
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1 text-xs text-slate-700">
@@ -70,30 +77,44 @@ export default function DashboardLayout() {
               </div>
             )}
 
-            {/* Notification bell */}
+            {/* Language Switcher (FR / AR Minimalist Tab) */}
+            <LangSwitcher variant="minimal" />
+
+            {/* Global Settings / Web Icon */}
             <button
-              className="relative p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-500"
-              id="topbar-notifications-btn"
-              aria-label="Notifications"
+              type="button"
+              className="p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+              id="topbar-global-btn"
+              title="Paramètres Globaux"
             >
-              <Bell size={18} />
+              <Globe size={18} />
             </button>
 
-            {/* User avatar */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-navy flex items-center justify-center">
-                <span className="text-white text-xs font-semibold">{initials}</span>
-              </div>
-              <div className="hidden sm:block">
-                <p className="text-sm font-medium text-slate-700 leading-tight">{user?.nom}</p>
-                <p className="text-xs text-slate-400">{user?.role}</p>
-              </div>
-            </div>
+            {/* Notification Bell with Red Badge Dot */}
+            <button
+              type="button"
+              className="relative p-1.5 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors"
+              id="topbar-notifications-btn"
+              title="Notifications"
+            >
+              <Bell size={18} />
+              <span className="absolute top-1 end-1 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white" />
+            </button>
+
+            {/* User Profile Avatar Icon */}
+            <button
+              type="button"
+              className="p-1 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center"
+              id="topbar-profile-btn"
+              title={`${user?.nom || 'Utilisateur'} (${user?.role})`}
+            >
+              <UserCircle2 size={22} className="text-slate-800 stroke-[1.75]" />
+            </button>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 sm:p-8">
           <Outlet />
         </main>
       </div>

@@ -39,6 +39,7 @@ model Espace {
   updatedAt          DateTime         @updatedAt
   employes           User[]
   placements         ScenePlacement[]
+  karts              Kart[]
 }
 
 model Object3D {
@@ -161,4 +162,19 @@ model AuditLog {
   metadata           Json?                      // ex: { before: {...}, after: {...}, reason: "Urgent fix" }
   createdAt          DateTime @default(now())
 }
+
+model Kart {
+  id          String   @id @default(uuid())
+  espaceId    String
+  espace      Espace   @relation(fields: [espaceId], references: [id], onDelete: Cascade)
+  numero      String                       // ex: "07" — affiché sur la carrosserie
+  couleur     String                       // code couleur hexadécimal, ex: "#E53935"
+  actif       Boolean  @default(true)      // permet de désactiver un kart sans le supprimer (maintenance)
+  ordre       Int      @default(0)         // ordre d'affichage dans le panneau et sur la piste
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([espaceId, numero])             // deux karts du même espace ne peuvent pas avoir le même numéro
+}
+
 

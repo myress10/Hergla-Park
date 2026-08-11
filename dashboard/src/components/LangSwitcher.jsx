@@ -5,31 +5,33 @@ import { useLang } from '../context/LangContext';
  * Dropdown language switcher for FR / AR.
  * Applies dir="rtl" on <html> via LangContext.
  */
-export default function LangSwitcher({ variant = 'dropdown' }) {
+export default function LangSwitcher({ variant = 'minimal' }) {
   const { lang, switchLang } = useLang();
   const { t } = useTranslation();
 
-  if (variant === 'toggle') {
-    // Inline FR | AR toggle (used in topbar)
+  if (variant === 'minimal' || variant === 'toggle') {
+    // Minimalist FR | AR with underline indicator matching benchmark screen.jpg
     return (
-      <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+      <div className="flex items-center gap-3 text-xs font-bold tracking-wider select-none">
         <button
+          type="button"
           onClick={() => switchLang('fr')}
-          className={`px-3 py-1 text-sm font-semibold rounded-md transition-all ${
+          className={`pb-0.5 transition-all ${
             lang === 'fr'
-              ? 'bg-white text-navy shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'border-b-2 border-slate-900 text-slate-900'
+              : 'text-slate-400 hover:text-slate-600 border-b-2 border-transparent'
           }`}
           id="lang-fr-btn"
         >
           FR
         </button>
         <button
+          type="button"
           onClick={() => switchLang('ar')}
-          className={`px-3 py-1 text-sm font-semibold rounded-md transition-all ${
+          className={`pb-0.5 transition-all ${
             lang === 'ar'
-              ? 'bg-white text-navy shadow-sm'
-              : 'text-slate-500 hover:text-slate-700'
+              ? 'border-b-2 border-slate-900 text-slate-900'
+              : 'text-slate-400 hover:text-slate-600 border-b-2 border-transparent'
           }`}
           id="lang-ar-btn"
         >

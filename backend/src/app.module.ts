@@ -8,6 +8,8 @@ import { Objects3dModule } from './objects3d/objects3d.module';
 import { CompaniesModule } from './companies/companies.module';
 import { RolesModule } from './roles/roles.module';
 import { RootModule } from './root/root.module';
+import { KartsModule } from './karts/karts.module';
+import { AuditLogsModule } from './audit-logs/audit-logs.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { RootModule } from './root/root.module';
     CompaniesModule,
     RolesModule,
     RootModule,
+    KartsModule,
+    AuditLogsModule,
   ],
 })
 export class AppModule {}

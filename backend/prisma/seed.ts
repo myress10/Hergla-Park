@@ -38,6 +38,9 @@ async function main() {
     { key: 'scene:edit', description: 'Éditer et enregistrer les placements 3D' },
     { key: 'scene:reset', description: 'Réinitialiser la scène 3D à son état original' },
     
+    { key: 'kart:manage', description: 'Créer, modifier, réordonner et supprimer les karts d\'un espace' },
+    { key: 'kart:read', description: 'Consulter la configuration des karts d\'un espace' },
+
     { key: 'logs:view', description: 'Consulter le journal d\'activité (réservé ROOT)' },
   ];
 
@@ -76,8 +79,8 @@ async function main() {
   const rolePermissionMappings: { [roleId: string]: string[] } = {
     'system-role-root': allPermissions.map((p) => p.key), // ROOT gets EVERYTHING
     'system-role-superadmin': allPermissions.map((p) => p.key).filter((k) => k !== 'logs:view'), // All except logs:view
-    'system-role-admin': ['espace:read', 'espace:update', 'user:read'],
-    'system-role-employe': ['espace:read', 'espace:update', 'scene:edit'],
+    'system-role-admin': ['espace:read', 'espace:update', 'user:read', 'kart:manage', 'kart:read'],
+    'system-role-employe': ['espace:read', 'espace:update', 'scene:edit', 'kart:read'],
   };
 
   console.log('Mapping permissions to system roles...');

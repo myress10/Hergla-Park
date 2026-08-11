@@ -9,6 +9,8 @@ import EspacesOverviewPage from './pages/EspacesOverviewPage';
 import MyEspacePage from './pages/MyEspacePage';
 import UsersPage from './pages/UsersPage';
 import SceneEditorPage from './pages/SceneEditorPage';
+import KartsConfigPage from './pages/KartsConfigPage';
+import AuditLogsPage from './pages/AuditLogsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './i18n/index';
 import { Toaster } from 'react-hot-toast';
@@ -17,7 +19,7 @@ function RootRedirect() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'SUPERADMIN') return <Navigate to="/espaces" replace />;
+  if (user.role === 'SUPERADMIN' || user.role === 'ROOT') return <Navigate to="/espaces" replace />;
   return <Navigate to="/mon-espace" replace />;
 }
 
@@ -42,20 +44,36 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              {/* SUPERADMIN only */}
+              {/* SUPERADMIN & ROOT only */}
               <Route
                 path="/espaces"
                 element={
-                  <RoleRoute allowedRoles={['SUPERADMIN']}>
+                  <RoleRoute allowedRoles={['SUPERADMIN', 'ROOT']}>
                     <EspacesOverviewPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/espaces/:espaceId"
+                element={
+                  <RoleRoute allowedRoles={['SUPERADMIN', 'ROOT', 'ADMIN', 'EMPLOYE']}>
+                    <MyEspacePage />
                   </RoleRoute>
                 }
               />
               <Route
                 path="/utilisateurs"
                 element={
-                  <RoleRoute allowedRoles={['SUPERADMIN']}>
+                  <RoleRoute allowedRoles={['SUPERADMIN', 'ROOT']}>
                     <UsersPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/audit-logs"
+                element={
+                  <RoleRoute allowedRoles={['SUPERADMIN', 'ROOT', 'ADMIN']}>
+                    <AuditLogsPage />
                   </RoleRoute>
                 }
               />
@@ -90,6 +108,24 @@ export default function App() {
                 element={
                   <RoleRoute allowedRoles={['SUPERADMIN', 'ADMIN', 'EMPLOYE']}>
                     <SceneEditorPage />
+                  </RoleRoute>
+                }
+              />
+
+              {/* Karting Configuration (SUPERADMIN, ADMIN, EMPLOYE) */}
+              <Route
+                path="/configuration-karts"
+                element={
+                  <RoleRoute allowedRoles={['SUPERADMIN', 'ADMIN', 'EMPLOYE']}>
+                    <KartsConfigPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/espaces/:espaceId/karts"
+                element={
+                  <RoleRoute allowedRoles={['SUPERADMIN', 'ADMIN', 'EMPLOYE']}>
+                    <KartsConfigPage />
                   </RoleRoute>
                 }
               />

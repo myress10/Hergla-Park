@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+const defaultBaseUrl =
+  typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
+    ? 'https://backend-app-nine-mu.vercel.app/api'
+    : 'http://localhost:5000/api';
+
 const axiosClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || defaultBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },

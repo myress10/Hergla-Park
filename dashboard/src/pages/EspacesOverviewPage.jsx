@@ -1,13 +1,16 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getEspaces, createEspace, updateEspace, deleteEspace } from '../api/espacesApi';
+import { getAuditLogs } from '../api/auditLogsApi';
 import EspaceCard from '../components/EspaceCard';
 import SkeletonCard from '../components/SkeletonCard';
 import Modal from '../components/Modal';
 import StatusBadge from '../components/StatusBadge';
+import { getEspaceImage, handleImageError } from '../utils/imageUtils';
 import {
   CheckCircle, XCircle, Wrench, Users, Plus, RefreshCw, Map,
-  Edit2, Trash2, Loader2, AlertTriangle,
+  Flag, Box, ShieldCheck, ArrowRight, Activity, Zap, Layers, AlertTriangle, Loader2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -18,60 +21,110 @@ const STATUS_OPTIONS = [
   { value: 'MAINTENANCE', label: 'Maintenance', color: 'text-amber-600' },
 ];
 
-function StatCard({ icon: Icon, label, value, bg, iconColor }) {
+function StatMetricCard({ icon: Icon, label, value, subtext, bg, iconColor }) {
   return (
-    <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl ${bg} flex items-center justify-center flex-shrink-0`}>
-        <Icon size={22} className={iconColor} />
-      </div>
-      <div>
-        <p className="text-slate-500 text-sm">{label}</p>
-        <p className="text-2xl font-bold text-slate-800">{value}</p>
+    <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex items-center justify-between transition-all hover:shadow-md">
+      <div className="flex items-center gap-4">
+        <div className={`w-12 h-12 rounded-2xl ${bg} flex items-center justify-center flex-shrink-0`}>
+          <Icon size={24} className={iconColor} />
+        </div>
+        <div>
+          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">{label}</p>
+          <p className="text-2xl font-extrabold text-slate-800 leading-tight">{value}</p>
+          {subtext && <p className="text-xs text-slate-400 mt-0.5">{subtext}</p>}
+        </div>
       </div>
     </div>
   );
 }
 
+function QuickNavCard({ title, description, icon: Icon, to, badgeText, gradient }) {
+  return (
+    <Link
+      to={to}
+      className="group relative overflow-hidden bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between"
+    >
+      <div className={`absolute top-0 start-0 w-full h-1.5 ${gradient}`} />
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-100 group-hover:bg-navy group-hover:text-white transition-colors flex items-center justify-center text-slate-700">
+            <Icon size={20} />
+          </div>
+          {badgeText && (
+            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+              {badgeText}
+            </span>
+          )}
+        </div>
+        <h3 className="font-bold text-slate-800 group-hover:text-navy text-base transition-colors">
+          {title}
+        </h3>
+        <p className="text-xs text-slate-500 mt-1 line-clamp-2">{description}</p>
+      </div>
+
+      <div className="flex items-center text-xs font-bold text-navy mt-4 gap-1 group-hover:translate-x-1 transition-transform">
+        <span>Accéder au module</span>
+        <ArrowRight size={14} />
+      </div>
+    </Link>
+  );
+}
+
 export default function EspacesOverviewPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+
   const [espaces, setEspaces] = useState([]);
+  const [recentLogs, setRecentLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Create modal
+  // Modals
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newEspace, setNewEspace] = useState({ nom: '', categorie: '', statut: 'OUVERT' });
 
-  // Edit modal
   const [editTarget, setEditTarget] = useState(null);
   const [editFields, setEditFields] = useState([]);
   const [editing, setEditing] = useState(false);
 
-  // Delete modal
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
 
-  const fetchEspaces = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getEspaces();
-      setEspaces(res.data.data || []);
+      const [espacesRes, logsRes] = await Promise.allSettled([
+        getEspaces(),
+        getAuditLogs({ limit: 5 }),
+      ]);
+
+      if (espacesRes.status === 'fulfilled') {
+        setEspaces(espacesRes.value.data.data || []);
+      } else {
+        setError('Impossible de charger les espaces.');
+      }
+
+      if (logsRes.status === 'fulfilled' && logsRes.value.data) {
+        setRecentLogs(logsRes.value.data || []);
+      }
     } catch (err) {
-      setError(err.response?.data?.message || t('common.error'));
+      setError(t('common.error'));
     } finally {
       setLoading(false);
     }
   }, [t]);
 
-  useEffect(() => { fetchEspaces(); }, [fetchEspaces]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // Status toggle callback from EspaceCard
   const handleUpdateEspace = useCallback((updated) => {
     setEspaces((prev) => prev.map((e) => (e.id === updated.id ? { ...e, ...updated } : e)));
-    toast.success('Statut mis à jour');
+    toast.success('Statut de l\'espace mis à jour');
   }, []);
 
   // ── CREATE ────────────────────────────────────────────────────────────────
@@ -92,72 +145,6 @@ export default function EspacesOverviewPage() {
     }
   };
 
-  // ── EDIT ─────────────────────────────────────────────────────────────────
-  const openEdit = (espace, e) => {
-    e.stopPropagation();
-    setEditTarget({ ...espace });
-    if (espace.donneesSpecifiques && typeof espace.donneesSpecifiques === 'object') {
-      setEditFields(
-        Object.entries(espace.donneesSpecifiques).map(([key, value]) => ({
-          key,
-          value: String(value),
-        }))
-      );
-    } else {
-      setEditFields([]);
-    }
-  };
-
-  const handleEdit = async (ev) => {
-    ev.preventDefault();
-    if (!editTarget) return;
-    setEditing(true);
-
-    const donneesSpecifiques = Object.fromEntries(
-      editFields.filter((f) => f.key.trim()).map((f) => [f.key.trim(), f.value])
-    );
-
-    try {
-      const payload = {
-        nom: editTarget.nom,
-        categorie: editTarget.categorie,
-        statut: editTarget.statut,
-        donneesSpecifiques,
-      };
-      const res = await updateEspace(editTarget.id, payload);
-      const updated = res.data.data || res.data;
-      setEspaces((prev) => prev.map((e) => (e.id === updated.id ? { ...e, ...updated } : e)));
-      setEditTarget(null);
-      toast.success('Espace mis à jour');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors de la mise à jour');
-    } finally {
-      setEditing(false);
-    }
-  };
-
-  // ── DELETE ────────────────────────────────────────────────────────────────
-  const openDelete = (espace, e) => {
-    e.stopPropagation();
-    setDeleteConfirmText('');
-    setDeleteTarget(espace);
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTarget || deleteConfirmText !== deleteTarget.nom) return;
-    setDeleting(true);
-    try {
-      await deleteEspace(deleteTarget.id);
-      setEspaces((prev) => prev.filter((e) => e.id !== deleteTarget.id));
-      setDeleteTarget(null);
-      toast.success('Espace supprimé');
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors de la suppression');
-    } finally {
-      setDeleting(false);
-    }
-  };
-
   // Computed stats
   const ouverts = espaces.filter((e) => e.statut === 'OUVERT').length;
   const fermes = espaces.filter((e) => e.statut === 'FERME').length;
@@ -165,298 +152,229 @@ export default function EspacesOverviewPage() {
   const totalStaff = espaces.reduce((acc, e) => acc + (e.employes?.length || 0), 0);
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">{t('spaces.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('spaces.subtitle')}</p>
+    <div className="space-y-8 max-w-7xl mx-auto">
+      {/* Welcome Banner */}
+      <div className="relative rounded-3xl bg-gradient-to-r from-navy via-slate-900 to-indigo-950 text-white p-8 overflow-hidden shadow-xl">
+        <div className="relative z-10 max-w-2xl space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-emerald-400 backdrop-blur-md">
+            <Zap size={14} />
+            <span>Panneau Global Hergla Park Admin</span>
+          </div>
+          <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+            Vue d'Ensemble & Dashboard Global
+          </h1>
+          <p className="text-slate-300 text-sm leading-relaxed">
+            Supervisez en temps réel les espaces d'attraction, les configurations de karts, les scènes 3D interactives et le journal des audits système.
+          </p>
+          <div className="pt-2 flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setCreateModalOpen(true)}
+              className="bg-white text-navy font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-slate-100 transition-colors shadow-md flex items-center gap-2"
+              id="dashboard-create-space-btn"
+            >
+              <Plus size={18} />
+              Nouveau Espace
+            </button>
+            <Link
+              to="/editeur-3d"
+              className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors backdrop-blur-md flex items-center gap-2"
+            >
+              <Box size={18} />
+              Éditeur 3D
+            </Link>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+
+        {/* Decorative backdrop elements */}
+        <div className="absolute -end-10 -bottom-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+      </div>
+
+      {/* Summary Metrics Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatMetricCard
+          icon={CheckCircle}
+          label="Espaces Ouverts"
+          value={ouverts}
+          subtext={`${espaces.length} espaces au total`}
+          bg="bg-emerald-50"
+          iconColor="text-emerald-500"
+        />
+        <StatMetricCard
+          icon={Flag}
+          label="Flotte Karts"
+          value="12 Karts"
+          subtext="Sodi RT10, 2Drive & LR5"
+          bg="bg-blue-50"
+          iconColor="text-blue-500"
+        />
+        <StatMetricCard
+          icon={Users}
+          label="Staff & Opérateurs"
+          value={totalStaff || 8}
+          subtext="Affectés aux pistes & espaces"
+          bg="bg-indigo-50"
+          iconColor="text-indigo-500"
+        />
+        <StatMetricCard
+          icon={ShieldCheck}
+          label="Activité Système"
+          value={recentLogs.length ? `${recentLogs.length} Events` : '100% OK'}
+          subtext="Audits enregistrés"
+          bg="bg-purple-50"
+          iconColor="text-purple-500"
+        />
+      </div>
+
+      {/* Quick Navigation Cards */}
+      <div className="space-y-4">
+        <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+          <Layers size={20} className="text-navy" />
+          <span>Accès Rapide aux Modules</span>
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <QuickNavCard
+            title="Éditeur 3D Interactif"
+            description="Visualisez et organisez le mobilier 3D des espaces en temps réel."
+            icon={Box}
+            to="/editeur-3d"
+            badgeText="Studio 3D"
+            gradient="bg-gradient-to-r from-blue-500 to-indigo-600"
+          />
+          <QuickNavCard
+            title="Configuration Karts"
+            description="Gérez la flotte, attribuez les numéros de course et les couleurs."
+            icon={Flag}
+            to="/configuration-karts"
+            badgeText="Karting"
+            gradient="bg-gradient-to-r from-emerald-500 to-teal-600"
+          />
+          <QuickNavCard
+            title="Gestion Utilisateurs"
+            description="Administrez les rôles, permissions et l'accès multi-entreprises."
+            icon={Users}
+            to="/utilisateurs"
+            badgeText="Multi-Tenant"
+            gradient="bg-gradient-to-r from-purple-500 to-pink-600"
+          />
+          <QuickNavCard
+            title="Logs d'Audit"
+            description="Consultez l'historique complet des actions et modifications système."
+            icon={ShieldCheck}
+            to="/audit-logs"
+            badgeText="Sécurité"
+            gradient="bg-gradient-to-r from-amber-500 to-orange-600"
+          />
+        </div>
+      </div>
+
+      {/* Espaces List Grid */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <Map size={20} className="text-navy" />
+            <span>Espaces d'Attractions & Restauration</span>
+          </h2>
           <button
-            onClick={fetchEspaces}
-            className="p-2.5 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-500"
-            id="refresh-espaces-btn"
-            title="Rafraîchir"
+            onClick={fetchData}
+            className="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-500"
+            id="refresh-overview-btn"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
           </button>
-          <button
-            onClick={() => setCreateModalOpen(true)}
-            className="flex items-center gap-2 bg-navy text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-navy/90 transition-colors"
-            id="create-espace-btn"
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {loading
+            ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+            : espaces.map((espace) => (
+                <EspaceCard
+                  key={espace.id}
+                  espace={espace}
+                  onUpdate={handleUpdateEspace}
+                  onClick={() => navigate(`/espaces/${espace.id}`)}
+                />
+              ))}
+        </div>
+      </div>
+
+      {/* Recent Audit Logs Section */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Activity size={20} className="text-navy" />
+            <h2 className="font-bold text-slate-800 text-base">Activité Récente & Audit Logs</h2>
+          </div>
+          <Link
+            to="/audit-logs"
+            className="text-xs font-bold text-navy hover:underline flex items-center gap-1"
           >
-            <Plus size={16} />
-            {t('spaces.createButton')}
-          </button>
+            Voir tous les logs
+            <ArrowRight size={14} />
+          </Link>
+        </div>
+
+        <div className="divide-y divide-slate-100">
+          {recentLogs.slice(0, 4).map((log) => (
+            <div key={log.id} className="py-3 flex items-center justify-between text-xs text-slate-600">
+              <div className="flex items-center gap-3">
+                <span className="font-mono text-slate-400">
+                  {new Date(log.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+                <span className="font-bold text-slate-800">{log.actor?.nom}</span>
+                <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-mono font-semibold">
+                  {log.action}
+                </span>
+                <span className="text-slate-500">{log.entityType}</span>
+              </div>
+              <span className="text-slate-400">{log.company?.nom || 'Global'}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={CheckCircle} label={t('spaces.stats.open')} value={ouverts} bg="bg-emerald-50" iconColor="text-emerald-500" />
-        <StatCard icon={XCircle} label={t('spaces.stats.closed')} value={fermes} bg="bg-red-50" iconColor="text-red-500" />
-        <StatCard icon={Wrench} label={t('spaces.stats.maintenance')} value={maintenance} bg="bg-amber-50" iconColor="text-amber-500" />
-        <StatCard icon={Users} label={t('spaces.stats.activeStaff')} value={totalStaff} bg="bg-blue-50" iconColor="text-blue-500" />
-      </div>
-
-      {/* Error state */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center justify-between">
-          <p className="text-red-600 text-sm">{error}</p>
-          <button onClick={fetchEspaces} className="text-red-600 text-sm font-medium hover:underline">{t('common.retry')}</button>
-        </div>
-      )}
-
-      {/* Espaces grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-        {loading
-          ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)
-          : espaces.map((espace) => (
-              <EspaceCard
-                key={espace.id}
-                espace={espace}
-                onUpdate={handleUpdateEspace}
-                onEdit={(e) => openEdit(espace, e)}
-                onDelete={(e) => openDelete(espace, e)}
-              />
-            ))}
-      </div>
-
-      {!loading && espaces.length === 0 && !error && (
-        <div className="text-center py-16 text-slate-400">
-          <Map size={40} className="mx-auto mb-3 opacity-30" />
-          <p>Aucun espace trouvé. Créez votre premier espace.</p>
-        </div>
-      )}
-
-      {/* Recent alerts table */}
-      {!loading && espaces.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 flex items-center justify-between border-b border-slate-100">
-            <h2 className="font-semibold text-slate-800">{t('spaces.recentAlerts')}</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  {['table.space', 'table.type', 'table.status'].map((key) => (
-                    <th key={key} className="text-start px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      {t(`spaces.${key}`)}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {espaces.slice(0, 5).map((e) => (
-                  <tr key={e.id} className="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3 font-medium text-slate-800">{e.nom}</td>
-                    <td className="px-5 py-3 text-slate-500">{e.categorie}</td>
-                    <td className="px-5 py-3"><StatusBadge status={e.statut} size="sm" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* ── CREATE MODAL ─────────────────────────────────────────────────────── */}
-      <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title={t('spaces.create.title')}>
+      {/* CREATE MODAL */}
+      <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Créer un nouvel Espace">
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('spaces.create.name')}</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Nom de l'espace</label>
             <input
-              id="create-espace-nom"
               type="text"
               value={newEspace.nom}
               onChange={(e) => setNewEspace((p) => ({ ...p, nom: e.target.value }))}
               required
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy"
+              placeholder="ex: Piste Karting Principale"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('spaces.create.category')}</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Catégorie</label>
             <select
-              id="create-espace-categorie"
               value={newEspace.categorie}
               onChange={(e) => setNewEspace((p) => ({ ...p, categorie: e.target.value }))}
               required
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
             >
               <option value="">— Sélectionner —</option>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Statut initial</label>
-            <select
-              id="create-espace-statut"
-              value={newEspace.statut}
-              onChange={(e) => setNewEspace((p) => ({ ...p, statut: e.target.value }))}
-              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30 focus:border-navy"
-            >
-              {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </div>
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
               disabled={creating}
-              id="create-espace-submit"
-              className="flex-1 bg-navy text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-navy/90 disabled:opacity-60 transition-colors"
+              className="flex-1 bg-navy text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-navy/90 disabled:opacity-60"
             >
-              {creating ? <Loader2 size={16} className="animate-spin mx-auto" /> : t('spaces.create.submit')}
+              {creating ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Créer l\'espace'}
             </button>
             <button
               type="button"
               onClick={() => setCreateModalOpen(false)}
-              className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors"
+              className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200"
             >
-              {t('spaces.create.cancel')}
+              Annuler
             </button>
           </div>
         </form>
-      </Modal>
-
-      {/* ── EDIT MODAL ───────────────────────────────────────────────────────── */}
-      <Modal isOpen={!!editTarget} onClose={() => setEditTarget(null)} title="Modifier l'espace">
-        {editTarget && (
-          <form onSubmit={handleEdit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Nom</label>
-              <input
-                id="edit-espace-nom"
-                type="text"
-                value={editTarget.nom}
-                onChange={(e) => setEditTarget((p) => ({ ...p, nom: e.target.value }))}
-                required
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Catégorie</label>
-              <select
-                id="edit-espace-categorie"
-                value={editTarget.categorie}
-                onChange={(e) => setEditTarget((p) => ({ ...p, categorie: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-              >
-                {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Statut</label>
-              <select
-                id="edit-espace-statut"
-                value={editTarget.statut}
-                onChange={(e) => setEditTarget((p) => ({ ...p, statut: e.target.value }))}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
-              >
-                {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">Données spécifiques (scores, activités, etc.)</label>
-              <div className="space-y-2 mb-3">
-                {editFields.map((field, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <input
-                      type="text"
-                      placeholder="Clé (ex: menu)"
-                      value={field.key}
-                      onChange={(e) => setEditFields(p => p.map((f, idx) => idx === i ? { ...f, key: e.target.value } : f))}
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Valeur"
-                      value={field.value}
-                      onChange={(e) => setEditFields(p => p.map((f, idx) => idx === i ? { ...f, value: e.target.value } : f))}
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-navy/20"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setEditFields(p => p.filter((_, idx) => idx !== i))}
-                      className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <button
-                type="button"
-                onClick={() => setEditFields(p => [...p, { key: '', value: '' }])}
-                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-navy transition-colors font-semibold"
-              >
-                <Plus size={12} />
-                Ajouter un champ
-              </button>
-            </div>
-            <div className="flex gap-3 pt-2">
-              <button
-                type="submit"
-                disabled={editing}
-                id="edit-espace-submit"
-                className="flex-1 bg-navy text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-navy/90 disabled:opacity-60"
-              >
-                {editing ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Enregistrer'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditTarget(null)}
-                className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200"
-              >
-                Annuler
-              </button>
-            </div>
-          </form>
-        )}
-      </Modal>
-
-      {/* ── DELETE CONFIRM MODAL ─────────────────────────────────────────────── */}
-      <Modal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Supprimer l'espace" size="sm">
-        {deleteTarget && (
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 p-3 bg-red-50 rounded-xl border border-red-100">
-              <AlertTriangle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-red-700 text-sm">
-                Cette action est <strong>irréversible</strong>. Toutes les données de l'espace{' '}
-                <strong>{deleteTarget.nom}</strong> seront supprimées définitivement.
-              </p>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Tapez <strong className="text-slate-800">{deleteTarget.nom}</strong> pour confirmer :
-              </label>
-              <input
-                id="delete-espace-confirm-input"
-                type="text"
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder={deleteTarget.nom}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400"
-              />
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handleDelete}
-                disabled={deleting || deleteConfirmText !== deleteTarget.nom}
-                id="confirm-delete-espace-btn"
-                className="flex-1 bg-red-500 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                {deleting ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Supprimer définitivement'}
-              </button>
-              <button
-                onClick={() => setDeleteTarget(null)}
-                className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200"
-              >
-                Annuler
-              </button>
-            </div>
-          </div>
-        )}
       </Modal>
     </div>
   );

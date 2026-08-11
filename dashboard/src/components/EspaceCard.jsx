@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import StatusBadge from './StatusBadge';
 import StatusToggle from './StatusToggle';
+import { getEspaceImage, handleImageError } from '../utils/imageUtils';
 import { Car, Utensils, Target, Smile, Coffee, Waves, Trees, Dices, Edit2, Trash2 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -15,28 +16,9 @@ const CATEGORY_ICONS = {
   default: Dices,
 };
 
-// Placeholder images per category when no imageUrl is available
-const CATEGORY_IMAGES = {
-  karting: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
-  restaurant: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80',
-  paintball: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80',
-  'zone enfants': 'https://images.unsplash.com/photo-1525103504173-8dc1582c7430?w=600&q=80',
-  café: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&q=80',
-  cafe: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=600&q=80',
-  aquatique: 'https://images.unsplash.com/photo-1575783970733-1aaedde1db74?w=600&q=80',
-  jardin: 'https://images.unsplash.com/photo-1585320806297-9794b3e4aaae?w=600&q=80',
-  default: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
-};
-
 function getIcon(categorie) {
   const key = (categorie || '').toLowerCase();
   return CATEGORY_ICONS[key] || CATEGORY_ICONS.default;
-}
-
-function getImage(espace) {
-  if (espace.imageUrl) return espace.imageUrl;
-  const key = (espace.categorie || '').toLowerCase();
-  return CATEGORY_IMAGES[key] || CATEGORY_IMAGES.default;
 }
 
 function StaffAvatars({ employes }) {
@@ -76,7 +58,7 @@ function StaffAvatars({ employes }) {
 export default function EspaceCard({ espace, onUpdate, onClick, onEdit, onDelete, showToggle = true }) {
   const { t } = useTranslation();
   const Icon = getIcon(espace.categorie);
-  const imageUrl = getImage(espace);
+  const imageUrl = getEspaceImage(espace);
 
   return (
     <div
@@ -90,7 +72,7 @@ export default function EspaceCard({ espace, onUpdate, onClick, onEdit, onDelete
           src={imageUrl}
           alt={espace.nom}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          onError={(e) => { e.target.src = CATEGORY_IMAGES.default; }}
+          onError={(e) => handleImageError(e)}
         />
         {/* Status badge top-right */}
         <div className="absolute top-3 end-3">

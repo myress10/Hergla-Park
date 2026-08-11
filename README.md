@@ -39,8 +39,8 @@ Chaque requête authentifiée extrait le `companyId` du JWT et filtre automatiqu
 
 ### Hiérarchie des Rôles (ROOT, RBAC)
 - **ROOT** : Super-utilisateur plateforme global (`isRootIntervention`, logs d'audit multi-entreprises).
-- **SUPERADMIN** : Administrateur d'une entreprise (gestion des utilisateurs, espaces, catalogue 3D).
-- **ADMIN / EMPLOYE** : Responsable d'espace assigné (`assignedSpaceId`).
+- **SUPERADMIN** : Administrateur d'une entreprise (gestion des utilisateurs, espaces, karts, catalogue 3D).
+- **ADMIN / EMPLOYE** : Responsable d'espace assigné (`assignedSpaceId`). Permissions `kart:manage` / `kart:read` scopées à l'espace assigné.
 
 ---
 

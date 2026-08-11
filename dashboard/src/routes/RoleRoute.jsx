@@ -16,10 +16,11 @@ export default function RoleRoute({ children, allowedRoles }) {
 
   if (!user) return null; // ProtectedRoute handles the null case
 
-  if (!allowedRoles.includes(user.role)) {
-    const defaultRoute = ROLE_DEFAULT_ROUTES[user.role] || '/mon-espace';
-    return <Navigate to={defaultRoute} replace />;
+  // ROOT role has super-user access to all admin routes
+  if (user.role === 'ROOT' || allowedRoles.includes(user.role)) {
+    return children;
   }
 
-  return children;
+  const defaultRoute = ROLE_DEFAULT_ROUTES[user.role] || '/espaces';
+  return <Navigate to={defaultRoute} replace />;
 }
