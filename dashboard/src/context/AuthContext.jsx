@@ -4,6 +4,7 @@ import { login as loginApi, switchCompany as switchCompanyApi } from '../api/aut
 const AuthContext = createContext(null);
 
 const ROLE_DEFAULT_ROUTES = {
+  ROOT: '/espaces',
   SUPERADMIN: '/espaces',
   ADMIN: '/mon-espace',
   EMPLOYE: '/mon-espace',

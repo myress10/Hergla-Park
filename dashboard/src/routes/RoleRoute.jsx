@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const ROLE_DEFAULT_ROUTES = {
+  ROOT: '/espaces',
   SUPERADMIN: '/espaces',
   ADMIN: '/mon-espace',
   EMPLOYE: '/mon-espace',
