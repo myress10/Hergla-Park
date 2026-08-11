@@ -100,6 +100,18 @@ export class EspacesService {
       throw new NotFoundException(`Espace avec l'ID ${id} introuvable`);
     }
 
+    // RBAC: EMPLOYE can only access their assigned space
+    if (!user.isRoot && user.role !== 'SUPERADMIN' && user.role !== 'ADMIN') {
+      const userProfile = await this.prisma.user.findFirst({
+        where: { id: user.id, companyId: user.companyId },
+      });
+      if (!userProfile || userProfile.assignedSpaceId !== id) {
+        throw new ForbiddenException(
+          "Accès refusé. Vous n'êtes pas assigné à la gestion de cet espace.",
+        );
+      }
+    }
+
     return espace;
   }
 
