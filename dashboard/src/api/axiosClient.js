@@ -2,9 +2,9 @@ import axios from 'axios';
 
 // Priority order:
 // 1. VITE_API_URL env var (set in Vercel dashboard for production)
-// 2. Production backend URL (always safe to use — CORS is configured for all dashboard domains)
+// 2. Render production backend URL (live at hergla-park.onrender.com)
 // 3. localhost for local dev
-const PROD_BACKEND = 'https://backend-app-nine-mu.vercel.app/api';
+const PROD_BACKEND = 'https://hergla-park.onrender.com/api';
 const isLocalDev =
   typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
@@ -18,7 +18,8 @@ const axiosClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 15000,
+  // 30s timeout — accounts for Render free-tier cold start (~20s on first request after sleep)
+  timeout: 30000,
 });
 
 // Request interceptor: attach JWT token & auto-attach ROOT audit reason for write operations
