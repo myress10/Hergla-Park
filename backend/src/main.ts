@@ -22,6 +22,7 @@ async function bootstrap() {
       const isAllowed =
         origin.startsWith('http://localhost') ||
         /\.vercel\.app$/.test(origin) ||
+        /\.onrender\.com$/.test(origin) ||
         origin.includes('hergla-park');
       
       if (isAllowed) {
