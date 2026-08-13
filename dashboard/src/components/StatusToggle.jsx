@@ -89,18 +89,18 @@ export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabl
       </button>
 
       {open && (
-        <div className="absolute end-0 top-full mt-1 z-50 bg-white border border-slate-200 rounded-xl shadow-lg py-1 min-w-[140px]">
+        <div className="absolute end-0 bottom-full mb-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-xl py-1 min-w-[145px] backdrop-blur-sm">
           {STATUS_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => handleSelect(opt.value)}
               id={`status-opt-${espaceId}-${opt.value.toLowerCase()}`}
               className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors hover:bg-slate-50
-                ${opt.value === optimistic ? `${opt.color} font-semibold` : 'text-slate-600'}`}
+                ${opt.value === optimistic ? `${opt.color} font-bold bg-slate-50/70` : 'text-slate-600'}`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${opt.dot}`} />
               {opt.label}
-              {opt.value === optimistic && <span className="ms-auto text-emerald-500">✓</span>}
+              {opt.value === optimistic && <span className="ms-auto text-emerald-500 font-bold">✓</span>}
             </button>
           ))}
         </div>

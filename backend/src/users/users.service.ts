@@ -15,7 +15,7 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto, actor: AuthUser, targetCompanyId?: string, reason?: string) {
-    const { nom, email, password, role, assignedSpaceId } = createUserDto;
+    const { nom, email, password, role, assignedSpaceId, telephone, langue, statut, customPermissions } = createUserDto;
 
     const companyId = actor.isRoot ? targetCompanyId : actor.companyId;
     if (!companyId) {
@@ -66,6 +66,10 @@ export class UsersService {
         passwordHash,
         companyId,
         assignedSpaceId: assignedSpaceId || null,
+        telephone: telephone || null,
+        langue: langue || 'fr',
+        statut: statut || 'Connecté',
+        customPermissions: customPermissions || [],
         roles: {
           create: {
             roleId: roleRecord.id,
@@ -78,6 +82,10 @@ export class UsersService {
         email: true,
         companyId: true,
         assignedSpaceId: true,
+        telephone: true,
+        langue: true,
+        statut: true,
+        customPermissions: true,
         createdAt: true,
         updatedAt: true,
         roles: {
@@ -95,7 +103,7 @@ export class UsersService {
       'user.create',
       'User',
       user.id,
-      { nom, email, assignedRole: targetRoleName, reason },
+      { nom, email, assignedRole: targetRoleName, customPermissions, reason },
     );
 
     return {
@@ -123,6 +131,10 @@ export class UsersService {
         email: true,
         companyId: true,
         assignedSpaceId: true,
+        telephone: true,
+        langue: true,
+        statut: true,
+        customPermissions: true,
         assignedSpace: {
           select: {
             id: true,
@@ -160,6 +172,10 @@ export class UsersService {
         email: true,
         companyId: true,
         assignedSpaceId: true,
+        telephone: true,
+        langue: true,
+        statut: true,
+        customPermissions: true,
         assignedSpace: {
           select: {
             id: true,
@@ -171,7 +187,15 @@ export class UsersService {
         updatedAt: true,
         roles: {
           include: {
-            role: true,
+            role: {
+              include: {
+                permissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -211,10 +235,14 @@ export class UsersService {
       throw new BadRequestException('Non autorisé à modifier cet utilisateur');
     }
 
-    const { nom, email, password, role, assignedSpaceId } = updateUserDto;
+    const { nom, email, password, role, assignedSpaceId, telephone, langue, statut, customPermissions } = updateUserDto;
     const updateData: any = {};
 
-    if (nom) updateData.nom = nom;
+    if (nom !== undefined) updateData.nom = nom;
+    if (telephone !== undefined) updateData.telephone = telephone;
+    if (langue !== undefined) updateData.langue = langue;
+    if (statut !== undefined) updateData.statut = statut;
+    if (customPermissions !== undefined) updateData.customPermissions = customPermissions;
 
     if (email && email.toLowerCase() !== user.email) {
       const emailExists = await this.prisma.user.findUnique({
@@ -261,8 +289,17 @@ export class UsersService {
           email: true,
           companyId: true,
           assignedSpaceId: true,
+          telephone: true,
+          langue: true,
+          statut: true,
+          customPermissions: true,
           createdAt: true,
           updatedAt: true,
+          roles: {
+            include: {
+              role: true,
+            },
+          },
         },
       });
 
@@ -306,7 +343,10 @@ export class UsersService {
 
     return {
       success: true,
-      data: updatedUser,
+      data: {
+        ...updatedUser,
+        role: updatedUser.roles[0]?.role.nom || role || 'EMPLOYE',
+      },
     };
   }
 

@@ -9,20 +9,24 @@ datasource db {
 }
 
 model User {
-  id              String        @id @default(uuid())
-  companyId       String?
-  company         Company?      @relation(fields: [companyId], references: [id])
-  nom             String
-  email           String        @unique
-  passwordHash    String
-  assignedSpaceId String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  assignedSpace   Espace?       @relation(fields: [assignedSpaceId], references: [id])
-  uploadedObjects Object3D[]
-  roles           UserRole[]
-  auditLogs       AuditLog[]
-  userCompanies   UserCompany[]
+  id                String        @id @default(uuid())
+  companyId         String?
+  company           Company?      @relation(fields: [companyId], references: [id])
+  nom               String
+  email             String        @unique
+  passwordHash      String
+  telephone         String?
+  langue            String?       @default("fr")
+  statut            String?       @default("Connecté")
+  customPermissions String[]      @default([])
+  assignedSpaceId   String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  assignedSpace     Espace?       @relation(fields: [assignedSpaceId], references: [id])
+  uploadedObjects   Object3D[]
+  roles             UserRole[]
+  auditLogs         AuditLog[]
+  userCompanies     UserCompany[]
 }
 
 model Espace {

@@ -40,7 +40,7 @@ function getActionBadgeStyle(actionStr = '') {
 }
 
 export default function AuditLogsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -63,11 +63,11 @@ export default function AuditLogsPage() {
         setMeta(res.meta);
       }
     } catch (err) {
-      toast.error('Erreur lors du chargement des logs d\'audit');
+      toast.error(t('common.error'));
     } finally {
       setLoading(false);
     }
-  }, [search, actionFilter]);
+  }, [search, actionFilter, t]);
 
   useEffect(() => {
     fetchLogs(1);
@@ -78,6 +78,8 @@ export default function AuditLogsPage() {
     fetchLogs(1);
   };
 
+  const localeCode = i18n.language === 'ar' ? 'ar-TN' : i18n.language === 'en' ? 'en-US' : 'fr-FR';
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Top Header Card */}
@@ -87,9 +89,9 @@ export default function AuditLogsPage() {
             <ShieldCheck size={26} />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">Logs d'Audit Système</h1>
+            <h1 className="text-2xl font-bold text-slate-800">{t('audit.title')}</h1>
             <p className="text-sm text-slate-500">
-              Traçabilité et journalisation en temps réel des actions administrateurs, modification de karts & espaces.
+              {t('audit.subtitle')}
             </p>
           </div>
         </div>
@@ -101,7 +103,7 @@ export default function AuditLogsPage() {
             id="refresh-logs-btn"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin text-navy' : ''} />
-            <span>Rafraîchir</span>
+            <span>{t('audit.refresh')}</span>
           </button>
         </div>
       </div>
@@ -114,7 +116,7 @@ export default function AuditLogsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher par utilisateur, action, entité..."
+            placeholder={t('audit.searchPlaceholder')}
             className="w-full ps-10 pe-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/20 focus:border-navy"
             id="audit-logs-search-input"
           />
@@ -123,18 +125,18 @@ export default function AuditLogsPage() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-600">
             <Filter size={14} className="text-slate-400" />
-            <span>Type :</span>
+            <span>{t('audit.typeFilter')}</span>
             <select
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
               className="bg-transparent font-bold focus:outline-none cursor-pointer text-slate-800"
               id="action-filter-select"
             >
-              <option value="ALL">Toutes les actions</option>
-              <option value="CREATE">Créations (CREATE)</option>
-              <option value="UPDATE">Modifications (UPDATE)</option>
-              <option value="DELETE">Suppressions (DELETE)</option>
-              <option value="LOGIN">Connexions (LOGIN)</option>
+              <option value="ALL">{t('audit.allTypes')}</option>
+              <option value="CREATE">{t('audit.createType')}</option>
+              <option value="UPDATE">{t('audit.updateType')}</option>
+              <option value="DELETE">{t('audit.deleteType')}</option>
+              <option value="LOGIN">{t('audit.loginType')}</option>
             </select>
           </div>
         </div>
@@ -146,12 +148,12 @@ export default function AuditLogsPage() {
           <table className="w-full text-sm text-start">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-xs uppercase tracking-wider">
-                <th className="px-6 py-4">Horodatage</th>
-                <th className="px-6 py-4">Acteur</th>
-                <th className="px-6 py-4">Action</th>
-                <th className="px-6 py-4">Entité / Espace</th>
-                <th className="px-6 py-4">Origine</th>
-                <th className="px-6 py-4 text-center">Détails</th>
+                <th className="px-6 py-4">{t('audit.table.timestamp')}</th>
+                <th className="px-6 py-4">{t('audit.table.actor')}</th>
+                <th className="px-6 py-4">{t('audit.table.action')}</th>
+                <th className="px-6 py-4">{t('audit.table.entity')}</th>
+                <th className="px-6 py-4">{t('audit.table.company')}</th>
+                <th className="px-6 py-4 text-center">{t('audit.table.details')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -170,13 +172,12 @@ export default function AuditLogsPage() {
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
                     <FileText size={40} className="mx-auto mb-2 opacity-30" />
-                    <p className="font-semibold">Aucune entrée d'audit trouvée</p>
-                    <p className="text-xs">Essayez d'ajuster les filtres ou la recherche.</p>
+                    <p className="font-semibold">{t('common.empty')}</p>
                   </td>
                 </tr>
               ) : (
                 logs.map((log) => {
-                  const dateStr = new Date(log.createdAt).toLocaleString('fr-FR', {
+                  const dateStr = new Date(log.createdAt).toLocaleString(localeCode, {
                     dateStyle: 'short',
                     timeStyle: 'medium',
                   });
@@ -231,7 +232,7 @@ export default function AuditLogsPage() {
                         <button
                           onClick={() => setSelectedLog(log)}
                           className="p-2 text-slate-500 hover:text-navy hover:bg-slate-100 rounded-xl transition-colors"
-                          title="Inspecter le log JSON"
+                          title={t('audit.table.details')}
                         >
                           <Eye size={18} />
                         </button>
@@ -256,14 +257,14 @@ export default function AuditLogsPage() {
                 disabled={meta.page <= 1}
                 className="p-2 border border-slate-200 rounded-lg hover:bg-white disabled:opacity-40 transition-colors"
               >
-                <ChevronLeft size={16} />
+                <ChevronLeft size={16} className="rtl:rotate-180" />
               </button>
               <button
                 onClick={() => fetchLogs(meta.page + 1)}
                 disabled={meta.page >= meta.totalPages}
                 className="p-2 border border-slate-200 rounded-lg hover:bg-white disabled:opacity-40 transition-colors"
               >
-                <ChevronRight size={16} />
+                <ChevronRight size={16} className="rtl:rotate-180" />
               </button>
             </div>
           </div>
@@ -271,32 +272,32 @@ export default function AuditLogsPage() {
       </div>
 
       {/* JSON Metadata Viewer Modal */}
-      <Modal isOpen={!!selectedLog} onClose={() => setSelectedLog(null)} title="Détails du Log d'Audit" size="lg">
+      <Modal isOpen={!!selectedLog} onClose={() => setSelectedLog(null)} title={t('audit.table.details')} size="lg">
         {selectedLog && (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-xl text-xs">
               <div>
-                <p className="text-slate-400 font-medium">ID du Log :</p>
+                <p className="text-slate-400 font-medium">ID :</p>
                 <p className="font-mono text-slate-700 font-semibold">{selectedLog.id}</p>
               </div>
               <div>
-                <p className="text-slate-400 font-medium">Action :</p>
+                <p className="text-slate-400 font-medium">{t('audit.table.action')} :</p>
                 <p className="font-semibold text-slate-800">{selectedLog.action}</p>
               </div>
               <div>
-                <p className="text-slate-400 font-medium">Acteur :</p>
+                <p className="text-slate-400 font-medium">{t('audit.table.actor')} :</p>
                 <p className="font-semibold text-slate-800">{selectedLog.actor?.nom} ({selectedLog.actor?.email})</p>
               </div>
               <div>
-                <p className="text-slate-400 font-medium">Date & Heure :</p>
-                <p className="font-mono text-slate-700">{new Date(selectedLog.createdAt).toLocaleString()}</p>
+                <p className="text-slate-400 font-medium">{t('audit.table.timestamp')} :</p>
+                <p className="font-mono text-slate-700">{new Date(selectedLog.createdAt).toLocaleString(localeCode)}</p>
               </div>
             </div>
 
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Code size={14} />
-                <span>Métadonnées JSON & Payloads</span>
+                <span>JSON Payload</span>
               </p>
               <pre className="bg-slate-900 text-emerald-400 p-4 rounded-xl text-xs font-mono overflow-x-auto max-h-72">
                 {JSON.stringify(selectedLog.metadata || {}, null, 2)}

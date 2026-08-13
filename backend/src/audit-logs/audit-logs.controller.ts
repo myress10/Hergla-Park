@@ -11,7 +11,7 @@ export class AuditLogsController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Retrieve system/company activity audit logs' })
+  @ApiOperation({ summary: 'Retrieve system/company activity audit logs with RBAC filtering and stealth ROOT mode' })
   @ApiQuery({ name: 'companyId', required: false })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'action', required: false })
@@ -35,37 +35,81 @@ export class AuditLogsController {
     const skip = (pageNum - 1) * limitNum;
 
     const currentUser = req.user;
-    const userRoles = await this.prisma.userRole.findMany({
-      where: { userId: currentUser.id },
-      include: { role: true },
+    const userRecord = await this.prisma.user.findUnique({
+      where: { id: currentUser.id },
+      include: {
+        roles: {
+          include: {
+            role: true,
+          },
+        },
+      },
     });
-    const isRoot = userRoles.some((ur) => ur.role.nom === 'ROOT');
+
+    const userRoles = userRecord?.roles?.map((ur) => ur.role) || [];
+    const isRoot = userRoles.some((r) => r.nom === 'ROOT');
+    const isSuperAdmin = userRoles.some((r) => r.nom === 'SUPERADMIN');
+    const isAdmin = userRoles.some((r) => r.nom === 'ADMIN');
+    const isEmploye = !isRoot && !isSuperAdmin && !isAdmin;
 
     const where: any = {};
 
-    // Filter by company unless ROOT user explicitly asks for all or passes companyId
-    if (!isRoot) {
-      if (currentUser.companyId) {
-        where.companyId = currentUser.companyId;
+    // 1. Role-Based Scope & Stealth Mode
+    if (isRoot) {
+      // ROOT sees everything across all companies and spaces (Stealth View)
+      if (companyId) {
+        where.companyId = companyId;
       }
-    } else if (companyId) {
-      where.companyId = companyId;
+    } else {
+      // Non-ROOT users NEVER see actions performed by ROOT (Stealth Mode)
+      where.isRootIntervention = false;
+
+      const activeCompanyId = companyId || currentUser.companyId || userRecord?.companyId;
+      if (activeCompanyId) {
+        where.companyId = activeCompanyId;
+      }
+
+      if (isEmploye) {
+        // Standard Employees can only see their own logs or logs from staff in their assigned space
+        if (userRecord?.assignedSpaceId) {
+          const spaceStaff = await this.prisma.user.findMany({
+            where: {
+              assignedSpaceId: userRecord.assignedSpaceId,
+              companyId: activeCompanyId || undefined,
+            },
+            select: { id: true },
+          });
+          const allowedIds = spaceStaff.map((s) => s.id);
+          if (!allowedIds.includes(currentUser.id)) {
+            allowedIds.push(currentUser.id);
+          }
+          where.actorId = { in: allowedIds };
+        } else {
+          where.actorId = currentUser.id;
+        }
+      }
     }
 
+    // 2. Action Filter
     if (action && action !== 'ALL') {
       where.action = { contains: action, mode: 'insensitive' };
     }
 
+    // 3. Search Query
     if (search && search.trim() !== '') {
       const q = search.trim();
-      where.OR = [
-        { action: { contains: q, mode: 'insensitive' } },
-        { entityType: { contains: q, mode: 'insensitive' } },
-        { actor: { nom: { contains: q, mode: 'insensitive' } } },
-        { actor: { email: { contains: q, mode: 'insensitive' } } },
-      ];
+      where.AND = where.AND || [];
+      where.AND.push({
+        OR: [
+          { action: { contains: q, mode: 'insensitive' } },
+          { entityType: { contains: q, mode: 'insensitive' } },
+          { actor: { nom: { contains: q, mode: 'insensitive' } } },
+          { actor: { email: { contains: q, mode: 'insensitive' } } },
+        ],
+      });
     }
 
+    // 4. Date Range
     if (startDate || endDate) {
       where.createdAt = {};
       if (startDate) where.createdAt.gte = new Date(startDate);
@@ -110,3 +154,4 @@ export class AuditLogsController {
     };
   }
 }
+

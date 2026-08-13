@@ -7,6 +7,7 @@ import DashboardLayout from './layouts/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 import EspacesOverviewPage from './pages/EspacesOverviewPage';
 import MyEspacePage from './pages/MyEspacePage';
+import ProfilePage from './pages/ProfilePage';
 import UsersPage from './pages/UsersPage';
 import SceneEditorPage from './pages/SceneEditorPage';
 import KartsConfigPage from './pages/KartsConfigPage';
@@ -91,7 +92,7 @@ export default function App() {
               {/* Profile (all roles) */}
               <Route
                 path="/mon-profil"
-                element={<MyEspacePage />}
+                element={<ProfilePage />}
               />
 
               {/* 3D Scene Editor (all authenticated roles) */}

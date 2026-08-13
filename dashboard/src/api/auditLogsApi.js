@@ -77,7 +77,26 @@ export const getAuditLogs = async (params = {}) => {
     },
   ];
 
+  // Retrieve current user from localStorage to apply RBAC filtering
+  let currentUserRole = 'SUPERADMIN';
+  try {
+    const rawUser = localStorage.getItem('hergla_user');
+    if (rawUser) {
+      const u = JSON.parse(rawUser);
+      currentUserRole = u.role || 'SUPERADMIN';
+    }
+  } catch (_) {}
+
   let filtered = [...mockLogs];
+
+  // Stealth Mode & RBAC for mock fallback:
+  if (currentUserRole !== 'ROOT') {
+    filtered = filtered.filter((l) => !l.isRootIntervention);
+  }
+  if (currentUserRole === 'EMPLOYE') {
+    filtered = filtered.filter((l) => l.actor.email === 'employe_demo@herglapark.com' || l.entityType === 'Piste Karting');
+  }
+
   if (params.search) {
     const q = params.search.toLowerCase();
     filtered = filtered.filter(
@@ -92,14 +111,19 @@ export const getAuditLogs = async (params = {}) => {
     filtered = filtered.filter((l) => l.action.toLowerCase().includes(params.action.toLowerCase()));
   }
 
+  const page = params.page || 1;
+  const limit = params.limit || 20;
+  const paginated = filtered.slice((page - 1) * limit, page * limit);
+
   return {
     success: true,
-    data: filtered,
+    data: paginated,
     meta: {
       total: filtered.length,
-      page: params.page || 1,
-      limit: params.limit || 20,
-      totalPages: 1,
+      page,
+      limit,
+      totalPages: Math.max(1, Math.ceil(filtered.length / limit)),
     },
   };
 };
+

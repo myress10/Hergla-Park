@@ -5,7 +5,9 @@
     "users": "المستخدمون",
     "mySpace": "مساحتي",
     "myProfile": "ملفي الشخصي",
-    "editor3d": "محرر ثلاثي الأبعاد"
+    "editor3d": "محرر ثلاثي الأبعاد",
+    "kartsConfig": "إعدادات الكارتينغ",
+    "auditLogs": "سجلات التدقيق"
   },
   "login": {
     "title": "لوحة الإدارة",
@@ -17,33 +19,33 @@
     "rememberMe": "تذكرني",
     "submitButton": "تسجيل الدخول",
     "contactSupport": "مشكلة في الوصول؟ تواصل مع الدعم التقني",
-    "copyright": "© 2024 Hergla Park. جميع الحقوق محفوظة.",
+    "copyright": "© 2026 هيرغلا بارك. جميع الحقوق محفوظة.",
     "error": {
       "invalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
       "networkError": "خطأ في الاتصال. تحقق من الشبكة."
     }
   },
   "spaces": {
-    "title": "المساحات",
-    "subtitle": "إدارة وتنسيق جميع المناطق الترفيهية والمرافق في هيرغلا بارك.",
+    "title": "المساحات والأنشطة",
+    "subtitle": "إدارة وتنسيق جميع المناطق الترفيهية والمرافق في هيرغلا بارك ومراقبة حالتها اللحظية.",
     "createButton": "إنشاء مساحة",
     "stats": {
       "open": "مفتوح الآن",
       "closed": "مغلق",
       "maintenance": "تحت الصيانة",
-      "activeStaff": "إجمالي المساحات"
+      "activeStaff": "طاقم العمل النشط"
     },
     "card": {
       "status": "حالة التشغيل",
-      "noStaff": "لا يوجد موظفون"
+      "noStaff": "لا يوجد موظفون مخصصون"
     },
-    "recentAlerts": "النشاط الأخير في المساحات",
+    "recentAlerts": "التنبيهات الأخيرة",
     "viewAll": "عرض الكل",
     "table": {
       "time": "الوقت",
       "space": "المساحة",
-      "type": "الإجراء",
-      "status": "بواسطة",
+      "type": "النوع",
+      "status": "الحالة",
       "actions": "الإجراءات"
     },
     "create": {
@@ -77,9 +79,46 @@
     "updateSuccess": "تم تحديث المساحة بنجاح",
     "updateError": "حدث خطأ أثناء التحديث"
   },
+  "profile": {
+    "breadcrumb": "ملفي الشخصي",
+    "title": "الملف الشخصي والأمان",
+    "subtitle": "إدارة معلوماتك الشخصية وبيانات الاعتماد وتفضيلات الوصول الخاصة بك.",
+    "hierarchyLevel": "المستوى الهرمي للدور",
+    "level": "المستوى {{level}}",
+    "personalInfo": "المعلومات الشخصية",
+    "personalInfoSub": "تعديل بيانات الاتصال وتفضيلات العرض الخاصة بك.",
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "phone": "رقم الهاتف",
+    "language": "اللغة المفضلة",
+    "saveChanges": "حفظ التغييرات",
+    "securityTitle": "الأمان وكلمة المرور",
+    "securitySub": "تغيير كلمة المرور الخاصة بك لتأمين حسابك.",
+    "currentPassword": "كلمة المرور الحالية",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "passwordsMatch": "كلمات المرور متطابقة",
+    "passwordsDontMatch": "كلمات المرور غير متطابقة",
+    "updatePassword": "تحديث كلمة المرور",
+    "roleOverview": "الدور والهيكل الهرمي للنظام",
+    "roleOverviewSub": "مستوى الصلاحيات ونطاق العمل الميداني",
+    "activeRole": "الدور النشط",
+    "associatedPermissions": "الصلاحيات المرتبطة",
+    "assignedSpaceTitle": "المساحة أو الجذب المخصص",
+    "assignedSpaceSub": "المنطقة التشغيلية التابعة",
+    "sessionAuditInfo": "معلومات الجلسة والتدقيق",
+    "accountCreated": "تاريخ إنشاء الحساب",
+    "sessionSecurity": "أمان الجلسة",
+    "sessionProtected": "محمي بتشفير (JWT 256-bit)",
+    "inServiceConnected": "في الخدمة / متصل",
+    "allSpaces": "النظام بأكمله (جميع المساحات)",
+    "unassigned": "غير مخصص",
+    "successUpdate": "تم تحديث المعلومات الشخصية بنجاح!",
+    "successPassword": "تم تعديل كلمة المرور بنجاح!"
+  },
   "users": {
     "title": "المستخدمون",
-    "subtitle": "إدارة صلاحيات وأدوار فريق هيرغلا بارك.",
+    "subtitle": "إدارة الصلاحيات والأدوار والتصاريح المخصصة لفريق هيرغلا بارك.",
     "addButton": "إضافة مستخدم",
     "search": "البحث عن مستخدم...",
     "filter": "تصفية",
@@ -91,7 +130,7 @@
     },
     "table": {
       "user": "المستخدم",
-      "role": "الدور",
+      "role": "الدور والصلاحيات",
       "assignedSpace": "المساحة المخصصة",
       "status": "الحالة",
       "actions": "الإجراءات",
@@ -111,19 +150,22 @@
       "inService": "في الخدمة"
     },
     "create": {
-      "title": "إضافة مستخدم",
+      "title": "إضافة مستخدم جديد",
       "name": "الاسم الكامل",
-      "email": "البريد الإلكتروني",
-      "password": "كلمة المرور",
-      "role": "الدور",
+      "email": "البريد الإلكتروني المهني",
+      "phone": "رقم الهاتف (اختياري)",
+      "password": "كلمة المرور الأولية",
+      "role": "الدور الأساسي",
       "assignedSpace": "المساحة المخصصة",
-      "noSpace": "لا مساحة",
-      "submit": "إنشاء",
+      "noSpace": "غير مخصص (جميع المساحات)",
+      "customPermissions": "الصلاحيات المخصصة",
+      "activeCount": "{{count}} نشطة",
+      "submit": "إنشاء المستخدم",
       "cancel": "إلغاء"
     },
     "edit": {
       "title": "تعديل المستخدم",
-      "submit": "حفظ",
+      "submit": "حفظ التغييرات",
       "cancel": "إلغاء"
     },
     "delete": {
@@ -135,10 +177,69 @@
       "showing": "عرض {{from}}-{{to}} من أصل {{total}} مستخدم"
     },
     "recentActivity": "الأنشطة الأخيرة",
+    "live": "مباشر",
     "globalSystem": "النظام العام",
+    "adminControls": "إعدادات المسؤول",
     "securityLock": "قفل الأمان",
+    "securityLockTooltip": "يقفل التعديلات الإدارية بشكل عام عبر جميع المساحات.",
+    "securityLockActive": "قفل الأمان نشط",
     "autoAssign": "التعيين التلقائي",
-    "securityAudit": "مراجعة الأمان العامة"
+    "autoAssignTooltip": "يعين الموظفين المتاحين تلقائيًا وفقًا لضغط العمل بالمساحات.",
+    "securityAudit": "مراجعة الأمان العامة",
+    "securityAuditTooltip": "توليد تقرير أمان فوري وتحليل شامل لجميع سجلات النظام.",
+    "auditModal": {
+      "title": "تقرير التدقيق الأمني الشامل",
+      "integrityScore": "مؤشر سلامة النظام",
+      "optimal": "مثالي",
+      "compliance": "الأمان والامتثال لنظام الصلاحيات (RBAC)",
+      "diagnosticDesc": "تم تنفيذ تشخيص كامل عبر جميع الحسابات وجداول الصلاحيات وسجلات التدقيق.",
+      "rbacCheck": "التحكم الهرمي في الوصول (RBAC)",
+      "rbacDesc": "عزل تام للأدوار (ROOT، SUPERADMIN، ADMIN، EMPLOYE)",
+      "rbacStatus": "100% متوافق",
+      "cryptoCheck": "التشفير وأمان الرموز المميزة",
+      "cryptoDesc": "JWT HMAC-SHA256 وتشفير كلمات المرور عبر Bcrypt (10 جولات)",
+      "cryptoStatus": "نشط",
+      "stealthCheck": "حماية وضع التخفي للمسؤول الأعلى (Stealth ROOT)",
+      "stealthDesc": "حجب تلقائي لتدخلات ROOT عن أدوار المستخدمين الأدنى",
+      "stealthStatus": "مقفل ومؤمّن",
+      "downloadReport": "تحميل التقرير",
+      "close": "إغلاق"
+    }
+  },
+  "audit": {
+    "title": "سجلات التدقيق الأمني",
+    "subtitle": "تتبع وتوثيق فوري لجميع الإجراءات الإدارية وتعديلات المساحات وأسطول الكارتينغ.",
+    "refresh": "تحديث",
+    "searchPlaceholder": "بحث بالمستخدم، الإجراء، الوحدة...",
+    "typeFilter": "النوع:",
+    "allTypes": "جميع الإجراءات",
+    "createType": "عمليات الإنشاء (CREATE)",
+    "updateType": "عمليات التعديل (UPDATE)",
+    "deleteType": "عمليات الحذف (DELETE)",
+    "loginType": "تسجيلات الدخول (LOGIN)",
+    "table": {
+      "timestamp": "التاريخ والوقت",
+      "actor": "المستخدم",
+      "action": "الإجراء",
+      "entity": "الوحدة / الكيان",
+      "company": "الشركة / السياق",
+      "details": "التفاصيل"
+    }
+  },
+  "karts": {
+    "title": "إعدادات أسطول الكارتينغ",
+    "subtitle": "إدارة سيارات السباق، الأرقام، ألوان القياس وحالة الجاهزية التشغيلية.",
+    "addKart": "إضافة سيارة كارت",
+    "totalKarts": "إجمالي الأسطول",
+    "activeKarts": "في الخدمة",
+    "maintenanceKarts": "تحت الصيانة",
+    "table": {
+      "number": "الرقم",
+      "color": "اللون / المظهر",
+      "status": "الحالة",
+      "order": "الترتيب بالمسار",
+      "actions": "الإجراءات"
+    }
   },
   "common": {
     "loading": "جارٍ التحميل...",
@@ -154,11 +255,13 @@
     "logout": "تسجيل الخروج",
     "profile": "الملف الشخصي",
     "version": "v2.4.0-stable",
-    "systemOnline": "النظام نشط"
+    "systemOnline": "النظام نشط",
+    "viewAll": "عرض الكل",
+    "refresh": "تحديث"
   },
   "notFound": {
     "title": "الصفحة غير موجودة",
     "subtitle": "الصفحة التي تبحث عنها غير موجودة.",
-    "back": "العودة إلى لوحة التحكم"
+    "back": "العودة إلى لوحة القيادة"
   }
 }

@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsArray, IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateUserDto {
@@ -48,4 +48,41 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   assignedSpaceId?: string;
+
+  @ApiProperty({
+    description: 'Numéro de téléphone de l\'utilisateur',
+    example: '+216 98 123 456',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  telephone?: string;
+
+  @ApiProperty({
+    description: 'Langue préférée (fr, ar, en)',
+    example: 'fr',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  langue?: string;
+
+  @ApiProperty({
+    description: 'Statut de l\'utilisateur',
+    example: 'Connecté',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  statut?: string;
+
+  @ApiProperty({
+    description: 'Liste des permissions personnalisées accordées',
+    example: ['espace:update', 'kart:manage'],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  customPermissions?: string[];
 }
+

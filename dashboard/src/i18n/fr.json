@@ -5,7 +5,9 @@
     "users": "Utilisateurs",
     "mySpace": "Mon Espace",
     "myProfile": "Mon Profil",
-    "editor3d": "Éditeur 3D"
+    "editor3d": "Éditeur 3D",
+    "kartsConfig": "Configuration Karts",
+    "auditLogs": "Logs d'Audit"
   },
   "login": {
     "title": "Admin Dashboard",
@@ -17,14 +19,14 @@
     "rememberMe": "Rester connecté",
     "submitButton": "Se connecter",
     "contactSupport": "Problème d'accès ? Contacter le support IT",
-    "copyright": "© 2024 Hergla Park Admin Ecosystem. Tous droits réservés.",
+    "copyright": "© 2026 Hergla Park Admin Ecosystem. Tous droits réservés.",
     "error": {
       "invalidCredentials": "Email ou mot de passe incorrect.",
       "networkError": "Erreur de connexion. Vérifiez votre réseau."
     }
   },
   "spaces": {
-    "title": "Espaces",
+    "title": "Espaces d'Attractions",
     "subtitle": "Gérez les zones opérationnelles et surveillez leur état en temps réel.",
     "createButton": "Créer un espace",
     "stats": {
@@ -35,7 +37,7 @@
     },
     "card": {
       "status": "Statut",
-      "noStaff": "Aucun staff"
+      "noStaff": "Aucun staff assigné"
     },
     "recentAlerts": "Alertes Récentes",
     "viewAll": "Voir tout",
@@ -77,11 +79,48 @@
     "updateSuccess": "Espace mis à jour avec succès",
     "updateError": "Erreur lors de la mise à jour"
   },
+  "profile": {
+    "breadcrumb": "Mon Profil",
+    "title": "Profil & Sécurité",
+    "subtitle": "Gérez vos informations personnelles, vos identifiants et vos préférences d'accès.",
+    "hierarchyLevel": "Hiérarchie Rôle",
+    "level": "Niveau {{level}}",
+    "personalInfo": "Informations Personnelles",
+    "personalInfoSub": "Modifiez vos coordonnées et vos préférences d'affichage.",
+    "fullName": "Nom complet",
+    "email": "Adresse Email",
+    "phone": "Numéro de Téléphone",
+    "language": "Langue Préférée",
+    "saveChanges": "Enregistrer les modifications",
+    "securityTitle": "Sécurité & Mot de Passe",
+    "securitySub": "Modifiez votre mot de passe pour sécuriser votre compte.",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordsMatch": "Les mots de passe correspondent",
+    "passwordsDontMatch": "Les mots de passe ne correspondent pas",
+    "updatePassword": "Mettre à jour le mot de passe",
+    "roleOverview": "Rôle & Hiérarchie Système",
+    "roleOverviewSub": "Niveau d'autorisation et périmètre d'action",
+    "activeRole": "Rôle Actif",
+    "associatedPermissions": "Permissions Associées",
+    "assignedSpaceTitle": "Espace & Attraction Assignée",
+    "assignedSpaceSub": "Zone opérationnelle de rattachement",
+    "sessionAuditInfo": "Session & Audit Info",
+    "accountCreated": "Compte Créé le",
+    "sessionSecurity": "Sécurité Session",
+    "sessionProtected": "Protégé (JWT 256-bit)",
+    "inServiceConnected": "En service / Connecté",
+    "allSpaces": "Système Entier (Tous Espaces)",
+    "unassigned": "Non Assigné",
+    "successUpdate": "Informations personnelles mises à jour avec succès !",
+    "successPassword": "Mot de passe modifié avec succès !"
+  },
   "users": {
     "title": "Utilisateurs",
-    "subtitle": "Gérez les accès et les rôles de l'équipe Hergla Park.",
+    "subtitle": "Gérez les accès, rôles et permissions personnalisées de l'équipe Hergla Park.",
     "addButton": "Ajouter un utilisateur",
-    "search": "Rechercher un utilisateur...",
+    "search": "Rechercher...",
     "filter": "Filtrer",
     "export": "Exporter",
     "tabs": {
@@ -90,11 +129,11 @@
       "employees": "Employés"
     },
     "table": {
-      "user": "Utilisateur",
-      "role": "Rôle",
-      "assignedSpace": "Espace assigné",
-      "status": "Statut",
-      "actions": "Actions",
+      "user": "UTILISATEUR",
+      "role": "RÔLE & PERMISSIONS",
+      "assignedSpace": "ESPACE ASSIGNÉ",
+      "status": "STATUT",
+      "actions": "ACTIONS",
       "wholeSystem": "Système Entier",
       "noSpace": "—"
     },
@@ -113,12 +152,15 @@
     "create": {
       "title": "Ajouter un utilisateur",
       "name": "Nom complet",
-      "email": "Email",
-      "password": "Mot de passe",
-      "role": "Rôle",
+      "email": "Email professionnel",
+      "phone": "Téléphone (optionnel)",
+      "password": "Mot de passe initial",
+      "role": "Rôle de base",
       "assignedSpace": "Espace assigné",
-      "noSpace": "Aucun espace",
-      "submit": "Créer",
+      "noSpace": "Non assigné (Tous espaces)",
+      "customPermissions": "Permissions Personnalisées",
+      "activeCount": "{{count}} actives",
+      "submit": "Créer l'utilisateur",
       "cancel": "Annuler"
     },
     "edit": {
@@ -135,10 +177,69 @@
       "showing": "Affichage de {{from}}-{{to}} sur {{total}} utilisateurs"
     },
     "recentActivity": "Activités Récentes",
+    "live": "En Direct",
     "globalSystem": "Système Global",
+    "adminControls": "Contrôles Admin",
     "securityLock": "Verrouillage de Sécurité",
+    "securityLockTooltip": "Verrouille les modifications administratives globalement sur l'ensemble des espaces.",
+    "securityLockActive": "Verrouillage Actif",
     "autoAssign": "Auto-Assignation",
-    "securityAudit": "Audit de Sécurité Global"
+    "autoAssignTooltip": "Assigne automatiquement le personnel disponible aux shifts actifs selon l'affluence des espaces.",
+    "securityAudit": "Audit de Sécurité Global",
+    "securityAuditTooltip": "Génère un rapport d'audit de sécurité instantané sur l'ensemble des logs du système.",
+    "auditModal": {
+      "title": "Rapport d'Audit de Sécurité Global",
+      "integrityScore": "Score d'Intégrité Système",
+      "optimal": "Optimal",
+      "compliance": "Sécurité & Conformité RBAC",
+      "diagnosticDesc": "Diagnostic complet exécuté sur l'ensemble des comptes, tables d'accès et flux d'audit.",
+      "rbacCheck": "Contrôle d'Accès Hiérarchique (RBAC)",
+      "rbacDesc": "Isolation stricte des rôles ROOT, SUPERADMIN, ADMIN, EMPLOYE",
+      "rbacStatus": "100% Conforme",
+      "cryptoCheck": "Chiffrement & Sécurité des Tokens",
+      "cryptoDesc": "JWT HMAC-SHA256 & Mots de passe salés avec Bcrypt (10 rounds)",
+      "cryptoStatus": "Actif",
+      "stealthCheck": "Stealth Root Protection",
+      "stealthDesc": "Masquage systématique des interventions ROOT pour les rôles inférieurs",
+      "stealthStatus": "Verrouillé",
+      "downloadReport": "Télécharger le Rapport",
+      "close": "Fermer"
+    }
+  },
+  "audit": {
+    "title": "Logs d'Audit Système",
+    "subtitle": "Traçabilité et journalisation en temps réel des actions administrateurs, modification de karts & espaces.",
+    "refresh": "Rafraîchir",
+    "searchPlaceholder": "Rechercher par utilisateur, action, entité...",
+    "typeFilter": "Type :",
+    "allTypes": "Toutes les actions",
+    "createType": "Créations (CREATE)",
+    "updateType": "Modifications (UPDATE)",
+    "deleteType": "Deletions (DELETE)",
+    "loginType": "Connexions (LOGIN)",
+    "table": {
+      "timestamp": "HORODATAGE",
+      "actor": "ACTEUR",
+      "action": "ACTION",
+      "entity": "ENTITÉ / MODULE",
+      "company": "ENTREPRISE / CONTEXTE",
+      "details": "DÉTAILS"
+    }
+  },
+  "karts": {
+    "title": "Configuration de la Flotte de Karts",
+    "subtitle": "Gérez la flotte de course, numéros, télémétrie, couleurs et statut opérationnel.",
+    "addKart": "Ajouter un Kart",
+    "totalKarts": "TOTAL FLOTTE",
+    "activeKarts": "EN SERVICE",
+    "maintenanceKarts": "MAINTENANCE",
+    "table": {
+      "number": "NUMÉRO",
+      "color": "COULEUR / LIVRÉE",
+      "status": "STATUT",
+      "order": "ORDRE EN PISTE",
+      "actions": "ACTIONS"
+    }
   },
   "common": {
     "loading": "Chargement...",
@@ -154,7 +255,9 @@
     "logout": "Se déconnecter",
     "profile": "Profil",
     "version": "v2.4.0-stable",
-    "systemOnline": "Système Actif"
+    "systemOnline": "Système Actif",
+    "viewAll": "Voir tout",
+    "refresh": "Rafraîchir"
   },
   "notFound": {
     "title": "Page introuvable",

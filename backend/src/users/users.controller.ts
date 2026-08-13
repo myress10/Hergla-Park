@@ -23,12 +23,13 @@ import { RequirePermissions } from '../common/decorators/permissions.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('api/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @UseGuards(PermissionsGuard)
   @RequirePermissions('user:read')
   @ApiOperation({ summary: "Retrieve all users within scope (tenant or global if ROOT)" })
   @ApiQuery({ name: 'targetCompanyId', required: false, description: 'Filter by company (ROOT only)' })
@@ -43,6 +44,7 @@ export class UsersController {
   }
 
   @Post()
+  @UseGuards(PermissionsGuard)
   @RequirePermissions('user:create')
   @ApiOperation({ summary: 'Create a new user account' })
   @ApiQuery({ name: 'targetCompanyId', required: false, description: 'Target company for user (ROOT only)' })
@@ -59,22 +61,10 @@ export class UsersController {
   }
 
   @Get(':id')
-  @RequirePermissions('user:read')
   @ApiOperation({ summary: 'Retrieve single user profile metadata' })
   @ApiResponse({ status: 200, description: "Détail de l'utilisateur" })
   async findOne(@Param('id') id: string, @Req() req) {
     const caller = { ...req.user, isRoot: req.isRootUser || false };
-    // Access control: User can see their own info, or must have user:read permission
-    // We already passed PermissionsGuard (so they have user:read or they are ROOT).
-    // If they only have user:read, they are bounded by their company in UsersService.
-    // If an employee wants to see their own profile but doesn't have user:read, we can check.
-    // Note: EMPLOYE does not have user:read in the default system role permissions, so we must allow
-    // users to read their own profile without user:read permission.
-    // Let's bypass PermissionsGuard check if req.user.id === id:
-    // But since the class has @UseGuards(PermissionsGuard) and route has @RequirePermissions('user:read'),
-    // an employee will get Forbidden before reaching this method!
-    // That's a good point! We should move the @RequirePermissions('user:read') to specific handlers.
-    // Let's do that to ensure users can read/write their OWN profiles without having general user:read/user:update.
     const user = await this.usersService.findOne(id, caller);
     return { success: true, data: user };
   }
@@ -89,7 +79,6 @@ export class UsersController {
     @Query('reason') reason?: string,
   ) {
     const caller = { ...req.user, isRoot: req.isRootUser || false };
-    // Access validation is done inside the service (owner or SUPERADMIN with company lock or ROOT)
     return this.usersService.update(id, updateUserDto, caller, reason);
   }
 
@@ -107,6 +96,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @UseGuards(PermissionsGuard)
   @RequirePermissions('user:delete')
   @ApiOperation({ summary: 'Delete user account' })
   @ApiQuery({ name: 'reason', required: false, description: 'Reason for write action (ROOT only)' })
@@ -119,3 +109,4 @@ export class UsersController {
     return this.usersService.remove(id, caller, reason);
   }
 }
+

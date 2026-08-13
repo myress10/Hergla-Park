@@ -39,8 +39,8 @@ const PAGE_TITLES = {
   '/utilisateurs': 'nav.users',
   '/mon-profil': 'nav.myProfile',
   '/editeur-3d': 'nav.editor3d',
-  '/configuration-karts': 'Configuration Karts',
-  '/audit-logs': "Logs d'Audit",
+  '/configuration-karts': 'nav.kartsConfig',
+  '/audit-logs': 'nav.auditLogs',
 };
 
 // Initial notification dataset

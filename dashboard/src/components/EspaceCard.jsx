@@ -62,12 +62,12 @@ export default function EspaceCard({ espace, onUpdate, onClick, onEdit, onDelete
 
   return (
     <div
-      className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer group"
+      className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer group relative"
       onClick={onClick}
       id={`espace-card-${espace.id}`}
     >
       {/* Image with status overlay + action buttons */}
-      <div className="relative h-48 overflow-hidden">
+      <div className="relative h-48 overflow-hidden rounded-t-2xl">
         <img
           src={imageUrl}
           alt={espace.nom}

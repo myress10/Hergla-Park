@@ -16,16 +16,16 @@ const SUPERADMIN_LINKS = [
   { to: '/espaces', icon: Map, labelKey: 'nav.spaces', id: 'nav-spaces' },
   { to: '/utilisateurs', icon: Users, labelKey: 'nav.users', id: 'nav-users' },
   { to: '/editeur-3d', icon: Box, labelKey: 'nav.editor3d', id: 'nav-editor-3d' },
-  { to: '/configuration-karts', icon: Flag, labelKey: 'Configuration Karts', id: 'nav-karts' },
-  { to: '/audit-logs', icon: ShieldCheck, labelKey: 'Logs d\'Audit', id: 'nav-audit-logs' },
+  { to: '/configuration-karts', icon: Flag, labelKey: 'nav.kartsConfig', id: 'nav-karts' },
+  { to: '/audit-logs', icon: ShieldCheck, labelKey: 'nav.auditLogs', id: 'nav-audit-logs' },
   { to: '/mon-profil', icon: User, labelKey: 'nav.myProfile', id: 'nav-profile' },
 ];
 
 const STAFF_LINKS = [
   { to: '/mon-espace', icon: Map, labelKey: 'nav.mySpace', id: 'nav-my-space' },
   { to: '/editeur-3d', icon: Box, labelKey: 'nav.editor3d', id: 'nav-editor-3d' },
-  { to: '/configuration-karts', icon: Flag, labelKey: 'Configuration Karts', id: 'nav-karts' },
-  { to: '/audit-logs', icon: ShieldCheck, labelKey: 'Logs d\'Audit', id: 'nav-audit-logs' },
+  { to: '/configuration-karts', icon: Flag, labelKey: 'nav.kartsConfig', id: 'nav-karts' },
+  { to: '/audit-logs', icon: ShieldCheck, labelKey: 'nav.auditLogs', id: 'nav-audit-logs' },
   { to: '/mon-profil', icon: User, labelKey: 'nav.myProfile', id: 'nav-profile' },
 ];
 

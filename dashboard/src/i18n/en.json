@@ -1,0 +1,267 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "spaces": "Spaces",
+    "users": "Users",
+    "mySpace": "My Space",
+    "myProfile": "My Profile",
+    "editor3d": "3D Editor",
+    "kartsConfig": "Karts Configuration",
+    "auditLogs": "Audit Logs"
+  },
+  "login": {
+    "title": "Admin Dashboard",
+    "subtitle": "Sign in to manage your park operations",
+    "emailLabel": "Work Email",
+    "emailPlaceholder": "admin@herglapark.com",
+    "passwordLabel": "Password",
+    "forgotPassword": "Forgot?",
+    "rememberMe": "Remember me",
+    "submitButton": "Sign In",
+    "contactSupport": "Access issue? Contact IT Support",
+    "copyright": "© 2026 Hergla Park Admin Ecosystem. All rights reserved.",
+    "error": {
+      "invalidCredentials": "Invalid email or password.",
+      "networkError": "Connection error. Please check your network."
+    }
+  },
+  "spaces": {
+    "title": "Spaces & Attractions",
+    "subtitle": "Manage operational areas and monitor status in real-time.",
+    "createButton": "Create Space",
+    "stats": {
+      "open": "Open",
+      "closed": "Closed",
+      "maintenance": "Maintenance",
+      "activeStaff": "Active Staff"
+    },
+    "card": {
+      "status": "Status",
+      "noStaff": "No staff assigned"
+    },
+    "recentAlerts": "Recent Alerts",
+    "viewAll": "View All",
+    "table": {
+      "time": "Time",
+      "space": "Space",
+      "type": "Type",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "create": {
+      "title": "Create a Space",
+      "name": "Name",
+      "category": "Category",
+      "submit": "Create",
+      "cancel": "Cancel"
+    },
+    "statuses": {
+      "OUVERT": "Open",
+      "FERME": "Closed",
+      "MAINTENANCE": "Maintenance"
+    }
+  },
+  "mySpace": {
+    "operationalStatus": "OPERATIONAL STATUS",
+    "updateAccessibility": "Update Accessibility",
+    "openTrack": "Open",
+    "maintenance": "Maintenance",
+    "emergencyClose": "Emergency Close",
+    "dailyReport": "Daily Report",
+    "metrics": "Real-Time Metrics",
+    "quickStats": "Quick Statistics",
+    "saveUpdate": "Save Update",
+    "specificData": "Specific Data",
+    "keyLabel": "Key",
+    "valueLabel": "Value",
+    "addField": "Add Field",
+    "removeField": "Remove",
+    "updateSuccess": "Space updated successfully",
+    "updateError": "Error while updating space"
+  },
+  "profile": {
+    "breadcrumb": "My Profile",
+    "title": "Profile & Security",
+    "subtitle": "Manage your personal information, credentials, and access preferences.",
+    "hierarchyLevel": "Role Hierarchy",
+    "level": "Level {{level}}",
+    "personalInfo": "Personal Information",
+    "personalInfoSub": "Update your contact details and display preferences.",
+    "fullName": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "language": "Preferred Language",
+    "saveChanges": "Save Changes",
+    "securityTitle": "Security & Password",
+    "securitySub": "Change your password to keep your account secure.",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "passwordsMatch": "Passwords match",
+    "passwordsDontMatch": "Passwords do not match",
+    "updatePassword": "Update Password",
+    "roleOverview": "Role & System Hierarchy",
+    "roleOverviewSub": "Authorization level and operational scope",
+    "activeRole": "Active Role",
+    "associatedPermissions": "Associated Permissions",
+    "assignedSpaceTitle": "Assigned Space & Attraction",
+    "assignedSpaceSub": "Operational affiliate zone",
+    "sessionAuditInfo": "Session & Audit Info",
+    "accountCreated": "Account Created",
+    "sessionSecurity": "Session Security",
+    "sessionProtected": "Protected (JWT 256-bit)",
+    "inServiceConnected": "On Duty / Connected",
+    "allSpaces": "Entire System (All Spaces)",
+    "unassigned": "Unassigned",
+    "successUpdate": "Personal information updated successfully!",
+    "successPassword": "Password updated successfully!"
+  },
+  "users": {
+    "title": "Users",
+    "subtitle": "Manage access, roles, and custom permissions for the Hergla Park team.",
+    "addButton": "Add User",
+    "search": "Search user...",
+    "filter": "Filter",
+    "export": "Export",
+    "tabs": {
+      "all": "All",
+      "admins": "Admins",
+      "employees": "Employees"
+    },
+    "table": {
+      "user": "USER",
+      "role": "ROLE & PERMISSIONS",
+      "assignedSpace": "ASSIGNED SPACE",
+      "status": "STATUS",
+      "actions": "ACTIONS",
+      "wholeSystem": "Entire System",
+      "noSpace": "—"
+    },
+    "stats": {
+      "total": "TOTAL USERS",
+      "activeToday": "ACTIVE TODAY",
+      "admins": "ADMINS",
+      "pending": "PENDING"
+    },
+    "userStatus": {
+      "connected": "Connected",
+      "online": "Online",
+      "offline": "Offline",
+      "inService": "On Duty"
+    },
+    "create": {
+      "title": "Add User",
+      "name": "Full Name",
+      "email": "Email Address",
+      "phone": "Phone Number (optional)",
+      "password": "Initial Password",
+      "role": "Base Role",
+      "assignedSpace": "Assigned Space",
+      "noSpace": "Unassigned (All Spaces)",
+      "customPermissions": "Custom Permissions",
+      "activeCount": "{{count}} active",
+      "submit": "Create User",
+      "cancel": "Cancel"
+    },
+    "edit": {
+      "title": "Edit User",
+      "submit": "Save Changes",
+      "cancel": "Cancel"
+    },
+    "delete": {
+      "confirm": "Delete this user?",
+      "yes": "Delete",
+      "no": "Cancel"
+    },
+    "pagination": {
+      "showing": "Showing {{from}}-{{to}} of {{total}} users"
+    },
+    "recentActivity": "Recent Activities",
+    "live": "Live",
+    "globalSystem": "Global System",
+    "adminControls": "Admin Controls",
+    "securityLock": "Security Lock",
+    "securityLockTooltip": "Locks administrative modifications globally across all spaces.",
+    "securityLockActive": "Security Lock Active",
+    "autoAssign": "Auto-Assignment",
+    "autoAssignTooltip": "Automatically assigns available staff to active shifts based on space demand.",
+    "securityAudit": "Global Security Audit",
+    "securityAuditTooltip": "Generates an instant security audit report across all system logs.",
+    "auditModal": {
+      "title": "Global Security Audit Report",
+      "integrityScore": "System Integrity Score",
+      "optimal": "Optimal",
+      "compliance": "RBAC Security & Compliance",
+      "diagnosticDesc": "Full diagnostic executed across all accounts, permission tables, and audit streams.",
+      "rbacCheck": "Hierarchical Role-Based Access Control (RBAC)",
+      "rbacDesc": "Strict isolation across ROOT, SUPERADMIN, ADMIN, and EMPLOYE roles",
+      "rbacStatus": "100% Compliant",
+      "cryptoCheck": "Token Encryption & Storage Security",
+      "cryptoDesc": "JWT HMAC-SHA256 & Salted Password Hashing (Bcrypt 10 rounds)",
+      "cryptoStatus": "Active",
+      "stealthCheck": "Stealth Root Protection",
+      "stealthDesc": "Systematic masking of ROOT interventions for lower ranking roles",
+      "stealthStatus": "Locked",
+      "downloadReport": "Download Report",
+      "close": "Close"
+    }
+  },
+  "audit": {
+    "title": "System Audit Logs",
+    "subtitle": "Real-time traceability and logging of administrative actions, spaces, and kart fleet modifications.",
+    "refresh": "Refresh",
+    "searchPlaceholder": "Search by user, action, entity...",
+    "typeFilter": "Type:",
+    "allTypes": "All actions",
+    "createType": "Creations (CREATE)",
+    "updateType": "Modifications (UPDATE)",
+    "deleteType": "Deletions (DELETE)",
+    "loginType": "Logins (LOGIN)",
+    "table": {
+      "timestamp": "TIMESTAMP",
+      "actor": "ACTOR",
+      "action": "ACTION",
+      "entity": "ENTITY / MODULE",
+      "company": "COMPANY / CONTEXT",
+      "details": "DETAILS"
+    }
+  },
+  "karts": {
+    "title": "Karting Fleet Configuration",
+    "subtitle": "Manage track karts, racing numbers, telemetry colors, and active status.",
+    "addKart": "Add Kart",
+    "totalKarts": "TOTAL FLEET",
+    "activeKarts": "IN SERVICE",
+    "maintenanceKarts": "MAINTENANCE",
+    "table": {
+      "number": "NUMBER",
+      "color": "COLOR / LIVERY",
+      "status": "STATUS",
+      "order": "TRACK ORDER",
+      "actions": "ACTIONS"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "logout": "Sign Out",
+    "profile": "Profile",
+    "version": "v2.4.0-stable",
+    "systemOnline": "System Active",
+    "viewAll": "View All",
+    "refresh": "Refresh"
+  },
+  "notFound": {
+    "title": "Page Not Found",
+    "subtitle": "The page you are looking for does not exist.",
+    "back": "Back to Dashboard"
+  }
+}
