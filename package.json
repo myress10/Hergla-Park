@@ -1,0 +1,9 @@
+{
+  "name": "hergla-park-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cd dashboard && npm install && npm run build",
+    "install:dashboard": "cd dashboard && npm install"
+  }
+}
