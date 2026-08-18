@@ -172,39 +172,78 @@ export default function EspacesOverviewPage() {
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Welcome Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-r from-navy via-slate-900 to-indigo-950 text-white p-8 overflow-hidden shadow-xl">
-        <div className="relative z-10 max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-emerald-400 backdrop-blur-md">
-            <Zap size={14} />
-            <span>Panneau Global Hergla Park Admin</span>
+      <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-8 overflow-hidden shadow-2xl border border-indigo-500/20">
+        {/* Glow ambient background orbs */}
+        <div className="absolute -top-24 -left-24 w-80 h-80 bg-blue-600/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none opacity-40" />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="max-w-2xl space-y-3.5">
+            {/* Glowing Tag */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-emerald-500/20 to-teal-500/10 border border-emerald-400/30 text-xs font-bold text-emerald-300 backdrop-blur-md shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+              </span>
+              <Zap size={13} className="text-emerald-400" />
+              <span>Panneau Global Hergla Park Admin</span>
+            </div>
+
+            {/* Heading with high contrast & radiant gradient accent */}
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
+              Vue d'Ensemble & <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-teal-200 to-emerald-300">Dashboard Global</span>
+            </h1>
+
+            {/* Crisp, readable subtitle */}
+            <p className="text-slate-200 text-sm sm:text-base leading-relaxed font-normal">
+              Supervisez en temps réel les espaces d'attraction, les configurations de karts, les scènes 3D interactives et le journal des audits système.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => setCreateModalOpen(true)}
+                className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-950/40 hover:shadow-emerald-400/30 transition-all flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
+                id="dashboard-create-space-btn"
+              >
+                <Plus size={18} />
+                Nouveau Espace
+              </button>
+              <Link
+                to="/editeur-3d"
+                className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all border border-white/20 backdrop-blur-md flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
+              >
+                <Box size={18} />
+                Éditeur 3D
+              </Link>
+            </div>
           </div>
-          <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
-            Vue d'Ensemble & Dashboard Global
-          </h1>
-          <p className="text-slate-300 text-sm leading-relaxed">
-            Supervisez en temps réel les espaces d'attraction, les configurations de karts, les scènes 3D interactives et le journal des audits système.
-          </p>
-          <div className="pt-2 flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setCreateModalOpen(true)}
-              className="bg-white text-navy font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-slate-100 transition-colors shadow-md flex items-center gap-2"
-              id="dashboard-create-space-btn"
-            >
-              <Plus size={18} />
-              Nouveau Espace
-            </button>
-            <Link
-              to="/editeur-3d"
-              className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-colors backdrop-blur-md flex items-center gap-2"
-            >
-              <Box size={18} />
-              Éditeur 3D
-            </Link>
+
+          {/* Right Live Operational Summary Pill (Glass card) */}
+          <div className="hidden lg:flex flex-col gap-2.5 bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4.5 min-w-[250px] text-xs shadow-xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Système Parc</span>
+              <span className="inline-flex items-center gap-1.5 text-emerald-300 font-bold bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 rounded-full text-[10px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live 24/7
+              </span>
+            </div>
+            <div className="space-y-1.5 pt-0.5">
+              <div className="flex justify-between text-slate-300">
+                <span>Espaces Actifs :</span>
+                <span className="font-extrabold text-white">{ouverts} / {espaces.length}</span>
+              </div>
+              <div className="flex justify-between text-slate-300">
+                <span>Rôle Session :</span>
+                <span className="font-bold text-emerald-300">{user?.role || 'SuperAdmin'}</span>
+              </div>
+              <div className="flex justify-between text-slate-300">
+                <span>Événements Audit :</span>
+                <span className="font-bold text-blue-300">{recentLogs.length} récents</span>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Decorative backdrop elements */}
-        <div className="absolute -end-10 -bottom-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
       </div>
 
       {/* Summary Metrics Grid */}

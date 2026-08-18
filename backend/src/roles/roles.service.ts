@@ -90,27 +90,27 @@ export class RolesService {
   }
 
   /**
-   * Update a custom role. Cannot update system roles.
+   * Update a role (ROOT can edit all roles including system/default roles).
    */
-  async update(id: string, dto: UpdateRoleDto, companyId: string, actorId: string, reason?: string) {
-    const role = await this.prisma.role.findFirst({
-      where: { id, companyId },
-    });
+  async update(id: string, dto: UpdateRoleDto, companyId: string, actorId: string, isRoot = false, reason?: string) {
+    const role = isRoot
+      ? await this.prisma.role.findUnique({ where: { id } })
+      : await this.prisma.role.findFirst({ where: { id, companyId } });
 
     if (!role) {
-      throw new NotFoundException(`Rôle avec l'ID ${id} introuvable dans cette entreprise.`);
+      throw new NotFoundException(`Rôle avec l'ID ${id} introuvable.`);
     }
 
-    if (role.isSystem) {
-      throw new ForbiddenException("Sécurité : Impossible de renommer ou modifier un rôle système.");
+    if (role.isSystem && !isRoot) {
+      throw new ForbiddenException("Sécurité : Seul le ROOT peut modifier les rôles système par défaut.");
     }
 
     const { nom, permissionKeys } = dto;
     const updateData: any = {};
 
-    if (nom) {
+    if (nom && nom !== role.nom) {
       const existing = await this.prisma.role.findFirst({
-        where: { nom, companyId, id: { not: id } },
+        where: { nom, companyId: role.companyId, id: { not: id } },
       });
       if (existing) {
         throw new BadRequestException(`Un rôle nommé "${nom}" existe déjà.`);
@@ -158,7 +158,7 @@ export class RolesService {
     // Audit log
     await this.auditLogService.log(
       actorId,
-      companyId,
+      role.companyId || companyId,
       'role.update',
       'Role',
       id,

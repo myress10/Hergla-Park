@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getUsers, updateUser, deleteUser, createUser, updateUserPassword } from '../api/usersApi';
+import { getRoles, updateRole, createRole as createRoleApi } from '../api/rolesApi';
 import { getEspaces } from '../api/espacesApi';
 import { getAuditLogs } from '../api/auditLogsApi';
 import { useAuth } from '../context/AuthContext';
@@ -18,31 +19,25 @@ import {
   Loader2,
   Key,
   Download,
-  SlidersHorizontal,
   ChevronRight,
   ChevronDown,
   ChevronUp,
-  ShieldAlert,
-  Activity,
-  Check,
-  CheckCircle2,
   Lock,
-  Unlock,
-  Settings2,
   Sparkles,
   RefreshCw,
+  ShieldCheck,
+  ShieldAlert,
+  Check,
+  CheckCircle2,
+  Zap,
+  Settings2,
   Info,
-  Layers,
-  FileCheck,
-  FileSpreadsheet,
-  AlertTriangle,
-  Radio,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ROLE_BADGES = {
   SUPERADMIN: { label: 'SUPERADMIN', icon: '✪', bg: 'bg-slate-900 text-white border-slate-800' },
-  ROOT: { label: 'ROOT', icon: '⚡', bg: 'bg-indigo-900 text-indigo-100 border-indigo-700' },
+  ROOT: { label: 'ROOT', icon: '⚡', bg: 'bg-indigo-950 text-indigo-200 border-indigo-700' },
   ADMIN: { label: 'ADMIN', icon: '🔑', bg: 'bg-amber-100 text-amber-800 border-amber-200' },
   EMPLOYE: { label: 'EMPLOYE', icon: '👤', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
 };
@@ -56,13 +51,23 @@ const AVAILABLE_PERMISSIONS = [
   { key: 'logs:view', label: 'Consulter les logs d\'audit', category: 'Sécurité', desc: 'Accès au journal de traçabilité des opérations' },
   { key: 'report:export', label: 'Exporter les rapports', category: 'Rapports', desc: 'Exporter les données en CSV et synthèses d\'activité' },
   { key: 'user:create', label: 'Créer des utilisateurs', category: 'Utilisateurs', desc: 'Ajouter des membres et opérateurs au système' },
+  { key: 'role:update', label: 'Gérer les rôles et permissions', category: 'Sécurité & Droits', desc: 'Ajuster les permissions globales de chaque rôle' },
+  { key: 'role:assign', label: 'Assigner les rôles utilisateurs', category: 'Sécurité & Droits', desc: 'Attribuer ou révoquer les privilèges' },
 ];
 
 const DEFAULT_PERMISSIONS_BY_ROLE = {
+  ROOT: ['espace:create', 'espace:update', 'kart:manage', 'kart:read', 'scene:edit', 'logs:view', 'report:export', 'user:create', 'role:update', 'role:assign'],
   SUPERADMIN: ['espace:create', 'espace:update', 'kart:manage', 'kart:read', 'scene:edit', 'logs:view', 'report:export', 'user:create'],
   ADMIN: ['espace:update', 'kart:manage', 'kart:read', 'scene:edit', 'report:export'],
   EMPLOYE: ['espace:update', 'kart:read', 'scene:edit'],
 };
+
+const DEFAULT_ROLES_LIST = [
+  { id: 'role-root', nom: 'ROOT', isSystem: true, niveau: 1000, permissions: DEFAULT_PERMISSIONS_BY_ROLE.ROOT },
+  { id: 'role-superadmin', nom: 'SUPERADMIN', isSystem: true, niveau: 100, permissions: DEFAULT_PERMISSIONS_BY_ROLE.SUPERADMIN },
+  { id: 'role-admin', nom: 'ADMIN', isSystem: true, niveau: 50, permissions: DEFAULT_PERMISSIONS_BY_ROLE.ADMIN },
+  { id: 'role-employe', nom: 'EMPLOYE', isSystem: true, niveau: 20, permissions: DEFAULT_PERMISSIONS_BY_ROLE.EMPLOYE },
+];
 
 function RoleBadge({ role }) {
   const conf = ROLE_BADGES[role] || { label: role, icon: '👤', bg: 'bg-slate-100 text-slate-600 border-slate-200' };
@@ -181,11 +186,49 @@ export default function UsersPage() {
   const [deleting, setDeleting] = useState(false);
   const [rootDeleteModalOpen, setRootDeleteModalOpen] = useState(false);
 
-  // Fetch Users & Espaces
+  // Roles & Permissions Matrix State
+  const [rolesList, setRolesList] = useState(DEFAULT_ROLES_LIST);
+  const [rolesMatrixOpen, setRolesMatrixOpen] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(DEFAULT_ROLES_LIST[0]);
+  const [selectedRolePerms, setSelectedRolePerms] = useState(DEFAULT_ROLES_LIST[0].permissions);
+  const [savingRolePerms, setSavingRolePerms] = useState(false);
+  const [newRoleMode, setNewRoleMode] = useState(false);
+  const [newRoleNom, setNewRoleNom] = useState('');
+  const [newRolePerms, setNewRolePerms] = useState(DEFAULT_PERMISSIONS_BY_ROLE.EMPLOYE);
+  const [creatingRole, setCreatingRole] = useState(false);
+
+  // Fetch Users & Espaces & Roles
+  const fetchRoles = useCallback(async () => {
+    try {
+      const res = await getRoles().catch(() => null);
+      if (res?.data && Array.isArray(res.data)) {
+        // Map backend roles with permissions
+        const mapped = res.data.map((r) => ({
+          id: r.id,
+          nom: r.nom,
+          isSystem: r.isSystem,
+          niveau: r.niveau,
+          permissions: r.permissions?.map((p) => p.permission?.key || p.key) || DEFAULT_PERMISSIONS_BY_ROLE[r.nom] || [],
+        }));
+        if (mapped.length > 0) {
+          setRolesList(mapped);
+          return mapped;
+        }
+      }
+    } catch {
+      // Fallback
+    }
+    return DEFAULT_ROLES_LIST;
+  }, []);
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [usersRes, espacesRes] = await Promise.all([getUsers(), getEspaces()]);
+      const [usersRes, espacesRes] = await Promise.all([
+        getUsers(),
+        getEspaces(),
+        fetchRoles(),
+      ]);
       const dbUsers = usersRes.data?.data || [];
       setEspaces(espacesRes.data?.data || []);
       setUsers(dbUsers);
@@ -194,7 +237,89 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, fetchRoles]);
+
+  // Open Roles & Permissions matrix modal
+  const openRolesMatrix = async () => {
+    const list = await fetchRoles();
+    const targetRole = list.find((r) => r.nom === 'SUPERADMIN') || list[0];
+    setSelectedRole(targetRole);
+    setSelectedRolePerms(targetRole.permissions || []);
+    setNewRoleMode(false);
+    setRolesMatrixOpen(true);
+  };
+
+  const handleSelectRoleInMatrix = (role) => {
+    setSelectedRole(role);
+    setSelectedRolePerms(role.permissions || []);
+    setNewRoleMode(false);
+  };
+
+  const toggleRolePermInMatrix = (key) => {
+    setSelectedRolePerms((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+    );
+  };
+
+  const handleSaveRolePermissions = async () => {
+    if (!selectedRole) return;
+    setSavingRolePerms(true);
+    try {
+      const isRootUser = currentUser?.role === 'ROOT';
+      const reason = isRootUser ? 'Modification permissions rôle par ROOT' : undefined;
+      await updateRole(selectedRole.id, {
+        nom: selectedRole.nom,
+        permissionKeys: selectedRolePerms,
+      }, reason);
+
+      // Update in local state
+      setRolesList((prev) =>
+        prev.map((r) =>
+          r.id === selectedRole.id ? { ...r, permissions: selectedRolePerms } : r
+        )
+      );
+      setSelectedRole((prev) => ({ ...prev, permissions: selectedRolePerms }));
+      toast.success(`Permissions du rôle "${selectedRole.nom}" enregistrées avec succès !`);
+      fetchRecentActivities();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de la sauvegarde des permissions');
+    } finally {
+      setSavingRolePerms(false);
+    }
+  };
+
+  const handleCreateCustomRole = async (e) => {
+    e.preventDefault();
+    if (!newRoleNom.trim()) return;
+    setCreatingRole(true);
+    try {
+      const isRootUser = currentUser?.role === 'ROOT';
+      const res = await createRoleApi({
+        nom: newRoleNom.trim().toUpperCase(),
+        permissionKeys: newRolePerms,
+      }, isRootUser ? 'Création rôle personnalisé par ROOT' : undefined);
+
+      const created = res.data?.data || {
+        id: `role-custom-${Date.now()}`,
+        nom: newRoleNom.trim().toUpperCase(),
+        isSystem: false,
+        niveau: 20,
+        permissions: newRolePerms,
+      };
+
+      setRolesList((prev) => [...prev, created]);
+      setSelectedRole(created);
+      setSelectedRolePerms(newRolePerms);
+      setNewRoleMode(false);
+      setNewRoleNom('');
+      toast.success(`Nouveau rôle "${created.nom}" créé avec succès !`);
+      fetchRecentActivities();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de la création du rôle');
+    } finally {
+      setCreatingRole(false);
+    }
+  };
 
   // Fetch Live Audit Activities
   const fetchRecentActivities = useCallback(async () => {
@@ -527,15 +652,29 @@ export default function UsersPage() {
           </p>
         </div>
 
-        {/* Primary Action Button */}
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 self-start sm:self-auto active:scale-[0.98]"
-          id="add-user-btn"
-        >
-          <Plus size={16} className="stroke-[3]" />
-          {t('users.addButton')}
-        </button>
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          {(currentUser?.role === 'ROOT' || currentUser?.role === 'SUPERADMIN') && (
+            <button
+              onClick={() => openRolesMatrix()}
+              className="bg-gradient-to-r from-indigo-900 to-indigo-700 hover:from-indigo-800 hover:to-indigo-600 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 active:scale-[0.98] border border-indigo-500/30 cursor-pointer"
+              id="roles-matrix-btn"
+              title="Gérer les Rôles & Permissions Globales"
+            >
+              <Zap size={15} className="text-indigo-300" />
+              <span>{currentUser?.role === 'ROOT' ? 'Matrice Rôles ROOT' : 'Matrice Rôles'}</span>
+            </button>
+          )}
+
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 self-start sm:self-auto active:scale-[0.98] cursor-pointer"
+            id="add-user-btn"
+          >
+            <Plus size={16} className="stroke-[3]" />
+            {t('users.addButton')}
+          </button>
+        </div>
       </div>
 
       {/* 4 Summary Stats Cards Grid */}
@@ -938,6 +1077,13 @@ export default function UsersPage() {
       {/* 5. CREATE USER MODAL WITH GRANULAR CUSTOM PERMISSIONS */}
       <Modal isOpen={createOpen} onClose={() => setCreateOpen(false)} title={t('users.create.title')} size="md">
         <form onSubmit={handleCreate} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
+          {currentUser?.role === 'ROOT' && (
+            <div className="p-3 bg-gradient-to-r from-indigo-950 to-slate-900 border border-indigo-500/30 rounded-xl text-xs text-indigo-200 flex items-center gap-2">
+              <Zap size={14} className="text-emerald-400 flex-shrink-0 animate-pulse" />
+              <span><strong>Mode Contrôleur ROOT</strong> : Attribution illimitée de tous les rôles et permissions.</span>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
               {t('users.create.name')}
@@ -1008,11 +1154,17 @@ export default function UsersPage() {
                 id="create-role"
                 value={newUser.role}
                 onChange={(e) => handleRoleChange(e.target.value)}
-                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
               >
-                <option value="EMPLOYE">EMPLOYE</option>
-                <option value="ADMIN">ADMIN</option>
-                <option value="SUPERADMIN">SUPERADMIN</option>
+                {currentUser?.role === 'ROOT' && <option value="ROOT">⚡ ROOT (Contrôleur Global)</option>}
+                <option value="SUPERADMIN">✪ SUPERADMIN</option>
+                <option value="ADMIN">🔑 ADMIN</option>
+                <option value="EMPLOYE">👤 EMPLOYE</option>
+                {rolesList
+                  .filter((r) => !['ROOT', 'SUPERADMIN', 'ADMIN', 'EMPLOYE'].includes(r.nom))
+                  .map((r) => (
+                    <option key={r.id} value={r.nom}>⚙️ {r.nom}</option>
+                  ))}
               </select>
             </div>
 
@@ -1041,7 +1193,7 @@ export default function UsersPage() {
             <button
               type="button"
               onClick={() => setCustomPermsExpanded(!customPermsExpanded)}
-              className="w-full flex items-center justify-between text-xs font-extrabold text-slate-800 uppercase tracking-wider"
+              className="w-full flex items-center justify-between text-xs font-extrabold text-slate-800 uppercase tracking-wider cursor-pointer"
             >
               <div className="flex items-center gap-2">
                 <Sparkles size={14} className="text-indigo-600" />
@@ -1052,6 +1204,26 @@ export default function UsersPage() {
 
             {customPermsExpanded && (
               <div className="pt-2 space-y-2.5 divide-y divide-slate-100">
+                <div className="flex items-center justify-between pb-1 text-[11px] text-slate-500 font-semibold">
+                  <span>Sélectionnez les privilèges autorisés :</span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setNewUser((p) => ({ ...p, customPermissions: AVAILABLE_PERMISSIONS.map((x) => x.key) }))}
+                      className="text-indigo-600 hover:underline"
+                    >
+                      Tout cocher
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setNewUser((p) => ({ ...p, customPermissions: [] }))}
+                      className="text-slate-500 hover:underline"
+                    >
+                      Tout décocher
+                    </button>
+                  </div>
+                </div>
                 {AVAILABLE_PERMISSIONS.map((p) => {
                   const isChecked = (newUser.customPermissions || []).includes(p.key);
                   return (
@@ -1063,7 +1235,7 @@ export default function UsersPage() {
                         type="checkbox"
                         checked={isChecked}
                         onChange={() => togglePermission(p.key, false)}
-                        className="w-4 h-4 mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                        className="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
                       />
                       <div className="flex-1">
                         <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
@@ -1083,14 +1255,14 @@ export default function UsersPage() {
               type="submit"
               disabled={creating}
               id="create-user-submit"
-              className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-60 transition-colors"
+              className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-60 transition-colors cursor-pointer"
             >
               {creating ? <Loader2 size={16} className="animate-spin mx-auto" /> : t('users.create.submit')}
             </button>
             <button
               type="button"
               onClick={() => setCreateOpen(false)}
-              className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors"
+              className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors cursor-pointer"
             >
               {t('users.create.cancel')}
             </button>
@@ -1102,6 +1274,12 @@ export default function UsersPage() {
       <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title={t('users.edit.title')} size="md">
         {editTarget && (
           <form onSubmit={handleEdit} className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
+            {currentUser?.role === 'ROOT' && (
+              <div className="p-3 bg-gradient-to-r from-indigo-950 to-slate-900 border border-indigo-500/30 rounded-xl text-xs text-indigo-200 flex items-center gap-2">
+                <Zap size={14} className="text-emerald-400 flex-shrink-0 animate-pulse" />
+                <span><strong>Édition ROOT Totale</strong> : Modification libre du rôle et des permissions de cet utilisateur.</span>
+              </div>
+            )}
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
                 {t('users.create.name')}
@@ -1154,11 +1332,17 @@ export default function UsersPage() {
                   id="edit-role"
                   value={editTarget.role}
                   onChange={(e) => handleEditRoleChange(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 font-semibold"
                 >
-                  <option value="EMPLOYE">EMPLOYE</option>
-                  <option value="ADMIN">ADMIN</option>
-                  <option value="SUPERADMIN">SUPERADMIN</option>
+                  {currentUser?.role === 'ROOT' && <option value="ROOT">⚡ ROOT (Contrôleur Global)</option>}
+                  <option value="SUPERADMIN">✪ SUPERADMIN</option>
+                  <option value="ADMIN">🔑 ADMIN</option>
+                  <option value="EMPLOYE">👤 EMPLOYE</option>
+                  {rolesList
+                    .filter((r) => !['ROOT', 'SUPERADMIN', 'ADMIN', 'EMPLOYE'].includes(r.nom))
+                    .map((r) => (
+                      <option key={r.id} value={r.nom}>⚙️ {r.nom}</option>
+                    ))}
                 </select>
               </div>
 
@@ -1187,7 +1371,7 @@ export default function UsersPage() {
               <button
                 type="button"
                 onClick={() => setEditCustomPermsExpanded(!editCustomPermsExpanded)}
-                className="w-full flex items-center justify-between text-xs font-extrabold text-slate-800 uppercase tracking-wider"
+                className="w-full flex items-center justify-between text-xs font-extrabold text-slate-800 uppercase tracking-wider cursor-pointer"
               >
                 <div className="flex items-center gap-2">
                   <Sparkles size={14} className="text-indigo-600" />
@@ -1198,6 +1382,26 @@ export default function UsersPage() {
 
               {editCustomPermsExpanded && (
                 <div className="pt-2 space-y-2.5 divide-y divide-slate-100">
+                  <div className="flex items-center justify-between pb-1 text-[11px] text-slate-500 font-semibold">
+                    <span>Sélectionnez les privilèges autorisés :</span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditTarget((p) => ({ ...p, customPermissions: AVAILABLE_PERMISSIONS.map((x) => x.key) }))}
+                        className="text-indigo-600 hover:underline"
+                      >
+                        Tout cocher
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={() => setEditTarget((p) => ({ ...p, customPermissions: [] }))}
+                        className="text-slate-500 hover:underline"
+                      >
+                        Tout décocher
+                      </button>
+                    </div>
+                  </div>
                   {AVAILABLE_PERMISSIONS.map((p) => {
                     const isChecked = (editTarget.customPermissions || []).includes(p.key);
                     return (
@@ -1209,7 +1413,7 @@ export default function UsersPage() {
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => togglePermission(p.key, true)}
-                          className="w-4 h-4 mt-0.5 rounded border-slate-300 text-slate-900 focus:ring-slate-900 cursor-pointer"
+                          className="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
                         />
                         <div className="flex-1">
                           <p className="text-xs font-bold text-slate-800 group-hover:text-indigo-600 transition-colors">
@@ -1229,20 +1433,287 @@ export default function UsersPage() {
                 type="submit"
                 disabled={editing}
                 id="edit-user-submit"
-                className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-60 transition-colors"
+                className="flex-1 bg-slate-900 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-60 transition-colors cursor-pointer"
               >
                 {editing ? <Loader2 size={16} className="animate-spin mx-auto" /> : t('users.edit.submit')}
               </button>
               <button
                 type="button"
                 onClick={() => setEditOpen(false)}
-                className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors"
+                className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 {t('users.edit.cancel')}
               </button>
             </div>
           </form>
         )}
+      </Modal>
+
+      {/* DEDICATED ROLES & PERMISSIONS MATRIX MODAL */}
+      <Modal
+        isOpen={rolesMatrixOpen}
+        onClose={() => setRolesMatrixOpen(false)}
+        title="Matrice Globale des Rôles & Permissions"
+        size="lg"
+      >
+        <div className="space-y-6 max-h-[82vh] overflow-y-auto pr-1">
+          {/* Header Banner */}
+          <div className="p-4 bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 rounded-2xl text-white flex items-center justify-between border border-indigo-500/20 shadow-lg">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
+                <ShieldCheck size={12} />
+                <span>Gestion Centralisée des Droits</span>
+              </div>
+              <h3 className="text-base font-black">Éditeur de Rôles Système & Personnalisés</h3>
+              <p className="text-xs text-slate-300">
+                {currentUser?.role === 'ROOT'
+                  ? '⚡ Privilèges ROOT actifs : Vous pouvez modifier les permissions de tous les rôles (y compris les rôles par défaut).'
+                  : 'Configurez les permissions accordées à chaque rôle du système.'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setNewRoleMode(!newRoleMode)}
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+            >
+              <Plus size={14} />
+              <span>{newRoleMode ? 'Voir la liste' : 'Nouveau Rôle'}</span>
+            </button>
+          </div>
+
+          {newRoleMode ? (
+            /* CREATE NEW CUSTOM ROLE FORM */
+            <form onSubmit={handleCreateCustomRole} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h4 className="text-sm font-extrabold text-slate-900">Créer un Nouveau Rôle Personnalisé</h4>
+                <span className="text-xs text-slate-400">Niveau standard SaaS</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Nom du Rôle
+                </label>
+                <input
+                  type="text"
+                  value={newRoleNom}
+                  onChange={(e) => setNewRoleNom(e.target.value)}
+                  placeholder="Ex: SUPERVISEUR_PISTE, AUDITEUR_EXTERNE"
+                  required
+                  className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                    Permissions Attribuées ({newRolePerms.length})
+                  </label>
+                  <div className="flex gap-2 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setNewRolePerms(AVAILABLE_PERMISSIONS.map((p) => p.key))}
+                      className="text-indigo-600 font-bold hover:underline"
+                    >
+                      Tout cocher
+                    </button>
+                    <span>•</span>
+                    <button
+                      type="button"
+                      onClick={() => setNewRolePerms([])}
+                      className="text-slate-500 font-bold hover:underline"
+                    >
+                      Tout décocher
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-slate-200 max-h-60 overflow-y-auto">
+                  {AVAILABLE_PERMISSIONS.map((p) => {
+                    const isChecked = newRolePerms.includes(p.key);
+                    return (
+                      <label key={p.key} className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {
+                            setNewRolePerms((prev) =>
+                              prev.includes(p.key) ? prev.filter((k) => k !== p.key) : [...prev, p.key]
+                            );
+                          }}
+                          className="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-800 leading-tight">{p.label}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">{p.key}</p>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="submit"
+                  disabled={creatingRole}
+                  className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  {creatingRole ? <Loader2 size={16} className="animate-spin" /> : 'Créer et Activer le Rôle'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewRoleMode(false)}
+                  className="px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl text-xs sm:text-sm transition-colors cursor-pointer"
+                >
+                  Annuler
+                </button>
+              </div>
+            </form>
+          ) : (
+            /* ROLES LIST & PERMISSIONS MATRIX VIEW */
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Left Role Selector List */}
+              <div className="space-y-2 md:border-e md:border-slate-100 md:pe-3">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1 pb-1">
+                  Rôles Définis ({rolesList.length})
+                </p>
+                {rolesList.map((r) => {
+                  const isSelected = selectedRole?.id === r.id;
+                  const isSys = r.isSystem;
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => handleSelectRoleInMatrix(r)}
+                      className={`p-3 rounded-xl cursor-pointer transition-all border ${
+                        isSelected
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-indigo-400/30'
+                          : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <RoleBadge role={r.nom} />
+                        </div>
+                        {isSys ? (
+                          <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                            Système
+                          </span>
+                        ) : (
+                          <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-emerald-500/30 text-emerald-200' : 'bg-emerald-100 text-emerald-700'}`}>
+                            Personnalisé
+                          </span>
+                        )}
+                      </div>
+                      <p className={`text-[10px] truncate ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                        {(r.permissions || []).length} permissions actives
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Right Permissions Matrix Editor for Selected Role */}
+              <div className="md:col-span-2 space-y-4">
+                {selectedRole ? (
+                  <div className="p-4 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-4">
+                    {/* Role Header Banner */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-base font-black text-slate-900">{selectedRole.nom}</h4>
+                          {selectedRole.isSystem && (
+                            <span className="text-[10px] font-bold bg-slate-200 text-slate-700 px-2 py-0.5 rounded-md">
+                              Rôle Système par Défaut
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {currentUser?.role === 'ROOT'
+                            ? '⚡ Contrôle total : vous pouvez modifier et enregistrer les permissions de ce rôle.'
+                            : 'Permissions associées à ce rôle.'}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2 text-[11px] self-start sm:self-auto">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRolePerms(AVAILABLE_PERMISSIONS.map((p) => p.key))}
+                          className="text-indigo-600 font-bold hover:underline"
+                        >
+                          Tout cocher
+                        </button>
+                        <span>•</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedRolePerms([])}
+                          className="text-slate-500 font-bold hover:underline"
+                        >
+                          Tout décocher
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Permissions Grid */}
+                    <div className="space-y-2 max-h-80 overflow-y-auto divide-y divide-slate-200/60 pr-1">
+                      {AVAILABLE_PERMISSIONS.map((p) => {
+                        const isChecked = selectedRolePerms.includes(p.key);
+                        return (
+                          <label
+                            key={p.key}
+                            className="flex items-start gap-3 pt-2.5 first:pt-0 cursor-pointer group"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={() => toggleRolePermInMatrix(p.key)}
+                              className="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                  {p.label}
+                                </p>
+                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600">
+                                  {p.category}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-500 leading-tight mt-0.5">{p.desc}</p>
+                              <p className="text-[10px] text-slate-400 font-mono mt-0.5">{p.key}</p>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+
+                    {/* Save Permissions Action */}
+                    <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
+                      <span className="text-xs font-bold text-slate-600">
+                        {selectedRolePerms.length} / {AVAILABLE_PERMISSIONS.length} permissions sélectionnées
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleSaveRolePermissions}
+                        disabled={savingRolePerms}
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                      >
+                        {savingRolePerms ? (
+                          <Loader2 size={15} className="animate-spin" />
+                        ) : (
+                          <Check size={15} className="stroke-[3]" />
+                        )}
+                        <span>Enregistrer les Permissions</span>
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center text-slate-400">
+                    <p className="text-xs">Sélectionnez un rôle à gauche pour afficher ses permissions.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </Modal>
 
       {/* 4. INTERACTIVE GLOBAL SECURITY AUDIT REPORT MODAL */}

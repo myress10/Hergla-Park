@@ -50,7 +50,7 @@ export class RolesController {
 
   @Put('roles/:id')
   @RequirePermissions('role:update')
-  @ApiOperation({ summary: 'Update a custom role' })
+  @ApiOperation({ summary: 'Update a role or default role (ROOT has full permissions)' })
   @ApiResponse({ status: 200, description: 'Role updated' })
   async update(
     @Param('id') id: string,
@@ -58,7 +58,8 @@ export class RolesController {
     @Req() req,
     @Query('reason') reason?: string,
   ) {
-    return this.rolesService.update(id, dto, req.user.companyId, req.user.id, reason);
+    const isRoot = req.isRootUser || false;
+    return this.rolesService.update(id, dto, req.user.companyId, req.user.id, isRoot, reason);
   }
 
   @Delete('roles/:id')
