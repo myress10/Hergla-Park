@@ -1,5 +1,5 @@
 import { Outlet, useNavigate, Link } from 'react-router-dom';
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
