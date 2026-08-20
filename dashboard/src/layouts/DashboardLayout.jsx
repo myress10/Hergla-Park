@@ -178,7 +178,7 @@ export default function DashboardLayout() {
     return t('common.daysAgo', { count: Math.floor(diffHours / 24) });
   }, [t]);
 
-  // Load real audit logs & entities for notifications and search in real-time (<= 2 seconds)
+  // Notification polling - always silent (no loading state), smart dedup
   useEffect(() => {
     let isMounted = true;
 
@@ -186,13 +186,23 @@ export default function DashboardLayout() {
       try {
         const espacesRes = await getEspaces().catch(() => null);
         if (isMounted && espacesRes?.data?.data) {
-          setAllEspaces(espacesRes.data.data);
+          const newEspaces = espacesRes.data.data;
+          setAllEspaces((prev) => {
+            const prevKey = prev.map((e) => e.id).join(',');
+            const nextKey = newEspaces.map((e) => e.id).join(',');
+            return prevKey === nextKey ? prev : newEspaces;
+          });
         }
 
         if (isMounted && (user?.role === 'SUPERADMIN' || user?.role === 'ROOT')) {
           const usersRes = await getUsers().catch(() => null);
           if (usersRes?.data?.data) {
-            setAllUsers(usersRes.data.data);
+            const newUsers = usersRes.data.data;
+            setAllUsers((prev) => {
+              const prevKey = prev.map((u) => u.id).join(',');
+              const nextKey = newUsers.map((u) => u.id).join(',');
+              return prevKey === nextKey ? prev : newUsers;
+            });
           }
         }
 
@@ -224,7 +234,7 @@ export default function DashboardLayout() {
             const existingIds = new Set(prev.map((n) => n.id));
             const newOnes = liveNotifs.filter((n) => !existingIds.has(n.id));
             
-            // If new events occurred in real time after initial load, pop a sleek notification toast
+            // Pop a toast only for genuinely new events after initial load
             if (newOnes.length > 0 && !isFirstLoadRef.current) {
               const latest = newOnes[0];
               toast(
@@ -268,16 +278,16 @@ export default function DashboardLayout() {
       }
     }
 
-    // 1. Immediate fetch on mount / role change
+    // Immediate fetch on mount / role change
     loadData();
 
-    // 2. Real-time broadcast subscription (0ms latency for in-tab / cross-tab actions)
+    // Instant update when this tab performs an action (0ms)
     const unsubscribe = subscribeActivity(() => {
       loadData();
     });
 
-    // 3. Heartbeat polling every 2000ms (2 seconds guaranteed real-time interval)
-    const intervalId = setInterval(loadData, 2000);
+    // Background heartbeat every 10s - completely silent, no re-render unless data changes
+    const intervalId = setInterval(loadData, 10000);
 
     return () => {
       isMounted = false;

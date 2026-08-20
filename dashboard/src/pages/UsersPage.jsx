@@ -251,6 +251,28 @@ export default function UsersPage() {
     }
   }, [t, fetchRoles]);
 
+  // Silent background sync - no loading flash
+  const fetchAllSilent = useCallback(async () => {
+    try {
+      const [usersRes, espacesRes] = await Promise.all([
+        getUsers(),
+        getEspaces(),
+      ]);
+      const newUsers = usersRes.data?.data || [];
+      const newEspaces = espacesRes.data?.data || [];
+      setUsers((prev) => {
+        const prevKey = prev.map((u) => u.id + (u.statut || '')).join(',');
+        const nextKey = newUsers.map((u) => u.id + (u.statut || '')).join(',');
+        return prevKey === nextKey ? prev : newUsers;
+      });
+      setEspaces((prev) => {
+        const prevKey = prev.map((e) => e.id).join(',');
+        const nextKey = newEspaces.map((e) => e.id).join(',');
+        return prevKey === nextKey ? prev : newEspaces;
+      });
+    } catch (_) {}
+  }, []);
+
   // Open Roles & Permissions matrix modal
   const openRolesMatrix = async () => {
     const list = await fetchRoles();
@@ -333,7 +355,7 @@ export default function UsersPage() {
     }
   };
 
-  // Fetch Live Audit Activities
+  // Fetch Live Audit Activities (initial, shows spinner)
   const fetchRecentActivities = useCallback(async () => {
     setActivitiesLoading(true);
     try {
@@ -348,26 +370,42 @@ export default function UsersPage() {
     }
   }, []);
 
-  // Initial load & real-time synchronization (<= 2 seconds)
+  // Silent activities fetch - no loading state
+  const fetchActivitiesSilent = useCallback(async () => {
+    try {
+      const logsRes = await getAuditLogs({ limit: 5 });
+      const items = logsRes?.data || [];
+      setRecentActivities((prev) => {
+        const prevKey = prev.map((l) => l.id).join(',');
+        const nextKey = items.map((l) => l.id).join(',');
+        return prevKey === nextKey ? prev : items;
+      });
+      setLastActivityFetch(new Date());
+    } catch (_) {}
+  }, []);
+
+  // Initial load & real-time synchronization
   useEffect(() => {
     fetchAll();
     fetchRecentActivities();
 
+    // Instant update when this tab does an action
     const unsubscribe = subscribeActivity(() => {
-      fetchAll();
-      fetchRecentActivities();
+      fetchAllSilent();
+      fetchActivitiesSilent();
     });
 
+    // Background sync every 10s - silent, no flash
     const interval = setInterval(() => {
-      fetchRecentActivities();
-      fetchAll();
-    }, 2000);
+      fetchActivitiesSilent();
+      fetchAllSilent();
+    }, 10000);
 
     return () => {
       unsubscribe();
       clearInterval(interval);
     };
-  }, [fetchAll, fetchRecentActivities]);
+  }, [fetchAll, fetchRecentActivities, fetchAllSilent, fetchActivitiesSilent]);
 
   // When creating a user and role changes, auto-sync default custom permissions
   const handleRoleChange = (role) => {

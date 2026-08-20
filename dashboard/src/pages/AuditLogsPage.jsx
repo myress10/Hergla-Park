@@ -70,22 +70,40 @@ export default function AuditLogsPage() {
     }
   }, [search, actionFilter, t]);
 
+  // Silent background sync - no loading state, no flash
+  const fetchLogsSilent = useCallback(async () => {
+    try {
+      const res = await getAuditLogs({
+        page: 1,
+        limit: 15,
+        search: search.trim() || undefined,
+        action: actionFilter !== 'ALL' ? actionFilter : undefined,
+      });
+      const newLogs = res.data || [];
+      setLogs((prev) => {
+        const prevKey = prev.map((l) => l.id).join(',');
+        const nextKey = newLogs.map((l) => l.id).join(',');
+        return prevKey === nextKey ? prev : newLogs;
+      });
+      if (res.meta) setMeta(res.meta);
+    } catch (_) {}
+  }, [search, actionFilter]);
+
   useEffect(() => {
     fetchLogs(1);
 
     const unsubscribe = subscribeActivity(() => {
-      fetchLogs(1);
+      fetchLogsSilent();
     });
 
-    const intervalId = setInterval(() => {
-      fetchLogs(1);
-    }, 2000);
+    // Background sync every 10s - silent, no flash
+    const intervalId = setInterval(fetchLogsSilent, 10000);
 
     return () => {
       unsubscribe();
       clearInterval(intervalId);
     };
-  }, [fetchLogs]);
+  }, [fetchLogs, fetchLogsSilent]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

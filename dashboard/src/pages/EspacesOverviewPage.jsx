@@ -90,6 +90,7 @@ export default function EspacesOverviewPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [deleting, setDeleting] = useState(false);
 
+  // Initial load — shows loading skeleton
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -115,24 +116,48 @@ export default function EspacesOverviewPage() {
     }
   }, [t]);
 
+  // Silent background sync — no loading state, no page flash
+  const fetchSilent = useCallback(async () => {
+    try {
+      const [espacesRes, logsRes] = await Promise.allSettled([
+        getEspaces(),
+        getAuditLogs({ limit: 5 }),
+      ]);
+      if (espacesRes.status === 'fulfilled') {
+        const newData = espacesRes.value.data.data || [];
+        setEspaces((prev) => {
+          const prevIds = prev.map((e) => e.id + e.statut).join(',');
+          const nextIds = newData.map((e) => e.id + e.statut).join(',');
+          return prevIds === nextIds ? prev : newData;
+        });
+      }
+      if (logsRes.status === 'fulfilled' && logsRes.value.data) {
+        const newLogs = logsRes.value.data || [];
+        setRecentLogs((prev) => {
+          const prevKey = prev.map((l) => l.id).join(',');
+          const nextKey = newLogs.map((l) => l.id).join(',');
+          return prevKey === nextKey ? prev : newLogs;
+        });
+      }
+    } catch (_) {}
+  }, []);
+
   useEffect(() => {
     fetchData();
 
-    // Subscribe to instant local and cross-tab updates (0ms)
+    // Instant update when this tab performs an action
     const unsubscribe = subscribeActivity(() => {
-      fetchData();
+      fetchSilent();
     });
 
-    // 2-second heartbeat sync
-    const intervalId = setInterval(() => {
-      fetchData();
-    }, 2000);
+    // Background sync every 10s — silent, no flash
+    const intervalId = setInterval(fetchSilent, 10000);
 
     return () => {
       unsubscribe();
       clearInterval(intervalId);
     };
-  }, [fetchData]);
+  }, [fetchData, fetchSilent]);
 
   // Status toggle callback from EspaceCard
   const handleUpdateEspace = useCallback((updated) => {
