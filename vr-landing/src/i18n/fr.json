@@ -7,14 +7,49 @@
   },
   "welcome": {
     "title": "Vivez Hergla Park avant même d'y être",
+    "heroTitle1": "Vivez Hergla Park",
+    "heroTitle2": "avant même d'y être",
+    "heroDesc": "Explorez notre univers de loisirs, de vitesse et de sensations fortes en 3D immersive totale depuis votre navigateur.",
+    "badge": "Visite Virtuelle 3D — Hergla Park",
     "subtitle": "Découvrez notre parc en immersion 3D totale depuis votre navigateur. Un voyage virtuel vers l'adrénaline.",
     "galleryTitle": "Explorez les attractions",
-    "startBtn": "Commencer",
+    "startBtn": "Commencer la visite",
     "scrollDown": "Scrollez pour plus d'infos",
     "categories": {
       "karting": "Karting Pro",
       "family": "Family Fun",
       "events": "Park Events"
+    },
+    "stats": {
+      "visitors": "Visiteurs / an",
+      "satisfaction": "Satisfaction client",
+      "location": "Sousse, Tunisie",
+      "history": "Parc historique"
+    },
+    "features": {
+      "title": "Une Expérience Numérique Innovante",
+      "subtitle": "Conçue pour vous faire découvrir le parc comme si vous y étiez",
+      "f1Title": "Visite 3D Immersive",
+      "f1Desc": "Explorez chaque recoin du parc depuis votre navigateur, sans téléchargement.",
+      "f2Title": "Navigation Intuitive",
+      "f2Desc": "Clavier et souris pour une prise en main immédiate, même pour les néophytes.",
+      "f3Title": "Adapté à Tous",
+      "f3Desc": "Accessible à partir de 7 ans, sur tablette, ordinateur ou casque VR."
+    },
+    "howItWorks": {
+      "title": "Comment ça marche ?",
+      "subtitle": "3 étapes simples pour démarrer votre visite",
+      "h1Title": "Parcourez les étapes",
+      "h1Desc": "Découvrez les commandes et les consignes de sécurité.",
+      "h2Title": "Lancez la visite",
+      "h2Desc": "Cliquez sur le bouton et immergez-vous en 3D.",
+      "h3Title": "Explorez le parc",
+      "h3Desc": "Naviguez librement dans chaque espace de Hergla Park."
+    },
+    "cta": {
+      "title": "Prêt à plonger dans l'expérience ?",
+      "desc": "Découvrez nos pistes de karting, nos espaces de loisirs et toute la magie de Hergla Park.",
+      "btn": "Lancer l'immersion 3D"
     }
   },
   "controls": {
@@ -54,6 +89,7 @@
   "launch": {
     "badge": "Système Prêt • Phase 04",
     "title": "LANCER LA VISITE VIRTUELLE",
+    "readyToStart": "Prêt à démarrer l'aventure 3D",
     "loading": "INITIALIZING WEBGL ENVIRONMENT",
     "connecting": "CONNECTING TO RENDER PIPELINE...",
     "streaming": "STREAMING ASSETS...",
@@ -74,8 +110,8 @@
     "back": "Retour",
     "next": "Suivant",
     "previous": "Précédent",
-    "privacy": "Privacy Policy",
-    "help": "Help Center",
-    "copyright": "© 2024 Hergla Park Authority"
+    "privacy": "Politique de Confidentialité",
+    "help": "Centre d'Aide",
+    "copyright": "© 2026 Hergla Park. Tous droits réservés."
   }
 }

@@ -5,6 +5,7 @@ import { getRoles, updateRole, createRole as createRoleApi } from '../api/rolesA
 import { getEspaces } from '../api/espacesApi';
 import { getAuditLogs } from '../api/auditLogsApi';
 import { useAuth } from '../context/AuthContext';
+import { subscribeActivity } from '../utils/activityBus';
 import Modal from '../components/Modal';
 import RootVerificationModal from '../components/RootVerificationModal';
 import {
@@ -42,18 +43,28 @@ const ROLE_BADGES = {
   EMPLOYE: { label: 'EMPLOYE', icon: '👤', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
 };
 
-const AVAILABLE_PERMISSIONS = [
-  { key: 'espace:create', label: 'Créer des espaces', category: 'Espaces', desc: 'Ajouter de nouvelles attractions et zones au parc' },
-  { key: 'espace:update', label: 'Modifier les espaces', category: 'Espaces', desc: 'Changer le statut (Ouvert/Fermé/Maintenance) et les métadonnées' },
-  { key: 'kart:manage', label: 'Gérer la flotte de karts', category: 'Karting', desc: 'Attribuer numéros, couleurs, et statut d\'entretien des karts' },
-  { key: 'kart:read', label: 'Consulter les karts', category: 'Karting', desc: 'Visualiser la télémétrie et les karts actifs' },
-  { key: 'scene:edit', label: 'Éditeur 3D Studio', category: 'Studio 3D', desc: 'Modifier et sauvegarder les placements d\'objets 3D' },
-  { key: 'logs:view', label: 'Consulter les logs d\'audit', category: 'Sécurité', desc: 'Accès au journal de traçabilité des opérations' },
-  { key: 'report:export', label: 'Exporter les rapports', category: 'Rapports', desc: 'Exporter les données en CSV et synthèses d\'activité' },
-  { key: 'user:create', label: 'Créer des utilisateurs', category: 'Utilisateurs', desc: 'Ajouter des membres et opérateurs au système' },
-  { key: 'role:update', label: 'Gérer les rôles et permissions', category: 'Sécurité & Droits', desc: 'Ajuster les permissions globales de chaque rôle' },
-  { key: 'role:assign', label: 'Assigner les rôles utilisateurs', category: 'Sécurité & Droits', desc: 'Attribuer ou révoquer les privilèges' },
+const PERMISSION_KEYS = [
+  { key: 'espace:create', labelKey: 'users.permissions.espaceCreate', categoryKey: 'users.categories.espaces', descKey: 'users.permissions.espaceCreateDesc' },
+  { key: 'espace:update', labelKey: 'users.permissions.espaceUpdate', categoryKey: 'users.categories.espaces', descKey: 'users.permissions.espaceUpdateDesc' },
+  { key: 'kart:manage', labelKey: 'users.permissions.kartManage', categoryKey: 'users.categories.karting', descKey: 'users.permissions.kartManageDesc' },
+  { key: 'kart:read', labelKey: 'users.permissions.kartRead', categoryKey: 'users.categories.karting', descKey: 'users.permissions.kartReadDesc' },
+  { key: 'scene:edit', labelKey: 'users.permissions.sceneEdit', categoryKey: 'users.categories.studio3d', descKey: 'users.permissions.sceneEditDesc' },
+  { key: 'logs:view', labelKey: 'users.permissions.logsView', categoryKey: 'users.categories.security', descKey: 'users.permissions.logsViewDesc' },
+  { key: 'report:export', labelKey: 'users.permissions.reportExport', categoryKey: 'users.categories.reports', descKey: 'users.permissions.reportExportDesc' },
+  { key: 'user:create', labelKey: 'users.permissions.userCreate', categoryKey: 'users.categories.users', descKey: 'users.permissions.userCreateDesc' },
+  { key: 'role:update', labelKey: 'users.permissions.roleUpdate', categoryKey: 'users.categories.rights', descKey: 'users.permissions.roleUpdateDesc' },
+  { key: 'role:assign', labelKey: 'users.permissions.roleAssign', categoryKey: 'users.categories.rights', descKey: 'users.permissions.roleAssignDesc' },
 ];
+
+// Helper: returns AVAILABLE_PERMISSIONS with translated labels using t()
+function getPermissions(t) {
+  return PERMISSION_KEYS.map((p) => ({
+    ...p,
+    label: t(p.labelKey),
+    category: t(p.categoryKey),
+    desc: t(p.descKey),
+  }));
+}
 
 const DEFAULT_PERMISSIONS_BY_ROLE = {
   ROOT: ['espace:create', 'espace:update', 'kart:manage', 'kart:read', 'scene:edit', 'logs:view', 'report:export', 'user:create', 'role:update', 'role:assign'],
@@ -122,10 +133,10 @@ function formatRelativeTime(dateString, t) {
   const diffHours = Math.floor(diffMin / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffSec < 45) return 'À l\'instant';
-  if (diffMin < 60) return `Il y a ${diffMin} min`;
-  if (diffHours < 24) return `Il y a ${diffHours} h`;
-  return `Il y a ${diffDays} j`;
+  if (diffSec < 45) return t('common.justNow');
+  if (diffMin < 60) return t('common.minsAgo', { count: diffMin });
+  if (diffHours < 24) return t('common.hoursAgo', { count: diffHours });
+  return t('common.daysAgo', { count: diffDays });
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -133,6 +144,7 @@ const ITEMS_PER_PAGE = 10;
 export default function UsersPage() {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
+  const AVAILABLE_PERMISSIONS = getPermissions(t);
 
   const [users, setUsers] = useState([]);
   const [espaces, setEspaces] = useState([]);
@@ -336,19 +348,26 @@ export default function UsersPage() {
     }
   }, []);
 
-  // Initial load
+  // Initial load & real-time synchronization (<= 2 seconds)
   useEffect(() => {
     fetchAll();
     fetchRecentActivities();
-  }, [fetchAll, fetchRecentActivities]);
 
-  // Auto-refresh polling for recent activities feed every 8 seconds
-  useEffect(() => {
+    const unsubscribe = subscribeActivity(() => {
+      fetchAll();
+      fetchRecentActivities();
+    });
+
     const interval = setInterval(() => {
       fetchRecentActivities();
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [fetchRecentActivities]);
+      fetchAll();
+    }, 2000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
+  }, [fetchAll, fetchRecentActivities]);
 
   // When creating a user and role changes, auto-sync default custom permissions
   const handleRoleChange = (role) => {
@@ -1514,7 +1533,7 @@ export default function UsersPage() {
                       onClick={() => setNewRolePerms(AVAILABLE_PERMISSIONS.map((p) => p.key))}
                       className="text-indigo-600 font-bold hover:underline"
                     >
-                      Tout cocher
+                      {t('users.auditModal.rbacStatus')}
                     </button>
                     <span>•</span>
                     <button
@@ -1522,7 +1541,7 @@ export default function UsersPage() {
                       onClick={() => setNewRolePerms([])}
                       className="text-slate-500 font-bold hover:underline"
                     >
-                      Tout décocher
+                      {t('common.cancel')}
                     </button>
                   </div>
                 </div>
@@ -1640,7 +1659,7 @@ export default function UsersPage() {
                           onClick={() => setSelectedRolePerms(AVAILABLE_PERMISSIONS.map((p) => p.key))}
                           className="text-indigo-600 font-bold hover:underline"
                         >
-                          Tout cocher
+                          {t('users.auditModal.rbacStatus')}
                         </button>
                         <span>•</span>
                         <button
@@ -1648,7 +1667,7 @@ export default function UsersPage() {
                           onClick={() => setSelectedRolePerms([])}
                           className="text-slate-500 font-bold hover:underline"
                         >
-                          Tout décocher
+                          {t('common.cancel')}
                         </button>
                       </div>
                     </div>
@@ -1688,7 +1707,7 @@ export default function UsersPage() {
                     {/* Save Permissions Action */}
                     <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
                       <span className="text-xs font-bold text-slate-600">
-                        {selectedRolePerms.length} / {AVAILABLE_PERMISSIONS.length} permissions sélectionnées
+                        {selectedRolePerms.length} / {AVAILABLE_PERMISSIONS.length} {t('users.create.customPermissions').toLowerCase()}
                       </span>
                       <button
                         type="button"
@@ -1701,7 +1720,7 @@ export default function UsersPage() {
                         ) : (
                           <Check size={15} className="stroke-[3]" />
                         )}
-                        <span>Enregistrer les Permissions</span>
+                        <span>{t('users.edit.submit')}</span>
                       </button>
                     </div>
                   </div>

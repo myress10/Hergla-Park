@@ -197,7 +197,7 @@ export default function ProfilePage() {
     if (!authUser?.id) return;
 
     if (!newPassword || newPassword.length < 6) {
-      toast.error('Le nouveau mot de passe doit comporter au moins 6 caractères');
+      toast.error(t('profile.passwordMinLength'));
       return;
     }
 

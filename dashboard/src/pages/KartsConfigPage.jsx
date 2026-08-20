@@ -113,17 +113,17 @@ export default function KartsConfigPage() {
     karts.forEach((k, idx) => {
       const numStr = (k.numero || '').trim();
       if (!numStr) {
-        errors[idx] = 'Le numéro de course ne peut pas être vide';
+        errors[idx] = t('karts.validation.emptyNumber');
         return;
       }
       if (numStr.length < 1 || numStr.length > 3) {
-        errors[idx] = 'Le numéro doit comporter de 1 à 3 caractères';
+        errors[idx] = t('karts.validation.lengthNumber');
         return;
       }
       const lower = numStr.toLowerCase();
       if (seenNumbers.has(lower)) {
-        errors[idx] = `Deux karts partagent le même numéro ("${numStr}")`;
-        errors[seenNumbers.get(lower)] = `Deux karts partagent le même numéro ("${numStr}")`;
+        errors[idx] = t('karts.validation.duplicateNumber', { other: seenNumbers.get(lower) + 1 });
+        errors[seenNumbers.get(lower)] = t('karts.validation.duplicateNumber', { other: idx + 1 });
       } else {
         seenNumbers.set(lower, idx);
       }
@@ -218,7 +218,7 @@ export default function KartsConfigPage() {
   const performSave = async (reason) => {
     if (!selectedEspaceId) return;
     if (hasValidationErrors) {
-      toast.error('Veuillez corriger les erreurs de numéro avant de sauvegarder.');
+      toast.error(t('karts.saveError'));
       return;
     }
 
@@ -257,10 +257,10 @@ export default function KartsConfigPage() {
         await reorderKarts(selectedEspaceId, reorderItems);
       }
 
-      toast.success('Configuration des karts sauvegardée avec succès !');
+      toast.success(t('karts.saveSuccess'));
       await loadKartsData(selectedEspaceId);
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors de la sauvegarde');
+      toast.error(err.response?.data?.message || t('karts.saveError'));
     } finally {
       setSaving(false);
     }
@@ -292,10 +292,10 @@ export default function KartsConfigPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-800">
-                Configuration Karts {espace?.nom ? `— ${espace.nom}` : ''}
+                {t('karts.title')} {espace?.nom ? `— ${espace.nom}` : ''}
               </h1>
               <p className="text-xs text-slate-500">
-                Définissez les numéros de course et couleurs des karts pour le panneau admin et l'application Unity VR.
+                {t('karts.subtitle')}
               </p>
             </div>
           </div>
@@ -305,7 +305,7 @@ export default function KartsConfigPage() {
         {user?.role === 'SUPERADMIN' && espaces.length > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Espace :
+              {t('karts.selectSpace')}
             </span>
             <div className="relative">
               <select
@@ -336,19 +336,19 @@ export default function KartsConfigPage() {
       {/* Navigation Tabs (Éditeur 3D <-> Configuration Karts) */}
       {selectedEspaceId && (
         <div className="flex border-b border-slate-200 space-x-2">
-          <Link
+            <Link
             to={`/espaces/${selectedEspaceId}/editeur-3d`}
             className="px-4 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-2 border-b-2 border-transparent transition-colors"
           >
             <Layers size={16} />
-            <span>Éditeur 3D</span>
+            <span>{t('nav.editor3d')}</span>
           </Link>
           <button
             type="button"
             className="px-4 py-2.5 text-sm font-semibold text-navy border-b-2 border-navy flex items-center gap-2"
           >
             <Flag size={16} />
-            <span>Configuration Karts</span>
+            <span>{t('nav.kartsConfig')}</span>
           </button>
         </div>
       )}
@@ -358,9 +358,9 @@ export default function KartsConfigPage() {
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-800 flex items-center gap-3">
           <AlertCircle size={24} className="text-amber-600 flex-shrink-0" />
           <div>
-            <p className="font-bold text-sm">Espace non karting</p>
+            <p className="font-bold text-sm">{t('karts.unsavedWarning')}</p>
             <p className="text-xs text-amber-700">
-              L'espace sélectionné ("{espace?.nom}" - {espace?.categorie}) n'est pas de catégorie Karting. La configuration des karts s'applique principalement aux pistes de Karting.
+              {t('spaces.card.status')} "{espace?.nom}" - {espace?.categorie}
             </p>
           </div>
         </div>
@@ -374,12 +374,12 @@ export default function KartsConfigPage() {
           <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center justify-between gap-3">
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Résumé Flotte
+                {t('karts.totalKarts')}
               </p>
               <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
-                <span className="text-navy">{totalCount} karts configurés</span>
+                <span className="text-navy">{t('karts.saveFleet', { defaultValue: `${totalCount} karts` })}</span>
                 <span className="text-slate-300">•</span>
-                <span className="text-emerald-600">{activeCount} actifs</span>
+                <span className="text-emerald-600">{activeCount} {t('karts.activeKarts').toLowerCase()}</span>
               </div>
             </div>
 
@@ -397,7 +397,7 @@ export default function KartsConfigPage() {
               }`}
             >
               {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              <span>{saving ? 'Sauvegarde...' : 'Enregistrer la configuration'}</span>
+              <span>{saving ? t('karts.saving') : t('karts.saveFleet')}</span>
             </button>
           </div>
 
@@ -405,7 +405,7 @@ export default function KartsConfigPage() {
           {hasValidationErrors && (
             <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3.5 text-xs font-semibold flex items-center gap-2">
               <AlertCircle size={16} className="flex-shrink-0" />
-              <span>Des numéros de karts sont en double ou invalides. Veuillez corriger les erreurs avant d'enregistrer.</span>
+              <span>{t('karts.validation.emptyNumber')}</span>
             </div>
           )}
 
@@ -413,7 +413,7 @@ export default function KartsConfigPage() {
           {loading ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
               <Loader2 size={24} className="animate-spin text-navy mx-auto" />
-              <p className="text-sm font-medium text-slate-500">Chargement des karts...</p>
+              <p className="text-sm font-medium text-slate-500">{t('common.loading')}</p>
             </div>
           ) : (
             <KartList
@@ -433,7 +433,7 @@ export default function KartsConfigPage() {
           <div className="sticky top-20 space-y-3">
             <KartPreviewCanvas karts={karts} />
             <p className="text-xs text-slate-500 text-center">
-              💡 Les changements de numéro et de couleur sont mis à jour en direct sur l'aperçu 3D.
+              💡 {t('karts.subtitle')}
             </p>
           </div>
         </div>
@@ -444,8 +444,8 @@ export default function KartsConfigPage() {
         isOpen={rootKartModalOpen}
         onClose={() => setRootKartModalOpen(false)}
         onConfirm={handleRootKartConfirm}
-        title="Validation Sécurité ROOT — Configuration Karts"
-        actionName={`Enregistrer les modifications / suppressions de la flotte karts`}
+        title={t('rootModal.title')}
+        actionName={t('karts.saveFleet')}
       />
     </div>
   );

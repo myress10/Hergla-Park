@@ -30,7 +30,7 @@ export default function LoginPage() {
       let message;
       if (!err.response) {
         // No response at all — network error or timeout
-        message = 'Impossible de joindre le serveur. Vérifiez votre connexion ou réessayez dans quelques secondes.';
+        message = t('login.error.serverUnreachable');
       } else if (err.response.status === 401) {
         message = t('login.error.invalidCredentials');
       } else {

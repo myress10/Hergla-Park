@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ShieldAlert, KeyRound, Lock, Eye, EyeOff, X, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -13,9 +14,10 @@ export default function RootVerificationModal({
   isOpen,
   onClose,
   onConfirm,
-  title = "Validation Sécurité ROOT Required",
-  actionName = "Intervention d'écriture",
+  title,
+  actionName,
 }) {
+  const { t } = useTranslation();
   const [passcode, setPasscode] = useState('');
   const [reason, setReason] = useState('');
   const [showPasscode, setShowPasscode] = useState(false);
@@ -33,26 +35,29 @@ export default function RootVerificationModal({
 
   if (!isOpen) return null;
 
+  const displayTitle = title || t('rootModal.title');
+  const displayActionName = actionName || t('spaces.card.status');
+
   const handleSubmit = (e) => {
     e.preventDefault();
     setErrorMsg('');
 
     // 1. Verify Passcode
     if (passcode.trim() !== VALIDATION_WORD) {
-      setErrorMsg(`Code de validation incorrect ! Tapez le mot de passe requis ('${VALIDATION_WORD}').`);
-      toast.error(`Code de validation incorrect. Intervention refusée.`);
+      setErrorMsg(t('rootModal.incorrectCode'));
+      toast.error(t('rootModal.interventionRefused'));
       return;
     }
 
     // 2. Verify Reason
-    const finalReason = reason.trim() || `Intervention ROOT autorisée [Code: ${VALIDATION_WORD}]`;
+    const finalReason = reason.trim() || t('rootModal.defaultReason');
 
     setIsSubmitting(true);
     try {
       onConfirm({ passcode: passcode.trim(), reason: finalReason });
       onClose();
     } catch (err) {
-      toast.error(err?.message || "Erreur lors de l'exécution de l'intervention");
+      toast.error(err?.message || t('common.error'));
     } finally {
       setIsSubmitting(false);
     }
@@ -71,8 +76,8 @@ export default function RootVerificationModal({
               <ShieldAlert size={22} />
             </div>
             <div>
-              <h3 className="font-bold text-sm leading-tight text-slate-100">{title}</h3>
-              <p className="text-xs text-amber-400 font-medium">Contrôle d'accès & Audit ROOT</p>
+              <h3 className="font-bold text-sm leading-tight text-slate-100">{displayTitle}</h3>
+              <p className="text-xs text-amber-400 font-medium">{t('rootModal.subtitle')}</p>
             </div>
           </div>
           <button
@@ -88,8 +93,8 @@ export default function RootVerificationModal({
           <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3">
             <AlertTriangle size={18} className="text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-amber-800 leading-relaxed">
-              Action ciblée : <strong className="font-semibold text-amber-900">{actionName}</strong>. 
-              Pour valider cette intervention ROOT, veuillez saisir le code de validation (<strong>hergla000</strong>) et préciser le motif.
+              {t('rootModal.targetAction')} <strong className="font-semibold text-amber-900">{displayActionName}</strong>.{' '}
+              <span dangerouslySetInnerHTML={{ __html: t('rootModal.prompt') }} />
             </p>
           </div>
 
@@ -97,14 +102,14 @@ export default function RootVerificationModal({
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
               <KeyRound size={14} className="text-slate-500" />
-              Mot de passe de validation <span className="text-red-500">*</span>
+              {t('rootModal.passcodeLabel')} <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
                 type={showPasscode ? 'text' : 'password'}
                 value={passcode}
                 onChange={(e) => { setPasscode(e.target.value); setErrorMsg(''); }}
-                placeholder="Saisissez le code (ex: hergla000)"
+                placeholder={t('rootModal.passcodePlaceholder')}
                 required
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all pe-10"
               />
@@ -122,13 +127,13 @@ export default function RootVerificationModal({
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
               <Lock size={14} className="text-slate-500" />
-              Motif d'intervention / Observations
+              {t('rootModal.reasonLabel')}
             </label>
             <textarea
               rows={2}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="ex: Maintenance d'urgence effectuée par le SuperAdmin ROOT"
+              placeholder={t('rootModal.reasonPlaceholder')}
               className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all resize-none"
             />
           </div>
@@ -147,7 +152,7 @@ export default function RootVerificationModal({
               onClick={onClose}
               className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors"
             >
-              Annuler
+              {t('rootModal.cancel')}
             </button>
             <button
               type="submit"
@@ -155,7 +160,7 @@ export default function RootVerificationModal({
               className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 active:scale-[0.98] transition-all shadow-md flex items-center gap-2"
             >
               <KeyRound size={14} />
-              Valider &amp; Exécuter
+              {t('rootModal.validate')}
             </button>
           </div>
         </form>

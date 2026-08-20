@@ -24,37 +24,6 @@ const PARK_IMAGES = [
   },
 ];
 
-const STATS = [
-  { icon: Users, value: '50 000+', label: 'Visiteurs / an' },
-  { icon: Star, value: '4.9 / 5', label: 'Satisfaction client' },
-  { icon: MapPin, value: 'Hergla', label: 'Sousse, Tunisie' },
-  { icon: Clock, value: 'Depuis 1996', label: 'Parc historique' },
-];
-
-const FEATURES = [
-  {
-    icon: Globe,
-    title: 'Visite 3D Immersive',
-    desc: 'Explorez chaque recoin du parc depuis votre navigateur, sans téléchargement.',
-  },
-  {
-    icon: Zap,
-    title: 'Navigation Intuitive',
-    desc: 'Clavier et souris pour une prise en main immédiate, même pour les néophytes.',
-  },
-  {
-    icon: Shield,
-    title: 'Adapté à Tous',
-    desc: 'Accessible à partir de 7 ans, sur tablette, ordinateur ou casque VR.',
-  },
-];
-
-const HOW_IT_WORKS = [
-  { step: '01', title: 'Parcourez les étapes', desc: 'Découvrez les commandes et les consignes de sécurité.' },
-  { step: '02', title: 'Lancez la visite', desc: 'Cliquez sur le bouton et immergez-vous en 3D.' },
-  { step: '03', title: 'Explorez le parc', desc: 'Naviguez librement dans chaque espace de Hergla Park.' },
-];
-
 // ─── Animation helpers ───────────────────────────────────────────────────────
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -64,6 +33,37 @@ const fadeUp = (delay = 0) => ({
 
 export default function WelcomePage() {
   const { t } = useTranslation();
+
+  const STATS = [
+    { icon: Users, value: '50 000+', label: t('welcome.stats.visitors') },
+    { icon: Star, value: '4.9 / 5', label: t('welcome.stats.satisfaction') },
+    { icon: MapPin, value: 'Hergla', label: t('welcome.stats.location') },
+    { icon: Clock, value: 'Depuis 1996', label: t('welcome.stats.history') },
+  ];
+
+  const FEATURES = [
+    {
+      icon: Globe,
+      title: t('welcome.features.f1Title'),
+      desc: t('welcome.features.f1Desc'),
+    },
+    {
+      icon: Zap,
+      title: t('welcome.features.f2Title'),
+      desc: t('welcome.features.f2Desc'),
+    },
+    {
+      icon: Shield,
+      title: t('welcome.features.f3Title'),
+      desc: t('welcome.features.f3Desc'),
+    },
+  ];
+
+  const HOW_IT_WORKS = [
+    { step: '01', title: t('welcome.howItWorks.h1Title'), desc: t('welcome.howItWorks.h1Desc') },
+    { step: '02', title: t('welcome.howItWorks.h2Title'), desc: t('welcome.howItWorks.h2Desc') },
+    { step: '03', title: t('welcome.howItWorks.h3Title'), desc: t('welcome.howItWorks.h3Desc') },
+  ];
 
   return (
     <div className="relative w-full flex flex-col" id="vr-welcome-page">
@@ -83,16 +83,16 @@ export default function WelcomePage() {
         <div className="relative z-10 text-center max-w-4xl mx-auto px-6 space-y-6">
           <motion.div {...fadeUp(0)} className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-sm text-xs font-bold uppercase tracking-widest text-white">
             <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-            Visite Virtuelle 3D — Hergla Park
+            {t('welcome.badge')}
           </motion.div>
 
           <motion.h1
             {...fadeUp(0.1)}
             className="text-4xl sm:text-5xl lg:text-7xl font-black text-white leading-tight drop-shadow-2xl"
           >
-            Vivez Hergla Park<br />
+            {t('welcome.heroTitle1')}<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-red-600">
-              avant même d'y être
+              {t('welcome.heroTitle2')}
             </span>
           </motion.h1>
 
@@ -156,7 +156,7 @@ export default function WelcomePage() {
               {t('welcome.galleryTitle')}
             </h2>
             <p className="text-slate-400 text-sm mt-2">
-              Karting, attractions familiales, événements — tout vous attend.
+              {t('welcome.heroDesc')}
             </p>
           </motion.div>
 
@@ -199,10 +199,10 @@ export default function WelcomePage() {
         <div className="max-w-5xl mx-auto">
           <motion.div {...fadeUp(0)} className="text-center mb-10">
             <h2 className="text-2xl sm:text-3xl font-black text-white">
-              Pourquoi la visite virtuelle ?
+              {t('welcome.features.title')}
             </h2>
             <p className="text-slate-400 text-sm mt-2 max-w-lg mx-auto">
-              Préparez votre prochaine visite en découvrant les espaces depuis chez vous.
+              {t('welcome.features.subtitle')}
             </p>
           </motion.div>
 
@@ -232,16 +232,16 @@ export default function WelcomePage() {
         <div className="max-w-4xl mx-auto">
           <motion.div {...fadeUp(0)} className="text-center mb-10">
             <h2 className="text-2xl sm:text-3xl font-black text-white">
-              Comment ça marche ?
+              {t('welcome.howItWorks.title')}
             </h2>
             <p className="text-slate-400 text-sm mt-2">
-              En 3 étapes simples, vous êtes prêt pour l'aventure.
+              {t('welcome.howItWorks.subtitle')}
             </p>
           </motion.div>
 
           <div className="relative">
             {/* Connector line */}
-            <div className="hidden sm:block absolute top-9 left-[16%] right-[16%] h-px bg-white/10" />
+            <div className="hidden sm:block absolute top-9 start-[16%] end-[16%] h-px bg-white/10" />
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
               {HOW_IT_WORKS.map((step, i) => (
@@ -266,14 +266,14 @@ export default function WelcomePage() {
       <section className="relative z-10 bg-gradient-to-r from-red-900/30 to-slate-950 border-t border-red-500/10 py-14 px-6 text-center mb-20">
         <motion.div {...fadeUp(0)} className="max-w-xl mx-auto space-y-4">
           <h2 className="text-2xl sm:text-3xl font-black text-white">
-            Prêt pour l'immersion ?
+            {t('welcome.cta.title')}
           </h2>
           <p className="text-slate-400 text-sm">
-            Cliquez sur <strong className="text-white">Commencer</strong> en bas de la page pour démarrer votre onboarding.
+            {t('welcome.cta.desc')}
           </p>
           <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-red-600/10 border border-red-500/20 text-red-400 text-sm font-medium">
             <ChevronDown size={16} className="animate-bounce" />
-            Défiler jusqu'en bas
+            {t('welcome.scrollDown')}
           </div>
         </motion.div>
       </section>

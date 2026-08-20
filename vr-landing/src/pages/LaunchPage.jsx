@@ -89,7 +89,7 @@ export default function LaunchPage() {
                   {t('launch.badge')}
                 </span>
                 <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                  Prêt à démarrer l'aventure 3D
+                  {t('launch.readyToStart')}
                 </p>
               </div>
 

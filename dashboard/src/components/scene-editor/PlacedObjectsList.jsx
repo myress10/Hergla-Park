@@ -1,16 +1,14 @@
+import { useTranslation } from 'react-i18next';
 import { Package, Trash2, MousePointerClick } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
 
 /**
  * Text-based list of all placed objects for easy selection and deletion.
- *
- * @param {object[]} placements  - array of placed objects with metadata
- * @param {string}   selectedId  - instanceId of currently selected object
- * @param {function} onSelect    - called with instanceId when row is clicked
- * @param {function} onRemove    - called with instanceId to remove object
  */
 export default function PlacedObjectsList({ placements, selectedId, onSelect, onRemove }) {
+  const { t } = useTranslation();
+
   const getThumbnail = (p) => {
     if (!p.thumbnail) return null;
     return p.thumbnail.startsWith('http') ? p.thumbnail : `${BACKEND_URL}/${p.thumbnail}`;
@@ -20,7 +18,7 @@ export default function PlacedObjectsList({ placements, selectedId, onSelect, on
     return (
       <div className="text-center py-8 text-slate-400" id="placed-objects-list-empty">
         <Package size={28} className="mx-auto mb-2 opacity-40" />
-        <p className="text-xs">Glissez des objets depuis le catalogue dans la scène</p>
+        <p className="text-xs">{t('sceneEditor.emptyPlaced')}</p>
       </div>
     );
   }
@@ -62,8 +60,8 @@ export default function PlacedObjectsList({ placements, selectedId, onSelect, on
             <button
               onClick={(e) => { e.stopPropagation(); onRemove(p.instanceId); }}
               id={`remove-placed-${p.instanceId}`}
-              title="Retirer de la scène"
-              className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
+              title={t('sceneEditor.removeFromScene')}
+              className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0 cursor-pointer"
             >
               <Trash2 size={13} />
             </button>

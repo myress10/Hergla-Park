@@ -14,14 +14,10 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import RootVerificationModal from '../components/RootVerificationModal';
+import { subscribeActivity } from '../utils/activityBus';
 import toast from 'react-hot-toast';
 
 const CATEGORIES = ['Karting', 'Restaurant', 'Paintball', 'Zone Enfants', 'Café', 'Aquatique', 'Jardin', 'Autre'];
-const STATUS_OPTIONS = [
-  { value: 'OUVERT', label: 'Ouvert', color: 'text-emerald-600' },
-  { value: 'FERME', label: 'Fermé', color: 'text-red-500' },
-  { value: 'MAINTENANCE', label: 'Maintenance', color: 'text-amber-600' },
-];
 
 function StatMetricCard({ icon: Icon, label, value, subtext, bg, iconColor }) {
   return (
@@ -40,7 +36,7 @@ function StatMetricCard({ icon: Icon, label, value, subtext, bg, iconColor }) {
   );
 }
 
-function QuickNavCard({ title, description, icon: Icon, to, badgeText, gradient }) {
+function QuickNavCard({ title, description, icon: Icon, to, badgeText, gradient, accessLabel }) {
   return (
     <Link
       to={to}
@@ -65,7 +61,7 @@ function QuickNavCard({ title, description, icon: Icon, to, badgeText, gradient 
       </div>
 
       <div className="flex items-center text-xs font-bold text-navy mt-4 gap-1 group-hover:translate-x-1 transition-transform">
-        <span>Accéder au module</span>
+        <span>{accessLabel || title}</span>
         <ArrowRight size={14} />
       </div>
     </Link>
@@ -106,7 +102,7 @@ export default function EspacesOverviewPage() {
       if (espacesRes.status === 'fulfilled') {
         setEspaces(espacesRes.value.data.data || []);
       } else {
-        setError('Impossible de charger les espaces.');
+        setError(t('common.error'));
       }
 
       if (logsRes.status === 'fulfilled' && logsRes.value.data) {
@@ -121,12 +117,26 @@ export default function EspacesOverviewPage() {
 
   useEffect(() => {
     fetchData();
+
+    // Subscribe to instant local and cross-tab updates (0ms)
+    const unsubscribe = subscribeActivity(() => {
+      fetchData();
+    });
+
+    // 2-second heartbeat sync
+    const intervalId = setInterval(() => {
+      fetchData();
+    }, 2000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(intervalId);
+    };
   }, [fetchData]);
 
   // Status toggle callback from EspaceCard
   const handleUpdateEspace = useCallback((updated) => {
     setEspaces((prev) => prev.map((e) => (e.id === updated.id ? { ...e, ...updated } : e)));
-    toast.success('Statut de l\'espace mis à jour');
   }, []);
 
   const { user } = useAuth();
@@ -141,9 +151,9 @@ export default function EspacesOverviewPage() {
       setEspaces((prev) => [...prev, res.data.data || res.data]);
       setCreateModalOpen(false);
       setNewEspace({ nom: '', categorie: '', statut: 'OUVERT' });
-      toast.success('Espace créé avec succès');
+      toast.success(t('spaces.create.success'));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Erreur lors de la création');
+      toast.error(err.response?.data?.message || t('spaces.create.error'));
     } finally {
       setCreating(false);
     }
@@ -187,17 +197,17 @@ export default function EspacesOverviewPage() {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
               </span>
               <Zap size={13} className="text-emerald-400" />
-              <span>Panneau Global Hergla Park Admin</span>
+              <span>{t('spaces.globalPanel')}</span>
             </div>
 
             {/* Heading with high contrast & radiant gradient accent */}
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white leading-tight">
-              Vue d'Ensemble & <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-teal-200 to-emerald-300">Dashboard Global</span>
+              {t('spaces.overviewTitle')} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-teal-200 to-emerald-300">{t('spaces.overviewGradient')}</span>
             </h1>
 
             {/* Crisp, readable subtitle */}
             <p className="text-slate-200 text-sm sm:text-base leading-relaxed font-normal">
-              Supervisez en temps réel les espaces d'attraction, les configurations de karts, les scènes 3D interactives et le journal des audits système.
+              {t('spaces.overviewDesc')}
             </p>
 
             {/* Action Buttons */}
@@ -208,38 +218,37 @@ export default function EspacesOverviewPage() {
                 id="dashboard-create-space-btn"
               >
                 <Plus size={18} />
-                Nouveau Espace
+                {t('spaces.createButton')}
               </button>
               <Link
                 to="/editeur-3d"
                 className="bg-white/10 hover:bg-white/20 text-white font-semibold text-sm px-5 py-2.5 rounded-xl transition-all border border-white/20 backdrop-blur-md flex items-center gap-2 cursor-pointer transform hover:-translate-y-0.5"
               >
                 <Box size={18} />
-                Éditeur 3D
+                {t('spaces.editor3dButton')}
               </Link>
             </div>
           </div>
 
-          {/* Right Live Operational Summary Pill (Glass card) */}
           <div className="hidden lg:flex flex-col gap-2.5 bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl p-4.5 min-w-[250px] text-xs shadow-xl">
             <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="text-slate-300 font-bold uppercase tracking-wider text-[10px]">Système Parc</span>
+              <span className="text-slate-300 font-bold uppercase tracking-wider text-[10px]">{t('spaces.systemPark')}</span>
               <span className="inline-flex items-center gap-1.5 text-emerald-300 font-bold bg-emerald-500/20 border border-emerald-500/30 px-2.5 py-0.5 rounded-full text-[10px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live 24/7
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> {t('spaces.live247')}
               </span>
             </div>
             <div className="space-y-1.5 pt-0.5">
               <div className="flex justify-between text-slate-300">
-                <span>Espaces Actifs :</span>
+                <span>{t('spaces.activeSpaces')}</span>
                 <span className="font-extrabold text-white">{ouverts} / {espaces.length}</span>
               </div>
               <div className="flex justify-between text-slate-300">
-                <span>Rôle Session :</span>
+                <span>{t('spaces.sessionRole')}</span>
                 <span className="font-bold text-emerald-300">{user?.role || 'SuperAdmin'}</span>
               </div>
               <div className="flex justify-between text-slate-300">
-                <span>Événements Audit :</span>
-                <span className="font-bold text-blue-300">{recentLogs.length} récents</span>
+                <span>{t('spaces.auditEvents')}</span>
+                <span className="font-bold text-blue-300">{t('spaces.recentCount', { count: recentLogs.length })}</span>
               </div>
             </div>
           </div>
@@ -250,33 +259,33 @@ export default function EspacesOverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatMetricCard
           icon={CheckCircle}
-          label="Espaces Ouverts"
+          label={t('spaces.stats.open')}
           value={ouverts}
-          subtext={`${espaces.length} espaces au total`}
+          subtext={t('spaces.stats.totalSpacesCount', { count: espaces.length })}
           bg="bg-emerald-50"
           iconColor="text-emerald-500"
         />
         <StatMetricCard
           icon={Flag}
-          label="Flotte Karts"
+          label={t('spaces.stats.fleet')}
           value="12 Karts"
-          subtext="Sodi RT10, 2Drive & LR5"
+          subtext={t('spaces.stats.fleetSub')}
           bg="bg-blue-50"
           iconColor="text-blue-500"
         />
         <StatMetricCard
           icon={Users}
-          label="Staff & Opérateurs"
+          label={t('spaces.stats.activeStaff')}
           value={totalStaff || 8}
-          subtext="Affectés aux pistes & espaces"
+          subtext={t('spaces.stats.staffSub')}
           bg="bg-indigo-50"
           iconColor="text-indigo-500"
         />
         <StatMetricCard
           icon={ShieldCheck}
-          label="Activité Système"
+          label={t('spaces.stats.activity')}
           value={recentLogs.length ? `${recentLogs.length} Events` : '100% OK'}
-          subtext="Audits enregistrés"
+          subtext={t('spaces.stats.activitySub')}
           bg="bg-purple-50"
           iconColor="text-purple-500"
         />
@@ -286,40 +295,44 @@ export default function EspacesOverviewPage() {
       <div className="space-y-4">
         <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
           <Layers size={20} className="text-navy" />
-          <span>Accès Rapide aux Modules</span>
+          <span>{t('spaces.quickAccessTitle')}</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <QuickNavCard
-            title="Éditeur 3D Interactif"
-            description="Visualisez et organisez le mobilier 3D des espaces en temps réel."
+            title={t('nav.editor3d')}
+            description={t('sceneEditor.subtitle')}
             icon={Box}
             to="/editeur-3d"
             badgeText="Studio 3D"
             gradient="bg-gradient-to-r from-blue-500 to-indigo-600"
+            accessLabel={t('spaces.accessModule')}
           />
           <QuickNavCard
-            title="Configuration Karts"
-            description="Gérez la flotte, attribuez les numéros de course et les couleurs."
+            title={t('nav.kartsConfig')}
+            description={t('karts.subtitle')}
             icon={Flag}
             to="/configuration-karts"
             badgeText="Karting"
             gradient="bg-gradient-to-r from-emerald-500 to-teal-600"
+            accessLabel={t('spaces.accessModule')}
           />
           <QuickNavCard
-            title="Gestion Utilisateurs"
-            description="Administrez les rôles, permissions et l'accès multi-entreprises."
+            title={t('nav.users')}
+            description={t('users.subtitle')}
             icon={Users}
             to="/utilisateurs"
             badgeText="Multi-Tenant"
             gradient="bg-gradient-to-r from-purple-500 to-pink-600"
+            accessLabel={t('spaces.accessModule')}
           />
           <QuickNavCard
-            title="Logs d'Audit"
-            description="Consultez l'historique complet des actions et modifications système."
+            title={t('nav.auditLogs')}
+            description={t('audit.subtitle')}
             icon={ShieldCheck}
             to="/audit-logs"
-            badgeText="Sécurité"
+            badgeText={t('users.categories.security')}
             gradient="bg-gradient-to-r from-amber-500 to-orange-600"
+            accessLabel={t('spaces.accessModule')}
           />
         </div>
       </div>
@@ -329,7 +342,7 @@ export default function EspacesOverviewPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
             <Map size={20} className="text-navy" />
-            <span>Espaces d'Attractions & Restauration</span>
+            <span>{t('spaces.title')}</span>
           </h2>
           <button
             onClick={fetchData}
@@ -359,13 +372,13 @@ export default function EspacesOverviewPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity size={20} className="text-navy" />
-            <h2 className="font-bold text-slate-800 text-base">Activité Récente & Audit Logs</h2>
+            <h2 className="font-bold text-slate-800 text-base">{t('spaces.recentAlerts')}</h2>
           </div>
           <Link
             to="/audit-logs"
             className="text-xs font-bold text-navy hover:underline flex items-center gap-1"
           >
-            Voir tous les logs
+            {t('common.viewAll')}
             <ArrowRight size={14} />
           </Link>
         </div>
@@ -390,28 +403,28 @@ export default function EspacesOverviewPage() {
       </div>
 
       {/* CREATE MODAL */}
-      <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title="Créer un nouvel Espace">
+      <Modal isOpen={createModalOpen} onClose={() => setCreateModalOpen(false)} title={t('spaces.create.title')}>
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Nom de l'espace</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('spaces.create.name')}</label>
             <input
               type="text"
               value={newEspace.nom}
               onChange={(e) => setNewEspace((p) => ({ ...p, nom: e.target.value }))}
               required
-              placeholder="ex: Piste Karting Principale"
+              placeholder={t('spaces.create.namePlaceholder')}
               className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1.5">Catégorie</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('spaces.create.category')}</label>
             <select
               value={newEspace.categorie}
               onChange={(e) => setNewEspace((p) => ({ ...p, categorie: e.target.value }))}
               required
               className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-navy/30"
             >
-              <option value="">— Sélectionner —</option>
+              <option value="">{t('spaces.create.selectCategory')}</option>
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
@@ -421,14 +434,14 @@ export default function EspacesOverviewPage() {
               disabled={creating}
               className="flex-1 bg-navy text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-navy/90 disabled:opacity-60"
             >
-              {creating ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Créer l\'espace'}
+              {creating ? <Loader2 size={16} className="animate-spin mx-auto" /> : t('spaces.create.submit')}
             </button>
             <button
               type="button"
               onClick={() => setCreateModalOpen(false)}
               className="flex-1 bg-slate-100 text-slate-700 py-2.5 rounded-xl text-sm font-semibold hover:bg-slate-200"
             >
-              Annuler
+              {t('spaces.create.cancel')}
             </button>
           </div>
         </form>
@@ -439,8 +452,8 @@ export default function EspacesOverviewPage() {
         isOpen={rootCreateModalOpen}
         onClose={() => setRootCreateModalOpen(false)}
         onConfirm={handleRootCreateConfirm}
-        title="Création d'Espace — Validation ROOT"
-        actionName={`Créer l'espace : ${newEspace.nom} (${newEspace.categorie})`}
+        title={t('rootModal.title')}
+        actionName={`${t('spaces.create.submit')}: ${newEspace.nom} (${newEspace.categorie})`}
       />
     </div>
   );

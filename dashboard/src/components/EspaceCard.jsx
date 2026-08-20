@@ -89,7 +89,7 @@ export default function EspaceCard({ espace, onUpdate, onClick, onEdit, onDelete
               <button
                 onClick={onEdit}
                 id={`edit-espace-${espace.id}`}
-                title="Modifier"
+                title={t('spaces.card.edit')}
                 className="w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg shadow-sm text-slate-600 hover:text-navy hover:bg-white transition-colors"
               >
                 <Edit2 size={14} />
@@ -99,7 +99,7 @@ export default function EspaceCard({ espace, onUpdate, onClick, onEdit, onDelete
               <button
                 onClick={onDelete}
                 id={`delete-espace-${espace.id}`}
-                title="Supprimer"
+                title={t('spaces.card.delete')}
                 className="w-8 h-8 flex items-center justify-center bg-white/90 backdrop-blur-sm rounded-lg shadow-sm text-slate-600 hover:text-red-500 hover:bg-white transition-colors"
               >
                 <Trash2 size={14} />

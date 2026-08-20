@@ -1,22 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { updateEspace } from '../api/espacesApi';
 import { ChevronDown, CheckCircle, XCircle, Wrench } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-const STATUS_OPTIONS = [
-  { value: 'OUVERT', label: 'Ouvert', Icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', dot: 'bg-emerald-500' },
-  { value: 'FERME', label: 'Fermé', Icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', dot: 'bg-red-500' },
-  { value: 'MAINTENANCE', label: 'Maintenance', Icon: Wrench, color: 'text-amber-600', bg: 'bg-amber-50', dot: 'bg-amber-500' },
-];
-
-/**
- * 3-state status dropdown for OUVERT / FERME / MAINTENANCE.
- * Optimistic UI update with rollback on error.
- */
 import { useAuth } from '../context/AuthContext';
 import RootVerificationModal from './RootVerificationModal';
 
+const STATUS_CONFIGS = {
+  OUVERT: { Icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50', dot: 'bg-emerald-500' },
+  FERME: { Icon: XCircle, color: 'text-red-500', bg: 'bg-red-50', dot: 'bg-red-500' },
+  MAINTENANCE: { Icon: Wrench, color: 'text-amber-600', bg: 'bg-amber-50', dot: 'bg-amber-500' },
+};
+
 export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabled = false }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [optimistic, setOptimistic] = useState(currentStatus);
   const [loading, setLoading] = useState(false);
@@ -24,6 +21,12 @@ export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabl
   const [rootModalOpen, setRootModalOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState(null);
   const ref = useRef(null);
+
+  const statusList = [
+    { value: 'OUVERT', label: t('spaces.statuses.OUVERT'), ...STATUS_CONFIGS.OUVERT },
+    { value: 'FERME', label: t('spaces.statuses.FERME'), ...STATUS_CONFIGS.FERME },
+    { value: 'MAINTENANCE', label: t('spaces.statuses.MAINTENANCE'), ...STATUS_CONFIGS.MAINTENANCE },
+  ];
 
   // Sync if parent updates the status externally
   useEffect(() => {
@@ -37,7 +40,7 @@ export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabl
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const current = STATUS_OPTIONS.find((o) => o.value === optimistic) || STATUS_OPTIONS[0];
+  const current = statusList.find((o) => o.value === optimistic) || statusList[0];
 
   const performUpdate = async (newStatus, reason) => {
     const previous = optimistic;
@@ -46,10 +49,10 @@ export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabl
     try {
       const response = await updateEspace(espaceId, { statut: newStatus }, reason);
       if (onUpdate) onUpdate(response.data.data || response.data);
-      toast.success(`Statut mis à jour vers ${newStatus}`);
+      toast.success(t('spaces.statusUpdated', { status: t('spaces.statuses.' + newStatus) }));
     } catch (error) {
       setOptimistic(previous);
-      toast.error(error.response?.data?.message || 'Erreur lors de la mise à jour du statut');
+      toast.error(error.response?.data?.message || t('spaces.statusUpdateError'));
     } finally {
       setLoading(false);
     }
@@ -90,7 +93,7 @@ export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabl
 
       {open && (
         <div className="absolute end-0 bottom-full mb-1.5 z-50 bg-white border border-slate-200 rounded-xl shadow-xl py-1 min-w-[145px] backdrop-blur-sm">
-          {STATUS_OPTIONS.map((opt) => (
+          {statusList.map((opt) => (
             <button
               key={opt.value}
               onClick={() => handleSelect(opt.value)}
@@ -111,8 +114,8 @@ export default function StatusToggle({ espaceId, currentStatus, onUpdate, disabl
         isOpen={rootModalOpen}
         onClose={() => { setRootModalOpen(false); setPendingStatus(null); }}
         onConfirm={handleRootConfirm}
-        title="Validation Sécurité ROOT Required"
-        actionName={`Changement de statut (➔ ${pendingStatus})`}
+        title={t('rootModal.title')}
+        actionName={`${t('spaces.card.status')} (➔ ${t('spaces.statuses.' + pendingStatus)})`}
       />
     </div>
   );

@@ -1,17 +1,30 @@
 import axiosClient from './axiosClient';
+import { broadcastActivity } from '../utils/activityBus';
 
 export const getUsers = () => axiosClient.get('/users');
 
 export const getUser = (id) => axiosClient.get(`/users/${id}`);
 
-export const updateUser = (id, data, reason) =>
-  axiosClient.put(`/users/${id}`, data, { params: reason ? { reason } : undefined });
+export const updateUser = async (id, data, reason) => {
+  const res = await axiosClient.put(`/users/${id}`, data, { params: reason ? { reason } : undefined });
+  broadcastActivity('USER_UPDATED', 'Utilisateur', { id, nom: data.nom });
+  return res;
+};
 
-export const deleteUser = (id, reason) =>
-  axiosClient.delete(`/users/${id}`, { params: reason ? { reason } : undefined });
+export const deleteUser = async (id, reason) => {
+  const res = await axiosClient.delete(`/users/${id}`, { params: reason ? { reason } : undefined });
+  broadcastActivity('USER_DELETED', 'Utilisateur', { id });
+  return res;
+};
 
-export const createUser = (data, reason) =>
-  axiosClient.post('/users', data, { params: reason ? { reason } : undefined });
+export const createUser = async (data, reason) => {
+  const res = await axiosClient.post('/users', data, { params: reason ? { reason } : undefined });
+  broadcastActivity('USER_CREATED', 'Utilisateur', { email: data.email, nom: data.nom });
+  return res;
+};
 
-export const updateUserPassword = (id, password, reason) =>
-  axiosClient.patch(`/users/${id}/password`, { password }, { params: reason ? { reason } : undefined });
+export const updateUserPassword = async (id, password, reason) => {
+  const res = await axiosClient.patch(`/users/${id}/password`, { password }, { params: reason ? { reason } : undefined });
+  broadcastActivity('PASSWORD_CHANGED', 'Sécurité', { id });
+  return res;
+};

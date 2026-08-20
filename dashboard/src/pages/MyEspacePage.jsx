@@ -22,44 +22,52 @@ import RootVerificationModal from '../components/RootVerificationModal';
 import toast from 'react-hot-toast';
 
 // Helper to determine space configurations & preset metadata
-function getSpacePresets(espace) {
+function getSpacePresets(espace, t) {
   const name = (espace?.nom || '').toLowerCase();
   const cat = (espace?.categorie || '').toLowerCase();
+
+  const tr = (k, fallback) => (t ? t(k, { defaultValue: fallback }) : fallback);
 
   if (name.includes('kart') || cat.includes('kart') || cat.includes('sport')) {
     return {
       type: 'karting',
-      heroSubtitle: '1.2km Technical Track • Professional Grade Asphalt',
-      openLabel: 'Open Track',
-      maintLabel: 'Maintenance',
-      closeLabel: 'Emergency Close',
-      reportTitle: 'Daily Track Report',
-      field1Label: 'Record Holder Name',
+      heroSubtitle: tr('mySpace.presets.karting.subtitle', 'Piste technique 1.2km • Asphalte haute adhérence'),
+      openLabel: tr('mySpace.presets.karting.openLabel', 'Ouvrir la Piste'),
+      maintLabel: tr('mySpace.presets.karting.maintLabel', 'Maintenance'),
+      closeLabel: tr('mySpace.presets.karting.closeLabel', 'Fermeture d\'urgence'),
+      reportTitle: tr('mySpace.presets.karting.reportTitle', 'Rapport Journalier Piste'),
+      field1Label: tr('mySpace.presets.karting.recordHolder', 'Détenteur du Record'),
       field1Default: 'Sami Ben Ali',
       field1Key: 'recordHolder',
-      field2Label: 'Fastest Lap Time (s)',
+      field2Label: tr('mySpace.presets.karting.fastestLap', 'Meilleur Tour (s)'),
       field2Default: '54.230',
       field2Key: 'fastestLap',
-      field3Label: 'Track Temperature (°C)',
+      field3Label: tr('mySpace.presets.karting.trackTemp', 'Température Piste (°C)'),
       field3Default: '28',
       field3Key: 'trackTemp',
-      field4Label: 'Grip Conditions',
+      field4Label: tr('mySpace.presets.karting.gripConditions', 'Conditions d\'Adhérence'),
       field4Key: 'gripConditions',
-      field4Options: ['Optimal (Dry)', 'Damp (Humide)', 'Wet (Mouillé)', 'Greasy (Glissant)', 'Rubbered In'],
+      field4Options: [
+        tr('mySpace.presets.karting.gripOptimal', 'Optimale (Sec)'),
+        tr('mySpace.presets.karting.gripDamp', 'Humide'),
+        tr('mySpace.presets.karting.gripWet', 'Mouillé'),
+        tr('mySpace.presets.karting.gripGreasy', 'Glissant'),
+        tr('mySpace.presets.karting.gripRubbered', 'Gommée'),
+      ],
       safetyNotesKey: 'safetyNotes',
-      safetyPlaceholder: 'Enter any technical observations...',
-      submitLabel: 'Save Track Update',
-      metric1Label: 'Active Karts',
+      safetyPlaceholder: tr('mySpace.observationsPlaceholder', 'Saisissez les observations techniques ou consignes...'),
+      submitLabel: tr('mySpace.saveUpdate', 'Enregistrer la mise à jour'),
+      metric1Label: tr('mySpace.presets.karting.activeKarts', 'Karts en Piste'),
       metric1Value: '8 / 12',
       metric1Percent: 66,
-      metric2Label: 'Average Wait Time',
+      metric2Label: tr('mySpace.presets.karting.avgWait', 'Temps d\'Attente Moyen'),
       metric2Value: '15 mins',
       metric2Percent: 35,
-      stat1Label: "Today's Sessions",
+      stat1Label: tr('mySpace.presets.karting.todaySessions', 'Sessions du Jour'),
       stat1Value: '42',
-      stat2Label: 'Fuel Consumption',
+      stat2Label: tr('mySpace.presets.karting.fuelConsumption', 'Consommation Essence'),
       stat2Value: '120L',
-      stat3Label: 'Staff on Duty',
+      stat3Label: tr('mySpace.presets.karting.staffDuty', 'Staff en Service'),
       stat3Default: '4',
     };
   }
@@ -67,227 +75,83 @@ function getSpacePresets(espace) {
   if (name.includes('resto') || cat.includes('resto')) {
     return {
       type: 'restaurant',
-      heroSubtitle: 'Panoramic Terrace • Mediterranean Cuisine & Grill',
-      openLabel: 'Open Service',
-      maintLabel: 'Cleaning / Prep',
-      closeLabel: 'Emergency Close',
-      reportTitle: 'Daily Restaurant Report',
-      field1Label: 'Chef on Duty',
+      heroSubtitle: tr('mySpace.presets.restaurant.subtitle', 'Terrasse panoramique • Cuisine méditerranéenne & Grill'),
+      openLabel: tr('mySpace.presets.restaurant.openLabel', 'Ouvrir le Service'),
+      maintLabel: tr('mySpace.presets.restaurant.maintLabel', 'Nettoyage / Préparation'),
+      closeLabel: tr('mySpace.presets.restaurant.closeLabel', 'Fermeture d\'urgence'),
+      reportTitle: tr('mySpace.presets.restaurant.reportTitle', 'Rapport Journalier Restaurant'),
+      field1Label: tr('mySpace.presets.restaurant.chefDuty', 'Chef de Cuisine'),
       field1Default: 'Chef Karim',
       field1Key: 'chefOnDuty',
-      field2Label: 'Daily Special Menu',
+      field2Label: tr('mySpace.presets.restaurant.specialMenu', 'Plat du Jour'),
       field2Default: 'Couscous de poissons',
       field2Key: 'menuOfTheDay',
-      field3Label: 'Kitchen Temperature (°C)',
+      field3Label: tr('mySpace.presets.restaurant.kitchenTemp', 'Température Cuisine (°C)'),
       field3Default: '22',
       field3Key: 'kitchenTemp',
-      field4Label: 'Hygiene & Stock Status',
+      field4Label: tr('mySpace.presets.restaurant.hygieneStatus', 'Hygiène & Stocks'),
       field4Key: 'hygieneStatus',
-      field4Options: ['Optimal (Grade A)', 'Inspection Passed', 'Restock Needed', 'Deep Clean Scheduled'],
+      field4Options: [
+        tr('mySpace.presets.restaurant.hygieneOptimal', 'Optimal (Grade A)'),
+        tr('mySpace.presets.restaurant.hygienePassed', 'Contrôle Validé'),
+        tr('mySpace.presets.restaurant.hygieneRestock', 'Réapprovisionnement requis'),
+        tr('mySpace.presets.restaurant.hygieneClean', 'Grand Nettoyage Programmé'),
+      ],
       safetyNotesKey: 'safetyNotes',
-      safetyPlaceholder: 'Enter kitchen observations, food safety or incident notes...',
-      submitLabel: 'Save Restaurant Update',
-      metric1Label: 'Occupied Tables',
+      safetyPlaceholder: tr('mySpace.observationsPlaceholder', 'Saisissez les observations de cuisine...'),
+      submitLabel: tr('mySpace.saveUpdate', 'Enregistrer la mise à jour'),
+      metric1Label: tr('mySpace.presets.restaurant.occupiedTables', 'Tables Occupées'),
       metric1Value: '18 / 25',
       metric1Percent: 72,
-      metric2Label: 'Average Meal Duration',
+      metric2Label: tr('mySpace.presets.restaurant.avgMeal', 'Durée Moyenne Repas'),
       metric2Value: '45 mins',
       metric2Percent: 50,
-      stat1Label: "Today's Covers",
+      stat1Label: tr('mySpace.presets.restaurant.todayCovers', 'Couverts du Jour'),
       stat1Value: '110',
-      stat2Label: 'Special Orders',
+      stat2Label: tr('mySpace.presets.restaurant.specialOrders', 'Commandes Spéciales'),
       stat2Value: '38',
-      stat3Label: 'Staff on Duty',
+      stat3Label: tr('mySpace.presets.restaurant.staffDuty', 'Staff en Service'),
       stat3Default: '6',
     };
   }
 
-  if (name.includes('caf') || cat.includes('caf')) {
-    return {
-      type: 'cafe',
-      heroSubtitle: 'Artisanal Roasts • Garden Terrace & Espresso Lounge',
-      openLabel: 'Open Café',
-      maintLabel: 'Maintenance',
-      closeLabel: 'Emergency Close',
-      reportTitle: 'Daily Café Report',
-      field1Label: 'Barista on Duty',
-      field1Default: 'Mariem Trabelsi',
-      field1Key: 'baristaOnDuty',
-      field2Label: 'Roast Blend of the Day',
-      field2Default: 'Tunisian Dark Roast',
-      field2Key: 'roastBlend',
-      field3Label: 'Espresso Pressure (bar)',
-      field3Default: '9.2',
-      field3Key: 'boilerPressure',
-      field4Label: 'Milk & Inventory Status',
-      field4Key: 'inventoryStatus',
-      field4Options: ['Fresh & Stocked (Optimal)', 'Low Milk Stock', 'Restocked', 'Machine Descaling Needed'],
-      safetyNotesKey: 'safetyNotes',
-      safetyPlaceholder: 'Enter coffee grind calibration & order notes...',
-      submitLabel: 'Save Café Update',
-      metric1Label: 'Active Tables',
-      metric1Value: '12 / 15',
-      metric1Percent: 80,
-      metric2Label: 'Average Service Time',
-      metric2Value: '4 mins',
-      metric2Percent: 20,
-      stat1Label: "Today's Orders",
-      stat1Value: '92',
-      stat2Label: 'Coffee Consumed',
-      stat2Value: '14kg',
-      stat3Label: 'Staff on Duty',
-      stat3Default: '3',
-    };
-  }
-
-  if (name.includes('arcade') || cat.includes('arcade') || name.includes('jeux')) {
-    return {
-      type: 'arcade',
-      heroSubtitle: '45+ Next-Gen Cabinets • Simulators & VR Stations',
-      openLabel: 'Open Arcade',
-      maintLabel: 'Maintenance',
-      closeLabel: 'Emergency Close',
-      reportTitle: 'Daily Arcade Report',
-      field1Label: 'High Score Champion',
-      field1Default: 'Youssef M.',
-      field1Key: 'championName',
-      field2Label: 'Top Game Played',
-      field2Default: 'Tekken 8 / Daytona USA',
-      field2Key: 'topGame',
-      field3Label: 'Server Latency (ms)',
-      field3Default: '12ms',
-      field3Key: 'networkLatency',
-      field4Label: 'Cabinet Calibration',
-      field4Key: 'calibrationStatus',
-      field4Options: ['Optimal (100% Operational)', 'Minor Recalibration', 'Cabinet #4 Offline', 'Token Dispenser Restocked'],
-      safetyNotesKey: 'safetyNotes',
-      safetyPlaceholder: 'Enter machine calibration or safety observations...',
-      submitLabel: 'Save Arcade Update',
-      metric1Label: 'Active Cabinets',
-      metric1Value: '38 / 45',
-      metric1Percent: 84,
-      metric2Label: 'Average Queue Time',
-      metric2Value: '5 mins',
-      metric2Percent: 15,
-      stat1Label: "Daily Players",
-      stat1Value: '180',
-      stat2Label: 'Tokens Dispensed',
-      stat2Value: '1420',
-      stat3Label: 'Staff on Duty',
-      stat3Default: '3',
-    };
-  }
-
-  if (name.includes('vr') || cat.includes('vr') || name.includes('virtuel')) {
-    return {
-      type: 'vr',
-      heroSubtitle: '6-DOF Motion Platforms • 4K Wireless VR Headsets',
-      openLabel: 'Open VR Zone',
-      maintLabel: 'Sensor Calibration',
-      closeLabel: 'Emergency Close',
-      reportTitle: 'Daily VR Zone Report',
-      field1Label: 'VR Lead Supervisor',
-      field1Default: 'Ahmed Z.',
-      field1Key: 'vrSupervisor',
-      field2Label: 'Top Experience',
-      field2Default: 'Space Odyssey VR',
-      field2Key: 'topExperience',
-      field3Label: 'Headset Battery Average (%)',
-      field3Default: '94%',
-      field3Key: 'batteryHealth',
-      field4Label: 'Tracking Sensor Sync',
-      field4Key: 'sensorStatus',
-      field4Options: ['Optimal (Zero Drift)', 'Lighthouse Recalibrated', 'Minor Latency', 'Headset #2 Charging'],
-      safetyNotesKey: 'safetyNotes',
-      safetyPlaceholder: 'Enter VR hygiene, sensor sync or tracking notes...',
-      submitLabel: 'Save VR Zone Update',
-      metric1Label: 'Active Headsets',
-      metric1Value: '10 / 12',
-      metric1Percent: 83,
-      metric2Label: 'Average Session Duration',
-      metric2Value: '12 mins',
-      metric2Percent: 40,
-      stat1Label: "Today's Sessions",
-      stat1Value: '64',
-      stat2Label: 'Battery Cycles',
-      stat2Value: '28',
-      stat3Label: 'Staff on Duty',
-      stat3Default: '3',
-    };
-  }
-
-  if (name.includes('enfant') || cat.includes('enfant') || name.includes('kid')) {
-    return {
-      type: 'kids',
-      heroSubtitle: 'Inflatable Castles • Safety Monitored Trampoline Zone',
-      openLabel: 'Open Playground',
-      maintLabel: 'Safety Inspection',
-      closeLabel: 'Emergency Close',
-      reportTitle: 'Daily Kids Area Report',
-      field1Label: 'Head Safety Monitor',
-      field1Default: 'Salma K.',
-      field1Key: 'safetyMonitor',
-      field2Label: 'Peak Capacity Allowed',
-      field2Default: '40 Kids',
-      field2Key: 'peakCapacity',
-      field3Label: 'Inflatable Pressure (PSI)',
-      field3Default: '1.8 PSI',
-      field3Key: 'pressurePsi',
-      field4Label: 'Sanitization Status',
-      field4Key: 'sanitizationStatus',
-      field4Options: ['Fully Sanitized (Optimal)', 'Sanitization In Progress', 'Perimeter Checked', 'Ball Pit Cleaned'],
-      safetyNotesKey: 'safetyNotes',
-      safetyPlaceholder: 'Enter perimeter checks, hygiene notes or observations...',
-      submitLabel: 'Save Kids Area Update',
-      metric1Label: 'Active Kids Inside',
-      metric1Value: '24 / 35',
-      metric1Percent: 68,
-      metric2Label: 'Average Play Time',
-      metric2Value: '45 mins',
-      metric2Percent: 55,
-      stat1Label: "Today's Families",
-      stat1Value: '85',
-      stat2Label: 'Sanitization Rounds',
-      stat2Value: '6',
-      stat3Label: 'Staff on Duty',
-      stat3Default: '5',
-    };
-  }
-
-  // Generic Default Preset
+  // General fallback preset
   return {
-    type: 'generic',
-    heroSubtitle: 'Facility Space Management & Operational Control',
-    openLabel: 'Open Space',
-    maintLabel: 'Maintenance',
-    closeLabel: 'Emergency Close',
-    reportTitle: 'Daily Space Report',
-    field1Label: 'Manager on Duty',
-    field1Default: 'Responsable Opérationnel',
-    field1Key: 'managerOnDuty',
-    field2Label: 'Operating Capacity',
-    field2Default: 'Standard',
-    field2Key: 'operatingCapacity',
-    field3Label: 'Space Temperature (°C)',
+    type: 'general',
+    heroSubtitle: tr('mySpace.presets.general.subtitle', 'Espace d\'attraction et de loisirs opérationnel'),
+    openLabel: tr('mySpace.presets.general.openLabel', 'Ouvrir l\'Espace'),
+    maintLabel: tr('mySpace.presets.general.maintLabel', 'Maintenance'),
+    closeLabel: tr('mySpace.presets.general.closeLabel', 'Fermer l\'Espace'),
+    reportTitle: tr('mySpace.presets.general.reportTitle', 'Rapport d\'Activité Journalier'),
+    field1Label: tr('mySpace.presets.general.managerDuty', 'Responsable de Zone'),
+    field1Default: 'Superviseur',
+    field1Key: 'supervisorName',
+    field2Label: tr('mySpace.presets.general.currentAffluence', 'Affluence Actuelle'),
+    field2Default: 'Normale',
+    field2Key: 'affluenceLevel',
+    field3Label: tr('mySpace.presets.general.operationalTemp', 'Température Ambiante (°C)'),
     field3Default: '24',
-    field3Key: 'spaceTemp',
-    field4Label: 'Facility Conditions',
+    field3Key: 'ambientTemp',
+    field4Label: tr('mySpace.presets.general.safetyCondition', 'Condition de Sécurité'),
     field4Key: 'facilityConditions',
-    field4Options: ['Optimal (Normal)', 'Maintenance Required', 'Restocking Needed', 'Supervised'],
+    field4Options: [
+      tr('mySpace.presets.general.safetyOptimal', '100% Conforme'),
+      tr('mySpace.presets.general.safetyCheck', 'Inspection en cours'),
+    ],
     safetyNotesKey: 'safetyNotes',
-    safetyPlaceholder: 'Enter any operational observations...',
-    submitLabel: 'Save Space Update',
-    metric1Label: 'Operational Load',
+    safetyPlaceholder: tr('mySpace.observationsPlaceholder', 'Saisissez les observations techniques...'),
+    submitLabel: tr('mySpace.saveUpdate', 'Enregistrer la mise à jour'),
+    metric1Label: tr('mySpace.presets.general.activeVisitors', 'Visiteurs Présents'),
     metric1Value: '80%',
     metric1Percent: 80,
-    metric2Label: 'Average Wait Time',
-    metric2Value: '10 mins',
-    metric2Percent: 25,
-    stat1Label: "Today's Activity",
-    stat1Value: '58',
-    stat2Label: 'Resource Units',
-    stat2Value: '12',
-    stat3Label: 'Staff on Duty',
+    metric2Label: tr('mySpace.presets.general.avgVisitDuration', 'Temps Moyen de Visite'),
+    metric2Value: '25 mins',
+    metric2Percent: 40,
+    stat1Label: tr('mySpace.presets.general.todayVisitors', 'Entrées du Jour'),
+    stat1Value: '120',
+    stat2Label: tr('mySpace.presets.general.incidents', 'Incidents Signalés'),
+    stat2Value: '0',
+    stat3Label: tr('mySpace.presets.general.staffDuty', 'Personnel en Service'),
     stat3Default: '4',
   };
 }
@@ -316,7 +180,7 @@ export default function MyEspacePage() {
   const [customFields, setCustomFields] = useState([]);
   const [showCustomFields, setShowCustomFields] = useState(false);
 
-  const presets = useMemo(() => getSpacePresets(espace), [espace]);
+  const presets = useMemo(() => getSpacePresets(espace, t), [espace, t]);
 
   // Target space ID resolution: route param > user assigned space
   const targetSpaceId = espaceId || user?.assignedSpaceId;
@@ -332,7 +196,7 @@ export default function MyEspacePage() {
 
         // Populate form data from donneesSpecifiques
         const ds = data.donneesSpecifiques || {};
-        const p = getSpacePresets(data);
+        const p = getSpacePresets(data, t);
 
         setFormData({
           field1: ds[p.field1Key] !== undefined ? String(ds[p.field1Key]) : p.field1Default,
@@ -357,7 +221,7 @@ export default function MyEspacePage() {
           // Default to the first space (e.g. Piste Karting or first available)
           const first = list.find((e) => e.nom.toLowerCase().includes('kart')) || list[0];
           setEspace(first);
-          const p = getSpacePresets(first);
+          const p = getSpacePresets(first, t);
           const ds = first.donneesSpecifiques || {};
           setFormData({
             field1: ds[p.field1Key] !== undefined ? String(ds[p.field1Key]) : p.field1Default,
@@ -381,25 +245,19 @@ export default function MyEspacePage() {
 
   // ROOT Security Modal State
   const [rootModalOpen, setRootModalOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null); // { type: 'status'|'report', payload: any, label: string }
+  const [pendingAction, setPendingAction] = useState(null);
 
   // Execute space status update
   const performStatusUpdate = async (newStatus, reason) => {
     if (!espace) return;
     const previous = espace.statut;
-    setEspace((prev) => ({ ...prev, statut: newStatus })); // optimistic update
+    setEspace((prev) => ({ ...prev, statut: newStatus }));
     try {
       const res = await updateEspace(espace.id, { statut: newStatus }, reason);
       setEspace(res.data.data || res.data);
-      toast.success(
-        newStatus === 'OUVERT'
-          ? 'Espace ouvert avec succès'
-          : newStatus === 'MAINTENANCE'
-          ? 'Espace basculé en maintenance'
-          : 'Fermeture d\'urgence activée'
-      );
+      toast.success(t('spaces.statusUpdated', { status: t('spaces.statuses.' + newStatus) }));
     } catch (err) {
-      setEspace((prev) => ({ ...prev, statut: previous })); // rollback
+      setEspace((prev) => ({ ...prev, statut: previous }));
       toast.error(err.response?.data?.message || t('mySpace.updateError'));
     }
   };
@@ -411,7 +269,7 @@ export default function MyEspacePage() {
       setPendingAction({
         type: 'status',
         newStatus,
-        label: `Modification statut (${espace.statut} ➔ ${newStatus})`,
+        label: `${t('spaces.card.status')} (${t('spaces.statuses.' + espace.statut)} ➔ ${t('spaces.statuses.' + newStatus)})`,
       });
       setRootModalOpen(true);
       return;
@@ -426,7 +284,7 @@ export default function MyEspacePage() {
     try {
       const res = await updateEspace(espace.id, { donneesSpecifiques: mergedDonnees }, reason);
       setEspace(res.data.data || res.data);
-      toast.success('Rapport journalier enregistré avec succès !');
+      toast.success(t('mySpace.updateSuccess'));
     } catch (err) {
       toast.error(err.response?.data?.message || t('mySpace.updateError'));
     } finally {
@@ -459,7 +317,7 @@ export default function MyEspacePage() {
       setPendingAction({
         type: 'report',
         mergedDonnees,
-        label: `Mise à jour rapport journalier (${espace.nom})`,
+        label: `${t('mySpace.dailyReport')} (${espace.nom})`,
       });
       setRootModalOpen(true);
       return;
@@ -510,16 +368,16 @@ export default function MyEspacePage() {
           <LayoutDashboard size={32} />
         </div>
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Aucun espace sélectionné</h2>
+          <h2 className="text-xl font-bold text-slate-800">{t('notFound.title')}</h2>
           <p className="text-sm text-slate-500 mt-1">
-            Sélectionnez un espace dans le tableau de bord pour accéder à son panneau de contrôle opérationnel.
+            {t('notFound.subtitle')}
           </p>
         </div>
         <Link
           to="/espaces"
           className="inline-flex items-center gap-2 bg-navy text-white px-5 py-2.5 rounded-xl font-semibold text-sm shadow-md hover:bg-navy/90 transition-colors"
         >
-          <span>Accéder aux Espaces</span>
+          <span>{t('notFound.back')}</span>
           <ArrowRight size={16} />
         </Link>
       </div>
@@ -531,11 +389,7 @@ export default function MyEspacePage() {
   const isMaintenance = espace.statut === 'MAINTENANCE';
   const isClosed = espace.statut === 'FERME';
 
-  const statusBadgeText = isCurrentlyOpen
-    ? 'Currently Open'
-    : isMaintenance
-    ? 'Under Maintenance'
-    : 'Currently Closed';
+  const statusBadgeText = t('spaces.statuses.' + espace.statut);
 
   const statusDotClass = isCurrentlyOpen
     ? 'bg-emerald-400 animate-pulse'
@@ -553,8 +407,8 @@ export default function MyEspacePage() {
               <Layers size={18} />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Sélecteur d'Espace</p>
-              <p className="text-sm font-bold text-slate-800">Changer d'attraction en direct</p>
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{t('spaces.title')}</p>
+              <p className="text-sm font-bold text-slate-800">{t('spaces.subtitle')}</p>
             </div>
           </div>
           <select
@@ -578,7 +432,7 @@ export default function MyEspacePage() {
         </div>
       )}
 
-      {/* 1. HERO BANNER SECTION (Exact Benchmark Match) */}
+      {/* 1. HERO BANNER SECTION */}
       <div className="relative rounded-3xl overflow-hidden shadow-lg h-72 sm:h-80 w-full group">
         <img
           src={getEspaceImage(espace)}
@@ -599,7 +453,7 @@ export default function MyEspacePage() {
 
           {/* Dynamic Bold Title */}
           <h1 className="text-white text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight drop-shadow-md">
-            {espace.nom === 'Piste Karting' ? 'Circuit Principal - Hergla Kart' : espace.nom}
+            {espace.nom}
           </h1>
 
           {/* Sub-details */}
@@ -609,20 +463,20 @@ export default function MyEspacePage() {
         </div>
       </div>
 
-      {/* 2. OPERATIONAL STATUS CONTROL BAR (Exact Benchmark Match) */}
+      {/* 2. OPERATIONAL STATUS CONTROL BAR */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest">
-            OPERATIONAL STATUS
+            {t('mySpace.operationalStatus')}
           </p>
           <p className="text-sm font-bold text-slate-800 mt-0.5">
-            Update Track Accessibility
+            {t('mySpace.updateAccessibility')}
           </p>
         </div>
 
         {/* 3 Quick-Action Status Buttons */}
         <div className="flex flex-wrap items-center gap-3">
-          {/* Open Track (Emerald Green Active) */}
+          {/* Open Track */}
           <button
             type="button"
             onClick={() => handleStatusChange('OUVERT')}
@@ -638,7 +492,7 @@ export default function MyEspacePage() {
             <span>{presets.openLabel}</span>
           </button>
 
-          {/* Maintenance (Neutral Gray / Amber Active) */}
+          {/* Maintenance */}
           <button
             type="button"
             onClick={() => handleStatusChange('MAINTENANCE')}
@@ -654,7 +508,7 @@ export default function MyEspacePage() {
             <span>{presets.maintLabel}</span>
           </button>
 
-          {/* Emergency Close (Light Red / Danger) */}
+          {/* Emergency Close */}
           <button
             type="button"
             onClick={() => handleStatusChange('FERME')}
@@ -672,9 +526,9 @@ export default function MyEspacePage() {
         </div>
       </div>
 
-      {/* 3. MAIN CONTENT 2-COLUMN GRID (Exact Benchmark Match) */}
+      {/* 3. MAIN CONTENT 2-COLUMN GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-        {/* LEFT COLUMN: Daily Track / Space Report Form (2/3 width) */}
+        {/* LEFT COLUMN: Daily Report Form */}
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-7 space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <h2 className="text-base sm:text-lg font-bold text-slate-900">
@@ -688,7 +542,7 @@ export default function MyEspacePage() {
           <form onSubmit={handleSubmitReport} className="space-y-5">
             {/* 2x2 Input Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-              {/* Field 1: Record Holder Name */}
+              {/* Field 1 */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {presets.field1Label}
@@ -703,7 +557,7 @@ export default function MyEspacePage() {
                 />
               </div>
 
-              {/* Field 2: Fastest Lap Time (s) */}
+              {/* Field 2 */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {presets.field2Label}
@@ -718,7 +572,7 @@ export default function MyEspacePage() {
                 />
               </div>
 
-              {/* Field 3: Track Temperature (°C) */}
+              {/* Field 3 */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {presets.field3Label}
@@ -733,7 +587,7 @@ export default function MyEspacePage() {
                 />
               </div>
 
-              {/* Field 4: Grip Conditions Dropdown */}
+              {/* Field 4 */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                   {presets.field4Label}
@@ -762,7 +616,7 @@ export default function MyEspacePage() {
             {/* Full Width Textarea: Safety Notes / Incidents */}
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Safety Notes / Incidents
+                {t('mySpace.observations')}
               </label>
               <textarea
                 rows={4}
@@ -782,34 +636,34 @@ export default function MyEspacePage() {
                 className="text-xs font-bold text-slate-500 hover:text-navy transition-colors flex items-center gap-1.5"
               >
                 <Sparkles size={14} />
-                <span>{showCustomFields ? 'Masquer paramètres avancés' : '+ Paramètres opérationnels supplémentaires'}</span>
+                <span>{showCustomFields ? t('common.close') : `+ ${t('mySpace.specificData')}`}</span>
               </button>
 
               {showCustomFields && (
                 <div className="mt-3 space-y-2.5 bg-slate-50 p-4 rounded-xl border border-slate-200">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-slate-600">Paramètres JSON personnalisés</span>
+                    <span className="text-xs font-semibold text-slate-600">{t('mySpace.specificData')}</span>
                     <button
                       type="button"
                       onClick={addCustomField}
                       className="text-xs font-bold text-navy hover:underline flex items-center gap-1"
                     >
                       <Plus size={14} />
-                      Ajouter
+                      {t('mySpace.addField')}
                     </button>
                   </div>
                   {customFields.map((cf, i) => (
                     <div key={i} className="flex gap-2 items-center">
                       <input
                         type="text"
-                        placeholder="Clé"
+                        placeholder={t('mySpace.keyLabel')}
                         value={cf.key}
                         onChange={(e) => updateCustomField(i, 'key', e.target.value)}
                         className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:ring-1 focus:ring-navy focus:outline-none"
                       />
                       <input
                         type="text"
-                        placeholder="Valeur"
+                        placeholder={t('mySpace.valueLabel')}
                         value={cf.value}
                         onChange={(e) => updateCustomField(i, 'value', e.target.value)}
                         className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:ring-1 focus:ring-navy focus:outline-none"
@@ -818,6 +672,7 @@ export default function MyEspacePage() {
                         type="button"
                         onClick={() => removeCustomField(i)}
                         className="p-1 text-red-400 hover:text-red-600"
+                        title={t('mySpace.removeField')}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -827,13 +682,13 @@ export default function MyEspacePage() {
               )}
             </div>
 
-            {/* Primary Submit Button (Anchored Dark Navy Full-Width Button) */}
+            {/* Primary Submit Button */}
             <div className="pt-3">
               <button
                 type="submit"
                 disabled={saving}
                 id="save-espace-btn"
-                className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white py-3.5 px-6 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition-all duration-150 disabled:opacity-60"
+                className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white py-3.5 px-6 rounded-xl text-sm font-bold flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition-all duration-150 disabled:opacity-60 cursor-pointer"
               >
                 {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
                 <span>{presets.submitLabel}</span>
@@ -842,20 +697,19 @@ export default function MyEspacePage() {
           </form>
         </div>
 
-        {/* RIGHT COLUMN: Real-time Metrics Sidebar (1/3 width) */}
+        {/* RIGHT COLUMN: Real-time Metrics Sidebar */}
         <div className="space-y-6">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-6">
             <h2 className="text-base font-bold text-slate-900">
-              Real-time Metrics
+              {t('mySpace.metrics')}
             </h2>
 
-            {/* Metric 1: Active Karts / Units Count + Green Progress Bar */}
+            {/* Metric 1 */}
             <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm space-y-2">
               <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span className="text-slate-700">{presets.metric1Label}</span>
                 <span className="text-emerald-600 font-extrabold text-sm">{presets.metric1Value}</span>
               </div>
-              {/* Progress bar */}
               <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-emerald-500 rounded-full transition-all duration-500"
@@ -864,13 +718,12 @@ export default function MyEspacePage() {
               </div>
             </div>
 
-            {/* Metric 2: Average Wait Time Gauge + Dark Slate Progress Bar */}
+            {/* Metric 2 */}
             <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm space-y-2">
               <div className="flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span className="text-slate-700">{presets.metric2Label}</span>
                 <span className="text-slate-900 font-extrabold text-sm">{presets.metric2Value}</span>
               </div>
-              {/* Progress bar */}
               <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-[#1e293b] rounded-full transition-all duration-500"
@@ -882,7 +735,7 @@ export default function MyEspacePage() {
             {/* Divider */}
             <div className="border-t border-slate-100 pt-4">
               <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">
-                QUICK STATS
+                {t('mySpace.quickStats')}
               </p>
 
               <div className="space-y-3.5 text-xs sm:text-sm">
@@ -911,8 +764,8 @@ export default function MyEspacePage() {
         isOpen={rootModalOpen}
         onClose={() => { setRootModalOpen(false); setPendingAction(null); }}
         onConfirm={handleRootConfirm}
-        title="Validation Sécurité ROOT Required"
-        actionName={pendingAction?.label || "Modification d'espace"}
+        title={t('rootModal.title')}
+        actionName={pendingAction?.label || t('spaces.card.status')}
       />
     </div>
   );

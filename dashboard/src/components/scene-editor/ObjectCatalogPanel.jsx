@@ -1,17 +1,14 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Search, Upload, Package, ChevronDown, ChevronRight } from 'lucide-react';
 
 const BACKEND_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
 
 /**
  * Sidebar panel showing the catalog of available 3D objects.
- * Objects can be dragged onto the SceneCanvas.
- *
- * @param {object[]} objects       - list of Object3D from API
- * @param {boolean}  loading       - whether catalog is loading
- * @param {function} onUploadClick - callback to open the upload modal
  */
 export default function ObjectCatalogPanel({ objects, loading, onUploadClick, onDragStart }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [collapsed, setCollapsed] = useState({});
 
@@ -56,13 +53,13 @@ export default function ObjectCatalogPanel({ objects, loading, onUploadClick, on
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
             <Package size={15} className="text-indigo-500" />
-            Catalogue d'objets
+            {t('sceneEditor.catalogTitle')}
           </h2>
           <button
             onClick={onUploadClick}
             id="upload-object-btn"
-            title="Importer un objet 3D"
-            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+            title={t('sceneEditor.importGlb')}
+            className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-colors cursor-pointer"
           >
             <Upload size={15} />
           </button>
@@ -75,7 +72,7 @@ export default function ObjectCatalogPanel({ objects, loading, onUploadClick, on
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher..."
+            placeholder={t('sceneEditor.searchPlaceholder')}
             className="w-full ps-8 pe-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200"
           />
         </div>
@@ -91,7 +88,7 @@ export default function ObjectCatalogPanel({ objects, loading, onUploadClick, on
           </div>
         ) : Object.keys(byCategory).length === 0 ? (
           <div className="text-center py-10 text-slate-400 text-xs px-4">
-            {search ? 'Aucun objet trouvé' : 'Aucun objet dans le catalogue. Importez un fichier .glb.'}
+            {search ? t('sceneEditor.noObjectsFound') : t('sceneEditor.emptyCatalog')}
           </div>
         ) : (
           Object.entries(byCategory).map(([cat, items]) => (
@@ -99,41 +96,42 @@ export default function ObjectCatalogPanel({ objects, loading, onUploadClick, on
               {/* Category header */}
               <button
                 onClick={() => toggleCategory(cat)}
-                className="w-full flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:bg-slate-50 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:bg-slate-50 transition-colors"
               >
-                {collapsed[cat] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-                {cat}
-                <span className="ms-auto font-normal text-slate-400">{items.length}</span>
+                <span>{cat}</span>
+                <span className="flex items-center gap-1 text-slate-400">
+                  <span className="text-[10px] font-normal">{items.length}</span>
+                  {collapsed[cat] ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+                </span>
               </button>
 
               {/* Category items */}
               {!collapsed[cat] && (
-                <div className="grid grid-cols-2 gap-2 px-3 pb-2">
+                <div className="grid grid-cols-2 gap-2 p-2">
                   {items.map((obj) => {
                     const thumb = getThumbnail(obj);
                     return (
                       <div
                         key={obj.id}
+                        id={`catalog-obj-${obj.id}`}
                         draggable
                         onDragStart={(e) => handleDragStart(e, obj)}
-                        id={`catalog-item-${obj.id}`}
-                        className="relative group border border-slate-200 rounded-xl overflow-hidden cursor-grab active:cursor-grabbing hover:border-indigo-300 hover:shadow-md transition-all duration-150"
-                        title={`Glisser "${obj.nom}" dans la scène`}
+                        className="group flex flex-col items-center p-2 rounded-xl border border-slate-100 hover:border-indigo-300 hover:bg-indigo-50/50 cursor-grab active:cursor-grabbing transition-all select-none"
                       >
-                        {/* Thumbnail */}
-                        <div className="h-16 bg-slate-100 flex items-center justify-center overflow-hidden">
+                        <div className="w-full aspect-square rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden mb-1.5 border border-slate-100">
                           {thumb ? (
-                            <img src={thumb} alt={obj.nom} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200" />
+                            <img
+                              src={thumb}
+                              alt={obj.nom}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
                           ) : (
-                            <Package size={24} className="text-slate-300" />
+                            <Package size={20} className="text-slate-300 group-hover:text-indigo-400 transition-colors" />
                           )}
                         </div>
-                        {/* Label */}
-                        <p className="text-xs font-medium text-slate-700 px-2 py-1.5 truncate">{obj.nom}</p>
-
-                        {/* Drag indicator */}
-                        <div className="absolute inset-0 bg-indigo-500/0 group-hover:bg-indigo-500/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        </div>
+                        <span className="text-[11px] font-medium text-slate-700 truncate w-full text-center">
+                          {obj.nom}
+                        </span>
                       </div>
                     );
                   })}
@@ -142,11 +140,6 @@ export default function ObjectCatalogPanel({ objects, loading, onUploadClick, on
             </div>
           ))
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="px-4 py-3 border-t border-slate-100 text-xs text-slate-400">
-        {objects.length} objet{objects.length !== 1 ? 's' : ''} disponible{objects.length !== 1 ? 's' : ''}
       </div>
     </div>
   );

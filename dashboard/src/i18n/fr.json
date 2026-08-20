@@ -9,6 +9,83 @@
     "kartsConfig": "Configuration Karts",
     "auditLogs": "Logs d'Audit"
   },
+  "topbar": {
+    "searchPlaceholder": "Rechercher modules, espaces, karts, staff… (Ctrl+K)",
+    "searchResultsFor": "Résultats pour \"{{query}}\"",
+    "searchSuggestions": "Suggestions & Navigation rapide",
+    "foundCount": "{{count}} trouvé(s)",
+    "noResultsFound": "Aucun résultat trouvé",
+    "tryOtherKeyword": "Essayez un autre mot-clé (ex: \"kart\", \"studio\", \"espace\")",
+    "navHint": "pour naviguer",
+    "enterHint": "pour valider",
+    "navigation": "Navigation :",
+    "globalSettings": "Paramètres Globaux",
+    "uiLanguage": "Langue de l'Interface",
+    "active": "Actif",
+    "securitySystem": "Sécurité & Système",
+    "securityLock": "Verrouillage Sécurité",
+    "securityLockEnabled": "Activé — accès restreint",
+    "securityLockDisabled": "Désactivé",
+    "autoAssign": "Auto-Assignation",
+    "autoAssignEnabled": "Attribution automatique",
+    "autoAssignManual": "Manuel",
+    "directAccess": "Accès Direct",
+    "auditSecurityLogs": "Logs d'Audit & Sécurité",
+    "userManagement": "Gestion Utilisateurs",
+    "appVersion": "Hergla Park v2.4 · Multi-Tenant",
+    "connectedStatus": "Connecté",
+    "notifCenter": "Centre de Notifications",
+    "newNotifs": "{{count}} nouvelle(s)",
+    "markAllRead": "Tout marquer comme lu",
+    "clearAll": "Effacer tout",
+    "allNotifs": "Toutes",
+    "unreadNotifs": "Non lues",
+    "alertsNotifs": "Alertes",
+    "noNotifs": "Aucune notification à afficher",
+    "parkEventsUpToDate": "Le flux d'événements du parc est à jour.",
+    "viewDetail": "Voir détail",
+    "fullAuditHistory": "Historique complet des audits",
+    "realTime": "Temps réel",
+    "myProfile": "Mon Profil",
+    "changePassword": "Changer le mot de passe",
+    "passwordChangeToast": "Changement de mot de passe — Rendez-vous sur Mon Profil",
+    "activityHistory": "Historique d'activité",
+    "accessLevel": "Niveau d'accès",
+    "totalAccessAll": "Accès total — toutes fonctions",
+    "totalAccessSpaces": "Accès total à tous les espaces",
+    "accessAssignedSpace": "Accès à l'espace assigné",
+    "limitedAccess": "Accès limité à l'espace assigné",
+    "activeSession": "Hergla Park · Session active",
+    "categories": {
+      "modules": "Modules",
+      "spaces": "Espaces d'Attraction",
+      "karts": "Flotte Karts",
+      "users": "Utilisateurs",
+      "quickActions": "Actions Rapides"
+    },
+    "switchLangFr": "Passer en Français",
+    "switchLangFrSub": "Changer la langue d'interface en Français",
+    "switchLangAr": "التحويل إلى العربية",
+    "switchLangArSub": "تغيير لغة لوحة التحكم إلى العربية",
+    "switchLangEn": "Switch to English",
+    "switchLangEnSub": "Change interface language to English",
+    "langChangedFr": "Langue : Français",
+    "langChangedAr": "تم التغيير: العربية",
+    "langChangedEn": "Language: English",
+    "allReadToast": "Toutes les notifications marquées comme lues",
+    "clearedToast": "Toutes les notifications effacées",
+    "securityLockOn": "🔒 Verrouillage de sécurité activé",
+    "securityLockOff": "🔓 Verrouillage de sécurité désactivé",
+    "autoAssignOn": "Auto-assignation activée",
+    "autoAssignOff": "Auto-assignation désactivée",
+    "logoutSuccess": "Déconnexion réussie",
+    "companySwitched": "Entreprise active : {{name}}",
+    "companySwitchError": "Erreur lors de la bascule d'entreprise"
+  },
+  "sidebar": {
+    "roleStatus": "Statut Rôle",
+    "adminDashboard": "Tableau de Bord Admin"
+  },
   "login": {
     "title": "Admin Dashboard",
     "subtitle": "Connectez-vous pour gérer vos opérations",
@@ -22,22 +99,44 @@
     "copyright": "© 2026 Hergla Park Admin Ecosystem. Tous droits réservés.",
     "error": {
       "invalidCredentials": "Email ou mot de passe incorrect.",
-      "networkError": "Erreur de connexion. Vérifiez votre réseau."
+      "networkError": "Erreur de connexion. Vérifiez votre réseau.",
+      "serverUnreachable": "Impossible de joindre le serveur. Vérifiez votre connexion ou réessayez."
     }
   },
   "spaces": {
     "title": "Espaces d'Attractions",
     "subtitle": "Gérez les zones opérationnelles et surveillez leur état en temps réel.",
-    "createButton": "Créer un espace",
+    "globalPanel": "Panneau Global Hergla Park Admin",
+    "overviewTitle": "Vue d'Ensemble &",
+    "overviewGradient": "Dashboard Global",
+    "overviewDesc": "Supervisez en temps réel les espaces d'attraction, les configurations de karts, les scènes 3D interactives et le journal des audits système.",
+    "createButton": "Nouveau Espace",
+    "editor3dButton": "Éditeur 3D",
+    "systemPark": "Système Parc",
+    "live247": "Live 24/7",
+    "activeSpaces": "Espaces Actifs :",
+    "sessionRole": "Rôle Session :",
+    "auditEvents": "Événements Audit :",
+    "recentCount": "{{count}} récents",
+    "quickAccessTitle": "Accès Rapide aux Modules",
+    "accessModule": "Accéder au module",
     "stats": {
-      "open": "Ouverts",
+      "open": "Espaces Ouverts",
       "closed": "Fermés",
       "maintenance": "Maintenance",
-      "activeStaff": "Staff Actif"
+      "activeStaff": "Staff & Opérateurs",
+      "fleet": "Flotte Karts",
+      "fleetSub": "Sodi RT10, 2Drive & LR5",
+      "staffSub": "Affectés aux pistes & espaces",
+      "activity": "Activité Système",
+      "activitySub": "Audits enregistrés",
+      "totalSpacesCount": "{{count}} espaces au total"
     },
     "card": {
       "status": "Statut",
-      "noStaff": "Aucun staff assigné"
+      "noStaff": "Aucun staff assigné",
+      "edit": "Modifier",
+      "delete": "Supprimer"
     },
     "recentAlerts": "Alertes Récentes",
     "viewAll": "Voir tout",
@@ -49,22 +148,40 @@
       "actions": "Actions"
     },
     "create": {
-      "title": "Créer un espace",
-      "name": "Nom",
+      "title": "Créer un nouvel espace",
+      "name": "Nom de l'espace",
+      "namePlaceholder": "ex: Piste Grand Prix Karting",
       "category": "Catégorie",
-      "submit": "Créer",
+      "selectCategory": "Sélectionner une catégorie",
+      "initialStatus": "Statut initial",
+      "submit": "Créer l'espace",
+      "cancel": "Annuler",
+      "success": "Espace créé avec succès",
+      "error": "Erreur lors de la création de l'espace"
+    },
+    "edit": {
+      "title": "Modifier l'espace",
+      "submit": "Enregistrer",
+      "cancel": "Annuler"
+    },
+    "delete": {
+      "confirm": "Supprimer cet espace ?",
+      "warning": "Cette action est irréversible et supprimera toutes les données associées.",
+      "submit": "Supprimer",
       "cancel": "Annuler"
     },
     "statuses": {
       "OUVERT": "Ouvert",
       "FERME": "Fermé",
       "MAINTENANCE": "Maintenance"
-    }
+    },
+    "statusUpdated": "Statut de l'espace mis à jour vers {{status}}",
+    "statusUpdateError": "Erreur lors de la mise à jour du statut"
   },
   "mySpace": {
     "operationalStatus": "STATUT OPÉRATIONNEL",
     "updateAccessibility": "Mettre à jour l'accessibilité",
-    "openTrack": "Ouvrir",
+    "openTrack": "Ouvrir l'Espace",
     "maintenance": "Maintenance",
     "emergencyClose": "Fermeture d'urgence",
     "dailyReport": "Rapport Journalier",
@@ -77,7 +194,70 @@
     "addField": "Ajouter un champ",
     "removeField": "Supprimer",
     "updateSuccess": "Espace mis à jour avec succès",
-    "updateError": "Erreur lors de la mise à jour"
+    "updateError": "Erreur lors de la mise à jour",
+    "observations": "Observations & Sécurité",
+    "observationsPlaceholder": "Saisissez les observations techniques ou consignes...",
+    "presets": {
+      "karting": {
+        "subtitle": "Piste technique 1.2km • Asphalte haute adhérence",
+        "openLabel": "Ouvrir la Piste",
+        "maintLabel": "Maintenance Piste",
+        "closeLabel": "Fermeture Urgence",
+        "reportTitle": "Rapport Journalier Piste",
+        "recordHolder": "Détenteur du Record",
+        "fastestLap": "Meilleur Tour (s)",
+        "trackTemp": "Température Piste (°C)",
+        "gripConditions": "Conditions d'Adhérence",
+        "gripOptimal": "Optimale (Sec)",
+        "gripDamp": "Humide",
+        "gripWet": "Mouillé",
+        "gripGreasy": "Glissant",
+        "gripRubbered": "Gommée",
+        "activeKarts": "Karts en Piste",
+        "avgWait": "Temps d'Attente Moyen",
+        "todaySessions": "Sessions du Jour",
+        "fuelConsumption": "Consommation Essence",
+        "staffDuty": "Staff en Service"
+      },
+      "restaurant": {
+        "subtitle": "Terrasse panoramique • Cuisine méditerranéenne & Grill",
+        "openLabel": "Ouvrir le Service",
+        "maintLabel": "Nettoyage / Préparation",
+        "closeLabel": "Fermeture Urgence",
+        "reportTitle": "Rapport Journalier Restaurant",
+        "chefDuty": "Chef de Cuisine",
+        "specialMenu": "Plat du Jour",
+        "kitchenTemp": "Température Cuisine (°C)",
+        "hygieneStatus": "Hygiène & Stocks",
+        "hygieneOptimal": "Optimal (Grade A)",
+        "hygienePassed": "Contrôle Validé",
+        "hygieneRestock": "Réapprovisionnement requis",
+        "hygieneClean": "Grand Nettoyage Programmé",
+        "occupiedTables": "Tables Occupées",
+        "avgMeal": "Durée Moyenne Repas",
+        "todayCovers": "Couverts du Jour",
+        "specialOrders": "Commandes Spéciales",
+        "staffDuty": "Staff en Salle / Cuisine"
+      },
+      "general": {
+        "subtitle": "Espace d'attraction et de loisirs opérationnel",
+        "openLabel": "Ouvrir l'Espace",
+        "maintLabel": "Maintenance",
+        "closeLabel": "Fermer l'Espace",
+        "reportTitle": "Rapport d'Activité Journalier",
+        "managerDuty": "Responsable de Zone",
+        "currentAffluence": "Affluence Actuelle",
+        "operationalTemp": "Température Ambiante (°C)",
+        "safetyCondition": "Condition de Sécurité",
+        "safetyOptimal": "100% Conforme",
+        "safetyCheck": "Inspection en cours",
+        "activeVisitors": "Visiteurs Présents",
+        "avgVisitDuration": "Temps Moyen de Visite",
+        "todayVisitors": "Entrées du Jour",
+        "incidents": "Incidents Signalés",
+        "staffDuty": "Personnel en Service"
+      }
+    }
   },
   "profile": {
     "breadcrumb": "Mon Profil",
@@ -99,6 +279,7 @@
     "confirmPassword": "Confirmer le mot de passe",
     "passwordsMatch": "Les mots de passe correspondent",
     "passwordsDontMatch": "Les mots de passe ne correspondent pas",
+    "passwordMinLength": "Le nouveau mot de passe doit comporter au moins 6 caractères",
     "updatePassword": "Mettre à jour le mot de passe",
     "roleOverview": "Rôle & Hiérarchie Système",
     "roleOverviewSub": "Niveau d'autorisation et périmètre d'action",
@@ -117,12 +298,12 @@
     "successPassword": "Mot de passe modifié avec succès !"
   },
   "users": {
-    "title": "Utilisateurs",
+    "title": "Utilisateurs & Permissions",
     "subtitle": "Gérez les accès, rôles et permissions personnalisées de l'équipe Hergla Park.",
     "addButton": "Ajouter un utilisateur",
-    "search": "Rechercher...",
+    "search": "Rechercher par nom ou email...",
     "filter": "Filtrer",
-    "export": "Exporter",
+    "export": "Exporter CSV",
     "tabs": {
       "all": "Tous",
       "admins": "Admins",
@@ -140,7 +321,7 @@
     "stats": {
       "total": "TOTAL UTILISATEURS",
       "activeToday": "ACTIFS AUJOURD'HUI",
-      "admins": "ADMINS",
+      "admins": "ADMINISTRATEURS",
       "pending": "EN ATTENTE"
     },
     "userStatus": {
@@ -152,8 +333,11 @@
     "create": {
       "title": "Ajouter un utilisateur",
       "name": "Nom complet",
+      "namePlaceholder": "ex: Mehdi Trabelsi",
       "email": "Email professionnel",
+      "emailPlaceholder": "mehdi@herglapark.tn",
       "phone": "Téléphone (optionnel)",
+      "phonePlaceholder": "+216 98 000 000",
       "password": "Mot de passe initial",
       "role": "Rôle de base",
       "assignedSpace": "Espace assigné",
@@ -161,17 +345,33 @@
       "customPermissions": "Permissions Personnalisées",
       "activeCount": "{{count}} actives",
       "submit": "Créer l'utilisateur",
-      "cancel": "Annuler"
+      "cancel": "Annuler",
+      "success": "Utilisateur créé avec succès",
+      "error": "Erreur lors de la création de l'utilisateur"
     },
     "edit": {
       "title": "Modifier l'utilisateur",
-      "submit": "Enregistrer",
-      "cancel": "Annuler"
+      "submit": "Enregistrer les modifications",
+      "cancel": "Annuler",
+      "success": "Utilisateur mis à jour avec succès",
+      "error": "Erreur lors de la mise à jour"
     },
     "delete": {
-      "confirm": "Supprimer cet utilisateur ?",
-      "yes": "Supprimer",
-      "no": "Annuler"
+      "confirm": "Supprimer l'utilisateur {{name}} ?",
+      "warning": "Cette action est définitive et révoquera immédiatement tous ses accès.",
+      "yes": "Supprimer définitivement",
+      "no": "Annuler",
+      "success": "Utilisateur supprimé avec succès",
+      "error": "Erreur lors de la suppression"
+    },
+    "resetPassword": {
+      "title": "Changer le mot de passe de {{name}}",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "submit": "Mettre à jour le mot de passe",
+      "cancel": "Annuler",
+      "success": "Mot de passe mis à jour avec succès",
+      "error": "Erreur lors du changement de mot de passe"
     },
     "pagination": {
       "showing": "Affichage de {{from}}-{{to}} sur {{total}} utilisateurs"
@@ -204,6 +404,37 @@
       "stealthStatus": "Verrouillé",
       "downloadReport": "Télécharger le Rapport",
       "close": "Fermer"
+    },
+    "permissions": {
+      "espaceCreate": "Créer des espaces",
+      "espaceCreateDesc": "Ajouter de nouvelles attractions et zones au parc",
+      "espaceUpdate": "Modifier les espaces",
+      "espaceUpdateDesc": "Changer le statut (Ouvert/Fermé/Maintenance) et les métadonnées",
+      "kartManage": "Gérer la flotte de karts",
+      "kartManageDesc": "Attribuer numéros, couleurs, et statut d'entretien des karts",
+      "kartRead": "Consulter les karts",
+      "kartReadDesc": "Visualiser la télémétrie et les karts actifs",
+      "sceneEdit": "Éditeur 3D Studio",
+      "sceneEditDesc": "Modifier et sauvegarder les placements d'objets 3D",
+      "logsView": "Consulter les logs d'audit",
+      "logsViewDesc": "Accès au journal de traçabilité des opérations",
+      "reportExport": "Exporter les rapports",
+      "reportExportDesc": "Exporter les données en CSV et synthèses d'activité",
+      "userCreate": "Créer des utilisateurs",
+      "userCreateDesc": "Ajouter des membres et opérateurs au système",
+      "roleUpdate": "Gérer les rôles et permissions",
+      "roleUpdateDesc": "Ajuster les permissions globales de chaque rôle",
+      "roleAssign": "Assigner les rôles utilisateurs",
+      "roleAssignDesc": "Attribuer ou révoquer les privilèges"
+    },
+    "categories": {
+      "espaces": "Espaces",
+      "karting": "Karting",
+      "studio3d": "Studio 3D",
+      "security": "Sécurité",
+      "reports": "Rapports",
+      "users": "Utilisateurs",
+      "rights": "Sécurité & Droits"
     }
   },
   "audit": {
@@ -215,7 +446,7 @@
     "allTypes": "Toutes les actions",
     "createType": "Créations (CREATE)",
     "updateType": "Modifications (UPDATE)",
-    "deleteType": "Deletions (DELETE)",
+    "deleteType": "Suppressions (DELETE)",
     "loginType": "Connexions (LOGIN)",
     "table": {
       "timestamp": "HORODATAGE",
@@ -223,13 +454,28 @@
       "action": "ACTION",
       "entity": "ENTITÉ / MODULE",
       "company": "ENTREPRISE / CONTEXTE",
-      "details": "DÉTAILS"
+      "details": "DÉTAILS",
+      "viewDetails": "Voir détails"
+    },
+    "modal": {
+      "title": "Détails de l'Audit Log",
+      "action": "Action Exécutée",
+      "timestamp": "Date & Heure",
+      "actor": "Acteur / Utilisateur",
+      "targetEntity": "Entité Ciblée",
+      "company": "Entreprise",
+      "metadata": "Métadonnées & Payload JSON",
+      "close": "Fermer"
     }
   },
   "karts": {
     "title": "Configuration de la Flotte de Karts",
     "subtitle": "Gérez la flotte de course, numéros, télémétrie, couleurs et statut opérationnel.",
+    "selectSpace": "Sélectionner la piste de karting",
+    "unsavedWarning": "Modifications non enregistrées sur la flotte",
     "addKart": "Ajouter un Kart",
+    "saveFleet": "Enregistrer la Flotte",
+    "saving": "Sauvegarde en cours...",
     "totalKarts": "TOTAL FLOTTE",
     "activeKarts": "EN SERVICE",
     "maintenanceKarts": "MAINTENANCE",
@@ -239,7 +485,130 @@
       "status": "STATUT",
       "order": "ORDRE EN PISTE",
       "actions": "ACTIONS"
+    },
+    "raceNumber": "N° Course",
+    "raceNumberPlaceholder": "ex: 07",
+    "liveryColor": "Couleur Carrosserie",
+    "inService": "En service",
+    "inactive": "Inactif",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "removeKart": "Retirer ce kart",
+    "emptyFleet": "Aucun kart configuré pour cet espace. Cliquez sur \"Ajouter un Kart\".",
+    "colors": {
+      "rougeHergla": "Rouge Hergla",
+      "bleuRacing": "Bleu Racing",
+      "vertPiste": "Vert Piste",
+      "jauneJaillissant": "Jaune Jaillissant",
+      "orangeNitro": "Orange Nitro",
+      "violetSpeed": "Violet Speed",
+      "cyanTurbo": "Cyan Turbo",
+      "noirCarbone": "Noir Carbone"
+    },
+    "validation": {
+      "emptyNumber": "Le numéro de course ne peut pas être vide",
+      "lengthNumber": "Le numéro doit comporter de 1 à 3 caractères",
+      "duplicateNumber": "Numéro déjà attribué au kart #{{other}}"
+    },
+    "saveSuccess": "Flotte de karts enregistrée avec succès",
+    "saveError": "Erreur lors de l'enregistrement de la flotte"
+  },
+  "sceneEditor": {
+    "title": "Studio & Éditeur 3D",
+    "subtitle": "Aménagement immersif et gestion des objets 3D en temps réel.",
+    "selectSpace": "Sélectionner l'espace 3D à éditer",
+    "unsavedChanges": "Modifications non enregistrées",
+    "undo": "Annuler",
+    "undoTooltip": "Annuler le dernier ajout",
+    "reset": "Réinitialiser",
+    "resetTooltip": "Réinitialiser à la disposition originale",
+    "setOriginal": "Définir original",
+    "setOriginalTooltip": "Définir disposition actuelle comme version originale",
+    "setOriginalDirtyTooltip": "Enregistrez d'abord avant de définir comme original",
+    "save": "Enregistrer",
+    "saving": "Sauvegarde...",
+    "catalogTitle": "Catalogue d'objets",
+    "searchPlaceholder": "Rechercher un objet...",
+    "importGlb": "Importer un objet 3D",
+    "noObjectsFound": "Aucun objet trouvé",
+    "emptyCatalog": "Aucun objet dans le catalogue. Importez un fichier .glb.",
+    "placedObjectsTitle": "Objets Placés ({{count}})",
+    "emptyPlaced": "Glissez des objets depuis le catalogue dans la scène",
+    "removeFromScene": "Retirer de la scène",
+    "resetModal": {
+      "title": "Réinitialiser la scène ?",
+      "desc": "Toutes les modifications non sauvegardées seront annulées et la disposition originale sera restaurée.",
+      "confirm": "Réinitialiser",
+      "cancel": "Annuler"
+    },
+    "setOriginalModal": {
+      "title": "Définir comme disposition originale ?",
+      "desc": "La disposition 3D actuelle deviendra la référence originale par défaut pour cet espace.",
+      "confirm": "Confirmer comme original",
+      "cancel": "Annuler"
+    },
+    "uploadModal": {
+      "title": "Importer un objet 3D (.glb)",
+      "name": "Nom de l'objet",
+      "namePlaceholder": "ex: Chaise de karting",
+      "category": "Catégorie",
+      "selectCategory": "— Sélectionner —",
+      "fileGlb": "Fichier 3D (.glb)",
+      "clickToUploadGlb": "Cliquez pour sélectionner le fichier .glb",
+      "thumbnail": "Miniature / Image aperçu (optionnel)",
+      "clickToUploadThumb": "Cliquez pour importer une image PNG/JPG",
+      "submit": "Importer l'objet",
+      "cancel": "Annuler",
+      "uploading": "Importation en cours...",
+      "success": "Objet importé avec succès",
+      "error": "Erreur lors de l'importation de l'objet"
+    },
+    "saveSuccess": "Scène 3D sauvegardée avec succès",
+    "saveError": "Erreur lors de la sauvegarde de la scène",
+    "resetSuccess": "Scène réinitialisée à la disposition originale",
+    "setOriginalSuccess": "Disposition définie comme originale avec succès",
+    "categories": {
+      "mobilier": "Mobilier",
+      "deco": "Déco",
+      "signaletique": "Signalétique",
+      "vehicule": "Véhicule",
+      "structure": "Structure",
+      "vegetation": "Végétation",
+      "autre": "Autre"
     }
+  },
+  "rootModal": {
+    "title": "Validation Sécurité ROOT Requise",
+    "subtitle": "Contrôle d'accès & Audit ROOT",
+    "targetAction": "Action ciblée :",
+    "prompt": "Pour valider cette intervention ROOT, veuillez saisir le code de validation (<strong>hergla000</strong>) et préciser le motif.",
+    "passcodeLabel": "Mot de passe de validation",
+    "passcodePlaceholder": "Saisissez le code (ex: hergla000)",
+    "reasonLabel": "Motif d'intervention / Observations",
+    "reasonPlaceholder": "ex: Maintenance d'urgence effectuée par le SuperAdmin ROOT",
+    "incorrectCode": "Code de validation incorrect ! Tapez le mot de passe requis ('hergla000').",
+    "interventionRefused": "Code de validation incorrect. Intervention refusée.",
+    "defaultReason": "Intervention ROOT autorisée [Code: hergla000]",
+    "cancel": "Annuler",
+    "validate": "Valider & Exécuter"
+  },
+  "notifications": {
+    "n1Title": "Tentative de connexion inhabituelle",
+    "n1Msg": "Compte h.karim@herglapark.tn — 3 tentatives bloquées par le pare-feu.",
+    "n2Title": "Mise à jour des permissions",
+    "n2Msg": "Rôle ADMIN attribué avec succès pour Sonia Ben Romdhane.",
+    "n3Title": "Flotte Karts actualisée",
+    "n3Msg": "3 karts Sodi RT10 inspectés et prêts pour la session Grand Prix.",
+    "n4Title": "Espace attraction ouvert",
+    "n4Msg": "L'espace Piste Karting Principale est désormais opérationnel.",
+    "n5Title": "Alerte maintenance requise",
+    "n5Msg": "Capteur de télémétrie Kart #08 nécessite une réinitialisation.",
+    "time5m": "Il y a 5 min",
+    "time14m": "Il y a 14 min",
+    "time1h": "Il y a 1 h",
+    "time2h": "Il y a 2 h",
+    "timeYesterday": "Hier, 16:45",
+    "timeRecent": "Récent"
   },
   "common": {
     "loading": "Chargement...",
@@ -252,12 +621,22 @@
     "close": "Fermer",
     "confirm": "Confirmer",
     "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
     "logout": "Se déconnecter",
     "profile": "Profil",
     "version": "v2.4.0-stable",
     "systemOnline": "Système Actif",
     "viewAll": "Voir tout",
-    "refresh": "Rafraîchir"
+    "refresh": "Rafraîchir",
+    "justNow": "À l'instant",
+    "minsAgo": "Il y a {{count}} min",
+    "hoursAgo": "Il y a {{count}} h",
+    "daysAgo": "Il y a {{count}} j",
+    "all": "Tous",
+    "actions": "Actions",
+    "status": "Statut",
+    "optional": "(optionnel)"
   },
   "notFound": {
     "title": "Page introuvable",

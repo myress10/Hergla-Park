@@ -1,0 +1,117 @@
+{
+  "nav": {
+    "welcome": "Home",
+    "controls": "Controls",
+    "security": "Safety",
+    "launch": "Launch"
+  },
+  "welcome": {
+    "title": "Experience Hergla Park before you even arrive",
+    "heroTitle1": "Experience Hergla Park",
+    "heroTitle2": "before you even arrive",
+    "heroDesc": "Explore our world of leisure, speed, and thrill in full 3D immersion directly from your web browser.",
+    "badge": "3D Virtual Tour — Hergla Park",
+    "subtitle": "Discover our entire park in 3D immersion directly in your browser. A virtual trip to adrenaline.",
+    "galleryTitle": "Explore the Attractions",
+    "startBtn": "Start Virtual Tour",
+    "scrollDown": "Scroll down for more info",
+    "categories": {
+      "karting": "Pro Karting",
+      "family": "Family Fun",
+      "events": "Park Events"
+    },
+    "stats": {
+      "visitors": "Visitors / year",
+      "satisfaction": "Guest Satisfaction",
+      "location": "Sousse, Tunisia",
+      "history": "Historic Landmark Park"
+    },
+    "features": {
+      "title": "An Innovative Digital Experience",
+      "subtitle": "Designed to let you explore the park as if you were already there",
+      "f1Title": "Immersive 3D Tour",
+      "f1Desc": "Explore every corner of the park directly from your browser, no download needed.",
+      "f2Title": "Intuitive Navigation",
+      "f2Desc": "Keyboard and mouse controls for immediate ease of use, even for first-timers.",
+      "f3Title": "Fun for Everyone",
+      "f3Desc": "Accessible for all guests aged 7+, on tablet, computer, or VR headsets."
+    },
+    "howItWorks": {
+      "title": "How does it work?",
+      "subtitle": "3 simple steps to start your virtual walkthrough",
+      "h1Title": "Review the steps",
+      "h1Desc": "Discover the flight controls and safety guidelines.",
+      "h2Title": "Launch the tour",
+      "h2Desc": "Click the launch button and step into the 3D world.",
+      "h3Title": "Explore the park",
+      "h3Desc": "Freely navigate through every zone and track in Hergla Park."
+    },
+    "cta": {
+      "title": "Ready to dive into the experience?",
+      "desc": "Discover our professional kart tracks, leisure spaces, and all the magic of Hergla Park.",
+      "btn": "Launch 3D Immersion"
+    }
+  },
+  "controls": {
+    "badge": "Step 2: Controls",
+    "title": "Take Control of Your Immersion",
+    "subtitle": "Familiarize yourself with the navigation and interaction controls to explore Hergla Park like you are physically there.",
+    "moveText": "W/A/S/D (or Z/Q/S/D) to move around in the virtual world.",
+    "interactText": "E key to interact (hop into a kart, order from the café).",
+    "movementLabel": "Movement",
+    "actionLabel": "Contextual Action",
+    "interactTitle": "Interact",
+    "interactDesc": "Use this key to confirm your selections or interact with objects."
+  },
+  "safety": {
+    "badge": "Step 3: Prerequisites",
+    "title": "Safety & Prerequisites",
+    "subtitle": "Get ready for the adventure easily and safely.",
+    "cards": {
+      "controls": {
+        "title": "Controls",
+        "desc": "Mouse + Keyboard or VR Headset"
+      },
+      "duration": {
+        "title": "Estimated Duration",
+        "desc": "5-10 mins"
+      },
+      "age": {
+        "title": "Recommended Age",
+        "desc": "7+ years"
+      }
+    },
+    "status": "SAFETY VERIFIED",
+    "sessionReady": "SESSION READY",
+    "systemCheck": "ALL SYSTEMS GREEN",
+    "pressStart": "CLICK 'NEXT' TO START"
+  },
+  "launch": {
+    "badge": "System Ready • Phase 04",
+    "title": "LAUNCH 3D VIRTUAL TOUR",
+    "readyToStart": "Ready to begin the 3D adventure",
+    "loading": "INITIALIZING WEBGL ENVIRONMENT",
+    "connecting": "CONNECTING TO RENDER PIPELINE...",
+    "streaming": "STREAMING ASSETS...",
+    "starting": "STARTING IMMERSIVE VIEW...",
+    "status": {
+      "uplink": "UP-LINK: STABLE",
+      "latency": "LATENCY: 14MS",
+      "immersion": "IMMERSION SCALE: 99.8%"
+    },
+    "placeholder": {
+      "title": "3D Virtual Tour — Hergla Park",
+      "subtitle": "The Unity WebGL player will load here in Month 2 (Week 8).",
+      "btnText": "Simulate Unity Action (Back)",
+      "integrationDoc": "To integrate the Unity WebGL build, replace this component with the Unity loader script (createUnityInstance)."
+    }
+  },
+  "actions": {
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "privacy": "Privacy Policy",
+    "help": "Help Center",
+    "copyright": "© 2026 Hergla Park. All rights reserved."
+  }
+}

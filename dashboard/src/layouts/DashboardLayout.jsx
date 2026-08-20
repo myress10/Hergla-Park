@@ -1,11 +1,13 @@
 import { Outlet, useNavigate, Link } from 'react-router-dom';
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
 import Sidebar from '../components/Sidebar';
 import { getAuditLogs } from '../api/auditLogsApi';
 import { getEspaces } from '../api/espacesApi';
 import { getUsers } from '../api/usersApi';
+import { subscribeActivity } from '../utils/activityBus';
 import {
   Bell,
   Building,
@@ -37,55 +39,6 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { Toaster, toast } from 'react-hot-toast';
-
-// Initial notification fallback dataset
-const DEFAULT_NOTIFICATIONS = [
-  {
-    id: 'n1',
-    type: 'warning',
-    title: 'Tentative de connexion inhabituelle',
-    message: 'Compte h.karim@herglapark.tn — 3 tentatives bloquées par le pare-feu.',
-    time: 'Il y a 5 min',
-    targetRoute: '/audit-logs',
-    read: false,
-  },
-  {
-    id: 'n2',
-    type: 'info',
-    title: 'Mise à jour des permissions',
-    message: 'Rôle ADMIN attribué avec succès pour Sonia Ben Romdhane.',
-    time: 'Il y a 14 min',
-    targetRoute: '/utilisateurs',
-    read: false,
-  },
-  {
-    id: 'n3',
-    type: 'success',
-    title: 'Flotte Karts actualisée',
-    message: '3 karts Sodi RT10 inspectés et prêts pour la session Grand Prix.',
-    time: 'Il y a 1 h',
-    targetRoute: '/configuration-karts',
-    read: false,
-  },
-  {
-    id: 'n4',
-    type: 'info',
-    title: 'Espace attraction ouvert',
-    message: "L'espace Piste Karting Principale est désormais opérationnel.",
-    time: 'Il y a 2 h',
-    targetRoute: '/espaces',
-    read: true,
-  },
-  {
-    id: 'n5',
-    type: 'error',
-    title: 'Alerte maintenance requise',
-    message: 'Capteur de télémétrie Kart #08 nécessite une réinitialisation.',
-    time: 'Hier, 16:45',
-    targetRoute: '/configuration-karts',
-    read: true,
-  },
-];
 
 // Helper to format notification icon & colors
 function getNotifConfig(type) {
@@ -119,6 +72,7 @@ function useClickOutside(ref, handler) {
 }
 
 export default function DashboardLayout() {
+  const { t } = useTranslation();
   const { user, availableCompanies, activeCompanyId, switchCompany, logout } = useAuth();
   const { lang, switchLang } = useLang();
   const navigate = useNavigate();
@@ -152,10 +106,55 @@ export default function DashboardLayout() {
   const [notifications, setNotifications] = useState(() => {
     try {
       const saved = localStorage.getItem('hergla_notifications_store');
-      return saved ? JSON.parse(saved) : DEFAULT_NOTIFICATIONS;
-    } catch {
-      return DEFAULT_NOTIFICATIONS;
-    }
+      if (saved) return JSON.parse(saved);
+    } catch (_) {}
+    return [
+      {
+        id: 'n1',
+        type: 'warning',
+        titleKey: 'notifications.n1Title',
+        messageKey: 'notifications.n1Msg',
+        timeKey: 'notifications.time5m',
+        targetRoute: '/audit-logs',
+        read: false,
+      },
+      {
+        id: 'n2',
+        type: 'info',
+        titleKey: 'notifications.n2Title',
+        messageKey: 'notifications.n2Msg',
+        timeKey: 'notifications.time14m',
+        targetRoute: '/utilisateurs',
+        read: false,
+      },
+      {
+        id: 'n3',
+        type: 'success',
+        titleKey: 'notifications.n3Title',
+        messageKey: 'notifications.n3Msg',
+        timeKey: 'notifications.time1h',
+        targetRoute: '/configuration-karts',
+        read: false,
+      },
+      {
+        id: 'n4',
+        type: 'info',
+        titleKey: 'notifications.n4Title',
+        messageKey: 'notifications.n4Msg',
+        timeKey: 'notifications.time2h',
+        targetRoute: '/espaces',
+        read: true,
+      },
+      {
+        id: 'n5',
+        type: 'error',
+        titleKey: 'notifications.n5Title',
+        messageKey: 'notifications.n5Msg',
+        timeKey: 'notifications.timeYesterday',
+        targetRoute: '/configuration-karts',
+        read: true,
+      },
+    ];
   });
 
   // Sync notifications to localStorage
@@ -163,19 +162,33 @@ export default function DashboardLayout() {
     localStorage.setItem('hergla_notifications_store', JSON.stringify(notifications));
   }, [notifications]);
 
-  // Load real audit logs & entities for notifications and search
+  const isFirstLoadRef = useRef(true);
+
+  // Helper to format dynamic elapsed time
+  const formatTimeAgo = useCallback((isoString) => {
+    if (!isoString) return t('common.justNow');
+    const diffMs = Math.max(0, Date.now() - new Date(isoString).getTime());
+    const diffSec = Math.floor(diffMs / 1000);
+    if (diffSec < 10) return t('common.justNow');
+    if (diffSec < 60) return `${diffSec}s`;
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return t('common.minsAgo', { count: diffMin });
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return t('common.hoursAgo', { count: diffHours });
+    return t('common.daysAgo', { count: Math.floor(diffHours / 24) });
+  }, [t]);
+
+  // Load real audit logs & entities for notifications and search in real-time (<= 2 seconds)
   useEffect(() => {
     let isMounted = true;
 
     async function loadData() {
       try {
-        // Fetch spaces for universal search
         const espacesRes = await getEspaces().catch(() => null);
         if (isMounted && espacesRes?.data?.data) {
           setAllEspaces(espacesRes.data.data);
         }
 
-        // If admin/superadmin/root, fetch users for search
         if (isMounted && (user?.role === 'SUPERADMIN' || user?.role === 'ROOT')) {
           const usersRes = await getUsers().catch(() => null);
           if (usersRes?.data?.data) {
@@ -183,14 +196,13 @@ export default function DashboardLayout() {
           }
         }
 
-        // Fetch live audit logs to enrich notifications
-        const logsRes = await getAuditLogs({ limit: 8 }).catch(() => null);
+        const logsRes = await getAuditLogs({ limit: 12 }).catch(() => null);
         if (isMounted && logsRes?.data && Array.isArray(logsRes.data)) {
           const liveNotifs = logsRes.data.map((log, idx) => {
             const isWarning = log.action?.includes('DELETE') || log.action?.includes('LOCK');
             const isSuccess = log.action?.includes('CREATE') || log.action?.includes('STATUS');
             const type = isWarning ? 'warning' : isSuccess ? 'success' : 'info';
-            
+
             let targetRoute = '/audit-logs';
             if (log.action?.includes('KART')) targetRoute = '/configuration-karts';
             else if (log.action?.includes('ESPACE')) targetRoute = '/espaces';
@@ -202,32 +214,77 @@ export default function DashboardLayout() {
               type,
               title: `${log.action?.replace(/_/g, ' ') || 'Action Système'}`,
               message: `${log.actor?.nom || 'Admin'} : ${log.entityType || 'Module'} (${log.company?.nom || 'Hergla Park'})`,
-              time: 'Récent',
+              createdAt: log.createdAt || new Date().toISOString(),
               targetRoute,
               read: false,
             };
           });
 
           setNotifications((prev) => {
-            // Keep unique notifications
             const existingIds = new Set(prev.map((n) => n.id));
             const newOnes = liveNotifs.filter((n) => !existingIds.has(n.id));
+            
+            // If new events occurred in real time after initial load, pop a sleek notification toast
+            if (newOnes.length > 0 && !isFirstLoadRef.current) {
+              const latest = newOnes[0];
+              toast(
+                (tObj) => (
+                  <div className="flex items-center gap-3 cursor-pointer" onClick={() => { toast.dismiss(tObj.id); if (latest.targetRoute) navigate(latest.targetRoute); }}>
+                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center flex-shrink-0">
+                      <Bell size={16} className="animate-pulse" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white leading-tight">{latest.title}</p>
+                      <p className="text-[11px] text-slate-300 truncate">{latest.message}</p>
+                    </div>
+                  </div>
+                ),
+                {
+                  duration: 4000,
+                  style: {
+                    background: '#0f172a',
+                    color: '#f8fafc',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    borderRadius: '16px',
+                    padding: '10px 14px',
+                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+                  },
+                }
+              );
+            }
+
             if (newOnes.length > 0) {
-              return [...newOnes, ...prev].slice(0, 20);
+              return [...newOnes, ...prev].slice(0, 30);
             }
             return prev;
           });
+
+          if (isFirstLoadRef.current) {
+            isFirstLoadRef.current = false;
+          }
         }
       } catch (err) {
         console.error('Failed to load live notification/search data', err);
       }
     }
 
+    // 1. Immediate fetch on mount / role change
     loadData();
+
+    // 2. Real-time broadcast subscription (0ms latency for in-tab / cross-tab actions)
+    const unsubscribe = subscribeActivity(() => {
+      loadData();
+    });
+
+    // 3. Heartbeat polling every 2000ms (2 seconds guaranteed real-time interval)
+    const intervalId = setInterval(loadData, 2000);
+
     return () => {
       isMounted = false;
+      unsubscribe();
+      clearInterval(intervalId);
     };
-  }, [user?.role]);
+  }, [user?.role, navigate]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -273,7 +330,7 @@ export default function DashboardLayout() {
   // Notification actions
   const markAllRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    toast.success('Toutes les notifications marquées comme lues');
+    toast.success(t('topbar.allReadToast'));
   };
   const dismissNotif = (id) => setNotifications((prev) => prev.filter((n) => n.id !== id));
   const markOneRead = (notif) => {
@@ -285,7 +342,7 @@ export default function DashboardLayout() {
   };
   const clearAll = () => {
     setNotifications([]);
-    toast.success('Toutes les notifications effacées');
+    toast.success(t('topbar.clearedToast'));
   };
 
   // Settings toggles
@@ -293,19 +350,19 @@ export default function DashboardLayout() {
     const next = !securityLock;
     setSecurityLock(next);
     localStorage.setItem('hergla_security_lock', String(next));
-    toast(next ? '🔒 Verrouillage de sécurité activé' : '🔓 Verrouillage de sécurité désactivé', { icon: next ? '🔒' : '🔓' });
+    toast(next ? t('topbar.securityLockOn') : t('topbar.securityLockOff'), { icon: next ? '🔒' : '🔓' });
   };
   const toggleAutoAssign = () => {
     const next = !autoAssign;
     setAutoAssign(next);
     localStorage.setItem('hergla_auto_assign', String(next));
-    toast.success(next ? 'Auto-assignation activée' : 'Auto-assignation désactivée');
+    toast.success(next ? t('topbar.autoAssignOn') : t('topbar.autoAssignOff'));
   };
 
   // Logout
   const handleLogout = () => {
     logout();
-    toast.success('Déconnexion réussie');
+    toast.success(t('topbar.logoutSuccess'));
     navigate('/login');
   };
 
@@ -315,10 +372,10 @@ export default function DashboardLayout() {
     if (newCompanyId === activeCompanyId) return;
     try {
       const comp = await switchCompany(newCompanyId);
-      toast.success(`Entreprise active : ${comp.nom}`);
+      toast.success(t('topbar.companySwitched', { name: comp.nom }));
       window.location.reload();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Erreur lors de la bascule d'entreprise");
+      toast.error(err.response?.data?.message || t('topbar.companySwitchError'));
     }
   };
 
@@ -332,18 +389,18 @@ export default function DashboardLayout() {
     if (isSuperOrRoot) {
       items.push({
         id: 'mod-espaces',
-        category: 'Modules',
-        title: 'Vue d\'Ensemble des Espaces',
-        subtitle: 'Supervision globale du parc et attractions',
+        category: t('topbar.categories.modules'),
+        title: t('nav.spaces'),
+        subtitle: t('spaces.subtitle'),
         icon: Layers,
         route: '/espaces',
       });
     } else {
       items.push({
         id: 'mod-monespace',
-        category: 'Modules',
-        title: 'Mon Espace Assigné',
-        subtitle: 'Gestion de mon espace opérationnel',
+        category: t('topbar.categories.modules'),
+        title: t('nav.mySpace'),
+        subtitle: t('mySpace.operationalStatus'),
         icon: Layers,
         route: '/mon-espace',
       });
@@ -351,18 +408,18 @@ export default function DashboardLayout() {
 
     items.push({
       id: 'mod-editeur-3d',
-      category: 'Modules',
-      title: 'Studio & Éditeur 3D',
-      subtitle: 'Aménagement immersif et objets 3D',
+      category: t('topbar.categories.modules'),
+      title: t('nav.editor3d'),
+      subtitle: t('sceneEditor.subtitle'),
       icon: Box,
       route: '/editeur-3d',
     });
 
     items.push({
       id: 'mod-karts',
-      category: 'Modules',
-      title: 'Configuration Flotte Karts',
-      subtitle: 'Gestion des karts, numéros et modèles',
+      category: t('topbar.categories.modules'),
+      title: t('nav.kartsConfig'),
+      subtitle: t('karts.subtitle'),
       icon: Flag,
       route: '/configuration-karts',
     });
@@ -370,9 +427,9 @@ export default function DashboardLayout() {
     if (isSuperOrRoot) {
       items.push({
         id: 'mod-users',
-        category: 'Modules',
-        title: 'Gestion des Utilisateurs',
-        subtitle: 'Comptes, rôles et affectations',
+        category: t('topbar.categories.modules'),
+        title: t('nav.users'),
+        subtitle: t('users.subtitle'),
         icon: UsersIcon,
         route: '/utilisateurs',
       });
@@ -381,9 +438,9 @@ export default function DashboardLayout() {
     if (isAdminOrAbove) {
       items.push({
         id: 'mod-audit',
-        category: 'Modules',
-        title: 'Journal des Logs d\'Audit',
-        subtitle: 'Historique des actions système',
+        category: t('topbar.categories.modules'),
+        title: t('nav.auditLogs'),
+        subtitle: t('audit.subtitle'),
         icon: ShieldCheck,
         route: '/audit-logs',
       });
@@ -391,9 +448,9 @@ export default function DashboardLayout() {
 
     items.push({
       id: 'mod-profile',
-      category: 'Modules',
-      title: 'Mon Profil & Paramètres',
-      subtitle: 'Informations personnelles et mot de passe',
+      category: t('topbar.categories.modules'),
+      title: t('nav.myProfile'),
+      subtitle: t('profile.subtitle'),
       icon: User,
       route: '/mon-profil',
     });
@@ -402,28 +459,28 @@ export default function DashboardLayout() {
     allEspaces.forEach((esp) => {
       items.push({
         id: `esp-${esp.id}`,
-        category: 'Espaces d\'Attraction',
+        category: t('topbar.categories.spaces'),
         title: esp.nom,
-        subtitle: `Catégorie : ${esp.categorie || 'Parc'} • Statut : ${esp.statut || 'OUVERT'}`,
+        subtitle: `${esp.categorie || 'Parc'} • ${t('spaces.statuses.' + (esp.statut || 'OUVERT'))}`,
         icon: Layers,
         route: isSuperOrRoot ? `/espaces/${esp.id}` : '/mon-espace',
       });
     });
 
-    // 3. Flotte Karts Preset Search Entries
+    // 3. Flotte Karts
     const kartFleet = [
-      { no: '01', model: 'Sodi RT10', status: 'En Course' },
-      { no: '02', model: 'Sodi RT10', status: 'Stand' },
-      { no: '05', model: 'Sodi 2Drive', status: 'En Course' },
-      { no: '08', model: 'Sodi LR5 Junior', status: 'Maintenance' },
-      { no: '12', model: 'Sodi RT10 Pro', status: 'En Course' },
+      { no: '01', model: 'Sodi RT10' },
+      { no: '02', model: 'Sodi RT10' },
+      { no: '05', model: 'Sodi 2Drive' },
+      { no: '08', model: 'Sodi LR5 Junior' },
+      { no: '12', model: 'Sodi RT10 Pro' },
     ];
     kartFleet.forEach((k) => {
       items.push({
         id: `kart-${k.no}`,
-        category: 'Flotte Karts',
+        category: t('topbar.categories.karts'),
         title: `Kart #${k.no} (${k.model})`,
-        subtitle: `État : ${k.status} • Piste Principale`,
+        subtitle: `${t('karts.inService')}`,
         icon: Flag,
         route: '/configuration-karts',
       });
@@ -434,9 +491,9 @@ export default function DashboardLayout() {
       allUsers.forEach((u) => {
         items.push({
           id: `user-${u.id}`,
-          category: 'Utilisateurs',
+          category: t('topbar.categories.users'),
           title: u.nom,
-          subtitle: `${u.email} • Rôle : ${u.role}`,
+          subtitle: `${u.email} • ${u.role}`,
           icon: User,
           route: '/utilisateurs',
         });
@@ -446,38 +503,37 @@ export default function DashboardLayout() {
     // 5. Quick Actions
     items.push({
       id: 'act-lang-fr',
-      category: 'Actions Rapides',
-      title: 'Passer en Français',
-      subtitle: 'Changer la langue d\'interface en Français',
+      category: t('topbar.categories.quickActions'),
+      title: t('topbar.switchLangFr'),
+      subtitle: t('topbar.switchLangFrSub'),
       icon: Globe,
-      action: () => { switchLang('fr'); toast.success('Langue : Français'); },
+      action: () => { switchLang('fr'); toast.success(t('topbar.langChangedFr')); },
     });
     items.push({
       id: 'act-lang-ar',
-      category: 'Actions Rapides',
-      title: 'التحويل إلى العربية',
-      subtitle: 'تغيير لغة لوحة التحكم إلى العربية',
+      category: t('topbar.categories.quickActions'),
+      title: t('topbar.switchLangAr'),
+      subtitle: t('topbar.switchLangArSub'),
       icon: Globe,
-      action: () => { switchLang('ar'); toast.success('تم التغيير: العربية'); },
+      action: () => { switchLang('ar'); toast.success(t('topbar.langChangedAr')); },
     });
     items.push({
       id: 'act-lang-en',
-      category: 'Actions Rapides',
-      title: 'Switch to English',
-      subtitle: 'Change interface language to English',
+      category: t('topbar.categories.quickActions'),
+      title: t('topbar.switchLangEn'),
+      subtitle: t('topbar.switchLangEnSub'),
       icon: Globe,
-      action: () => { switchLang('en'); toast.success('Language: English'); },
+      action: () => { switchLang('en'); toast.success(t('topbar.langChangedEn')); },
     });
 
     return items;
-  }, [user?.role, allEspaces, allUsers, switchLang]);
+  }, [user?.role, allEspaces, allUsers, switchLang, t]);
 
   // Filtered search results
   const searchResults = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     if (!query) {
-      // Return top module suggestions if no query
-      return searchableItems.filter((i) => i.category === 'Modules' || i.category === 'Actions Rapides').slice(0, 6);
+      return searchableItems.filter((i) => i.category === t('topbar.categories.modules') || i.category === t('topbar.categories.quickActions')).slice(0, 6);
     }
     return searchableItems.filter(
       (item) =>
@@ -485,7 +541,7 @@ export default function DashboardLayout() {
         item.subtitle.toLowerCase().includes(query) ||
         item.category.toLowerCase().includes(query)
     ).slice(0, 10);
-  }, [searchQuery, searchableItems]);
+  }, [searchQuery, searchableItems, t]);
 
   const handleSelectSearchResult = (item) => {
     setSearchOpen(false);
@@ -516,12 +572,7 @@ export default function DashboardLayout() {
     ? user.nom.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
     : 'A';
 
-  const roleLabel =
-    user?.role === 'SUPERADMIN' ? 'System Master'
-    : user?.role === 'ROOT' ? 'Root Controller'
-    : user?.role === 'ADMIN' ? 'Administrateur'
-    : user?.role === 'EMPLOYE' ? 'Employé'
-    : user?.role || 'Utilisateur';
+  const roleLabel = user?.role || 'Utilisateur';
 
   return (
     <div className="min-h-screen bg-slate-100 flex font-sans">
@@ -548,7 +599,7 @@ export default function DashboardLayout() {
                   setSelectedIndex(0);
                 }}
                 onKeyDown={handleSearchKeyDown}
-                placeholder="Rechercher modules, espaces, karts, staff… (Ctrl+K)"
+                placeholder={t('topbar.searchPlaceholder')}
                 className="bg-slate-100/90 text-slate-800 text-xs font-medium rounded-xl ps-9 pe-14 py-2 w-64 sm:w-80 md:w-96 border border-slate-200/70 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 focus:outline-none transition-all placeholder:text-slate-400 shadow-inner"
                 id="topbar-search-input"
               />
@@ -576,9 +627,9 @@ export default function DashboardLayout() {
                 <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
                   <span className="flex items-center gap-1.5 font-bold text-slate-700">
                     <Sparkles size={13} className="text-indigo-600" />
-                    {searchQuery ? `Résultats pour "${searchQuery}"` : 'Suggestions & Navigation rapide'}
+                    {searchQuery ? t('topbar.searchResultsFor', { query: searchQuery }) : t('topbar.searchSuggestions')}
                   </span>
-                  <span className="text-[10px] text-slate-400">{searchResults.length} trouvé(s)</span>
+                  <span className="text-[10px] text-slate-400">{t('topbar.foundCount', { count: searchResults.length })}</span>
                 </div>
 
                 {/* Results List */}
@@ -586,8 +637,8 @@ export default function DashboardLayout() {
                   {searchResults.length === 0 ? (
                     <div className="py-8 text-center">
                       <Search size={24} className="mx-auto text-slate-300 mb-1.5" />
-                      <p className="text-xs text-slate-600 font-bold">Aucun résultat trouvé</p>
-                      <p className="text-[11px] text-slate-400 mt-0.5">Essayez un autre mot-clé (ex: "kart", "studio", "espace")</p>
+                      <p className="text-xs text-slate-600 font-bold">{t('topbar.noResultsFound')}</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">{t('topbar.tryOtherKeyword')}</p>
                     </div>
                   ) : (
                     searchResults.map((item, idx) => {
@@ -616,7 +667,7 @@ export default function DashboardLayout() {
                             </div>
                             <p className="text-[10px] text-slate-400 truncate mt-0.5">{item.subtitle}</p>
                           </div>
-                          <ArrowRight size={13} className={`flex-shrink-0 transition-transform ${isSelected ? 'text-indigo-600 translate-x-0.5' : 'text-slate-300'}`} />
+                          <ArrowRight size={13} className={`flex-shrink-0 transition-transform ${isSelected ? 'text-indigo-600 translate-x-0.5 rtl:-translate-x-0.5' : 'text-slate-300'}`} />
                         </div>
                       );
                     })
@@ -625,8 +676,8 @@ export default function DashboardLayout() {
 
                 {/* Footer hint */}
                 <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/60 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Navigation : <kbd className="font-sans font-bold">↑</kbd> <kbd className="font-sans font-bold">↓</kbd> pour naviguer</span>
-                  <span><kbd className="font-sans font-bold">Entrée</kbd> pour valider</span>
+                  <span>{t('topbar.navigation')} <kbd className="font-sans font-bold">↑</kbd> <kbd className="font-sans font-bold">↓</kbd> {t('topbar.navHint')}</span>
+                  <span><kbd className="font-sans font-bold">↵</kbd> {t('topbar.enterHint')}</span>
                 </div>
               </div>
             )}
@@ -658,7 +709,7 @@ export default function DashboardLayout() {
                 onClick={openSettings}
                 className={`p-2 rounded-xl transition-all ${settingsOpen ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
                 id="topbar-global-btn"
-                title="Paramètres Globaux & Langues"
+                title={t('topbar.globalSettings')}
               >
                 <Globe size={18} />
               </button>
@@ -669,7 +720,7 @@ export default function DashboardLayout() {
                   <div className="px-4 py-3.5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Globe size={16} className="text-emerald-400" />
-                      <span className="text-xs font-extrabold uppercase tracking-wider">Paramètres Globaux</span>
+                      <span className="text-xs font-extrabold uppercase tracking-wider">{t('topbar.globalSettings')}</span>
                     </div>
                     <button onClick={() => setSettingsOpen(false)} className="p-1 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white">
                       <X size={14} />
@@ -680,9 +731,9 @@ export default function DashboardLayout() {
                     {/* Unified Language Selector (Français, العربية, English) */}
                     <div>
                       <div className="flex items-center justify-between px-1 pb-1.5">
-                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Langue de l'Interface</p>
+                        <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">{t('topbar.uiLanguage')}</p>
                         <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
-                          {lang === 'fr' ? 'FR' : lang === 'ar' ? 'AR' : 'EN'} Actif
+                          {lang === 'fr' ? 'FR' : lang === 'ar' ? 'AR' : 'EN'} {t('topbar.active')}
                         </span>
                       </div>
 
@@ -691,7 +742,7 @@ export default function DashboardLayout() {
                           type="button"
                           onClick={() => {
                             switchLang('fr');
-                            toast.success('Langue changée : Français');
+                            toast.success(t('topbar.langChangedFr'));
                           }}
                           className={`py-2 px-2 rounded-xl text-xs font-extrabold border transition-all flex flex-col items-center gap-1 ${
                             lang === 'fr'
@@ -707,7 +758,7 @@ export default function DashboardLayout() {
                           type="button"
                           onClick={() => {
                             switchLang('ar');
-                            toast.success('تم تغيير اللغة : العربية');
+                            toast.success(t('topbar.langChangedAr'));
                           }}
                           className={`py-2 px-2 rounded-xl text-xs font-extrabold border transition-all flex flex-col items-center gap-1 ${
                             lang === 'ar'
@@ -723,7 +774,7 @@ export default function DashboardLayout() {
                           type="button"
                           onClick={() => {
                             switchLang('en');
-                            toast.success('Language changed: English');
+                            toast.success(t('topbar.langChangedEn'));
                           }}
                           className={`py-2 px-2 rounded-xl text-xs font-extrabold border transition-all flex flex-col items-center gap-1 ${
                             lang === 'en'
@@ -741,15 +792,15 @@ export default function DashboardLayout() {
 
                     {/* Security & System Toggles */}
                     <div>
-                      <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1 pb-1">Sécurité & Système</p>
+                      <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1 pb-1">{t('topbar.securitySystem')}</p>
 
                       {/* Security Lock Toggle */}
                       <div className="flex items-center justify-between px-2 py-2 rounded-xl hover:bg-slate-50 transition-colors">
                         <div className="flex items-center gap-2.5">
                           {securityLock ? <Lock size={14} className="text-slate-800" /> : <Unlock size={14} className="text-slate-400" />}
                           <div>
-                            <p className="text-xs font-semibold text-slate-800">Verrouillage Sécurité</p>
-                            <p className="text-[10px] text-slate-400">{securityLock ? 'Activé — accès restreint' : 'Désactivé'}</p>
+                            <p className="text-xs font-semibold text-slate-800">{t('topbar.securityLock')}</p>
+                            <p className="text-[10px] text-slate-400">{securityLock ? t('topbar.securityLockEnabled') : t('topbar.securityLockDisabled')}</p>
                           </div>
                         </div>
                         <button
@@ -759,7 +810,7 @@ export default function DashboardLayout() {
                           style={{ width: 40, height: 22 }}
                         >
                           <span
-                            className={`block w-4 h-4 rounded-full bg-white shadow transition-transform absolute top-[3px] ${securityLock ? 'translate-x-[20px]' : 'translate-x-[3px]'}`}
+                            className={`block w-4 h-4 rounded-full bg-white shadow transition-transform absolute top-[3px] ${securityLock ? 'translate-x-[20px] rtl:-translate-x-[20px]' : 'translate-x-[3px] rtl:-translate-x-[3px]'}`}
                           />
                         </button>
                       </div>
@@ -769,8 +820,8 @@ export default function DashboardLayout() {
                         <div className="flex items-center gap-2.5">
                           <RotateCcw size={14} className={autoAssign ? 'text-emerald-600' : 'text-slate-400'} />
                           <div>
-                            <p className="text-xs font-semibold text-slate-800">Auto-Assignation</p>
-                            <p className="text-[10px] text-slate-400">{autoAssign ? 'Attribution automatique' : 'Manuel'}</p>
+                            <p className="text-xs font-semibold text-slate-800">{t('topbar.autoAssign')}</p>
+                            <p className="text-[10px] text-slate-400">{autoAssign ? t('topbar.autoAssignEnabled') : t('topbar.autoAssignManual')}</p>
                           </div>
                         </div>
                         <button
@@ -780,7 +831,7 @@ export default function DashboardLayout() {
                           style={{ width: 40, height: 22 }}
                         >
                           <span
-                            className={`block w-4 h-4 rounded-full bg-white shadow transition-transform absolute top-[3px] ${autoAssign ? 'translate-x-[20px]' : 'translate-x-[3px]'}`}
+                            className={`block w-4 h-4 rounded-full bg-white shadow transition-transform absolute top-[3px] ${autoAssign ? 'translate-x-[20px] rtl:-translate-x-[20px]' : 'translate-x-[3px] rtl:-translate-x-[3px]'}`}
                           />
                         </button>
                       </div>
@@ -790,7 +841,7 @@ export default function DashboardLayout() {
 
                     {/* Quick Access Links */}
                     <div>
-                      <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1 pb-1">Accès Direct</p>
+                      <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1 pb-1">{t('topbar.directAccess')}</p>
 
                       <Link
                         to="/audit-logs"
@@ -799,9 +850,9 @@ export default function DashboardLayout() {
                       >
                         <div className="flex items-center gap-2.5">
                           <ShieldCheck size={14} className="text-slate-500 group-hover:text-indigo-600" />
-                          <span className="text-xs font-semibold text-slate-700">Logs d'Audit & Sécurité</span>
+                          <span className="text-xs font-semibold text-slate-700">{t('topbar.auditSecurityLogs')}</span>
                         </div>
-                        <ChevronRight size={12} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
+                        <ChevronRight size={12} className="text-slate-300 group-hover:text-slate-600 transition-colors rtl:rotate-180" />
                       </Link>
 
                       <Link
@@ -811,18 +862,18 @@ export default function DashboardLayout() {
                       >
                         <div className="flex items-center gap-2.5">
                           <Settings size={14} className="text-slate-500 group-hover:text-indigo-600" />
-                          <span className="text-xs font-semibold text-slate-700">Gestion Utilisateurs</span>
+                          <span className="text-xs font-semibold text-slate-700">{t('topbar.userManagement')}</span>
                         </div>
-                        <ChevronRight size={12} className="text-slate-300 group-hover:text-slate-600 transition-colors" />
+                        <ChevronRight size={12} className="text-slate-300 group-hover:text-slate-600 transition-colors rtl:rotate-180" />
                       </Link>
                     </div>
                   </div>
 
-                  {/* Footer: App version & multi-tenant status */}
+                  {/* Footer */}
                   <div className="px-4 py-2.5 border-t border-slate-100 bg-slate-50 flex items-center justify-between text-[10px] text-slate-400">
-                    <span>Hergla Park v2.4 · Multi-Tenant</span>
+                    <span>{t('topbar.appVersion')}</span>
                     <span className="inline-flex items-center gap-1 text-emerald-600 font-bold">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Connecté
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> {t('topbar.connectedStatus')}
                     </span>
                   </div>
                 </div>
@@ -836,7 +887,7 @@ export default function DashboardLayout() {
                 onClick={openNotif}
                 className={`relative p-2 rounded-xl transition-all ${notifOpen ? 'bg-slate-900 text-white shadow-md' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`}
                 id="topbar-notifications-btn"
-                title="Notifications Système"
+                title={t('topbar.notifCenter')}
               >
                 <Bell size={18} />
                 {unreadCount > 0 && (
@@ -852,10 +903,10 @@ export default function DashboardLayout() {
                   <div className="px-4 py-3.5 bg-gradient-to-r from-slate-900 to-indigo-950 text-white flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Bell size={15} className="text-emerald-400" />
-                      <span className="text-xs font-extrabold uppercase tracking-wider">Centre de Notifications</span>
+                      <span className="text-xs font-extrabold uppercase tracking-wider">{t('topbar.notifCenter')}</span>
                       {unreadCount > 0 && (
                         <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black px-2 py-0.5 rounded-full">
-                          {unreadCount} nouvelle(s)
+                          {t('topbar.newNotifs', { count: unreadCount })}
                         </span>
                       )}
                     </div>
@@ -864,7 +915,7 @@ export default function DashboardLayout() {
                         <button
                           onClick={markAllRead}
                           className="p-1 hover:bg-white/10 rounded-lg text-slate-300 hover:text-emerald-300 transition-colors"
-                          title="Tout marquer comme lu"
+                          title={t('topbar.markAllRead')}
                         >
                           <CheckCheck size={14} />
                         </button>
@@ -873,7 +924,7 @@ export default function DashboardLayout() {
                         <button
                           onClick={clearAll}
                           className="p-1 hover:bg-white/10 rounded-lg text-slate-300 hover:text-red-300 transition-colors"
-                          title="Effacer tout"
+                          title={t('topbar.clearAll')}
                         >
                           <Trash2 size={14} />
                         </button>
@@ -890,19 +941,19 @@ export default function DashboardLayout() {
                       onClick={() => setNotifTab('all')}
                       className={`flex-1 py-1.5 rounded-lg transition-all ${notifTab === 'all' ? 'bg-white text-slate-900 shadow-xs' : 'hover:text-slate-900'}`}
                     >
-                      Toutes ({notifications.length})
+                      {t('topbar.allNotifs')} ({notifications.length})
                     </button>
                     <button
                       onClick={() => setNotifTab('unread')}
                       className={`flex-1 py-1.5 rounded-lg transition-all ${notifTab === 'unread' ? 'bg-white text-slate-900 shadow-xs' : 'hover:text-slate-900'}`}
                     >
-                      Non lues ({unreadCount})
+                      {t('topbar.unreadNotifs')} ({unreadCount})
                     </button>
                     <button
                       onClick={() => setNotifTab('alerts')}
                       className={`flex-1 py-1.5 rounded-lg transition-all ${notifTab === 'alerts' ? 'bg-white text-slate-900 shadow-xs' : 'hover:text-slate-900'}`}
                     >
-                      Alertes
+                      {t('topbar.alertsNotifs')}
                     </button>
                   </div>
 
@@ -911,13 +962,17 @@ export default function DashboardLayout() {
                     {filteredNotifications.length === 0 ? (
                       <div className="py-10 text-center">
                         <Bell size={28} className="mx-auto text-slate-200 mb-2" />
-                        <p className="text-xs text-slate-500 font-bold">Aucune notification à afficher</p>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Le flux d'événements du parc est à jour.</p>
+                        <p className="text-xs text-slate-500 font-bold">{t('topbar.noNotifs')}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{t('topbar.parkEventsUpToDate')}</p>
                       </div>
                     ) : (
                       filteredNotifications.map((notif) => {
                         const cfg = getNotifConfig(notif.type);
                         const Icon = cfg.icon;
+                        const titleText = notif.titleKey ? t(notif.titleKey) : notif.title;
+                        const msgText = notif.messageKey ? t(notif.messageKey) : notif.message;
+                        const timeText = notif.createdAt ? formatTimeAgo(notif.createdAt) : notif.timeKey ? t(notif.timeKey) : notif.time;
+
                         return (
                           <div
                             key={notif.id}
@@ -932,7 +987,7 @@ export default function DashboardLayout() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
                                 <p className={`text-xs font-extrabold ${notif.read ? 'text-slate-700' : 'text-slate-950'} truncate`}>
-                                  {notif.title}
+                                  {titleText}
                                   {!notif.read && (
                                     <span className="inline-block w-2 h-2 rounded-full bg-blue-600 ms-1.5 mb-0.5 align-middle shadow-xs" />
                                   )}
@@ -948,12 +1003,12 @@ export default function DashboardLayout() {
                                   <X size={12} />
                                 </button>
                               </div>
-                              <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed line-clamp-2">{notif.message}</p>
+                              <p className="text-[11px] text-slate-600 mt-0.5 leading-relaxed line-clamp-2">{msgText}</p>
                               <div className="flex items-center justify-between mt-1.5 text-[10px] text-slate-400 font-medium">
-                                <span>{notif.time}</span>
+                                <span>{timeText}</span>
                                 {notif.targetRoute && (
                                   <span className="text-indigo-600 font-bold flex items-center gap-0.5 hover:underline">
-                                    Voir détail <ChevronRight size={10} />
+                                    {t('topbar.viewDetail')} <ChevronRight size={10} className="rtl:rotate-180" />
                                   </span>
                                 )}
                               </div>
@@ -972,10 +1027,10 @@ export default function DashboardLayout() {
                       className="flex items-center gap-1.5 text-[11px] font-extrabold text-slate-700 hover:text-indigo-600 transition-colors"
                     >
                       <ShieldCheck size={13} />
-                      Historique complet des audits
+                      {t('topbar.fullAuditHistory')}
                       <ExternalLink size={11} />
                     </Link>
-                    <span className="text-[10px] text-slate-400">Temps réel</span>
+                    <span className="text-[10px] text-slate-400">{t('topbar.realTime')}</span>
                   </div>
                 </div>
               )}
@@ -1028,22 +1083,22 @@ export default function DashboardLayout() {
                       className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors group"
                     >
                       <User size={14} className="text-slate-400 group-hover:text-slate-700 transition-colors" />
-                      Mon Profil
-                      <ChevronRight size={12} className="ms-auto text-slate-300 group-hover:text-slate-500" />
+                      {t('topbar.myProfile')}
+                      <ChevronRight size={12} className="ms-auto text-slate-300 group-hover:text-slate-500 rtl:rotate-180" />
                     </Link>
 
                     <button
                       type="button"
                       onClick={() => {
                         setProfileOpen(false);
-                        toast('Changement de mot de passe — Rendez-vous sur Mon Profil', { icon: '🔑' });
+                        toast(t('topbar.passwordChangeToast'), { icon: '🔑' });
                         navigate('/mon-profil');
                       }}
                       className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors group"
                     >
                       <Key size={14} className="text-slate-400 group-hover:text-slate-700 transition-colors" />
-                      Changer le mot de passe
-                      <ChevronRight size={12} className="ms-auto text-slate-300 group-hover:text-slate-500" />
+                      {t('topbar.changePassword')}
+                      <ChevronRight size={12} className="ms-auto text-slate-300 group-hover:text-slate-500 rtl:rotate-180" />
                     </button>
 
                     <Link
@@ -1052,19 +1107,19 @@ export default function DashboardLayout() {
                       className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors group"
                     >
                       <ShieldCheck size={14} className="text-slate-400 group-hover:text-slate-700 transition-colors" />
-                      Historique d'activité
-                      <ChevronRight size={12} className="ms-auto text-slate-300 group-hover:text-slate-500" />
+                      {t('topbar.activityHistory')}
+                      <ChevronRight size={12} className="ms-auto text-slate-300 group-hover:text-slate-500 rtl:rotate-180" />
                     </Link>
 
                     {/* Role badge info */}
                     <div className="mx-2 my-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-100">
-                      <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">Niveau d'accès</p>
+                      <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-0.5">{t('topbar.accessLevel')}</p>
                       <p className="text-xs font-bold text-slate-700">{roleLabel}</p>
                       <p className="text-[10px] text-slate-400 mt-0.5">
-                        {user?.role === 'ROOT' ? 'Accès total — toutes fonctions' :
-                         user?.role === 'SUPERADMIN' ? 'Accès total à tous les espaces' :
-                         user?.role === 'ADMIN' ? 'Accès à l\'espace assigné' :
-                         'Accès limité à l\'espace assigné'}
+                        {user?.role === 'ROOT' ? t('topbar.totalAccessAll') :
+                         user?.role === 'SUPERADMIN' ? t('topbar.totalAccessSpaces') :
+                         user?.role === 'ADMIN' ? t('topbar.accessAssignedSpace') :
+                         t('topbar.limitedAccess')}
                       </p>
                     </div>
 
@@ -1077,13 +1132,13 @@ export default function DashboardLayout() {
                       id="profile-logout-btn"
                     >
                       <LogOut size={14} />
-                      Se déconnecter
+                      {t('common.logout')}
                     </button>
                   </div>
 
                   {/* Footer */}
                   <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/60">
-                    <p className="text-[10px] text-slate-400 font-medium text-center">Hergla Park · Session active</p>
+                    <p className="text-[10px] text-slate-400 font-medium text-center">{t('topbar.activeSession')}</p>
                   </div>
                 </div>
               )}

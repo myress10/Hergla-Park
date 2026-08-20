@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getAuditLogs } from '../api/auditLogsApi';
+import { subscribeActivity } from '../utils/activityBus';
 import Modal from '../components/Modal';
 import {
   ShieldCheck,
@@ -71,6 +72,19 @@ export default function AuditLogsPage() {
 
   useEffect(() => {
     fetchLogs(1);
+
+    const unsubscribe = subscribeActivity(() => {
+      fetchLogs(1);
+    });
+
+    const intervalId = setInterval(() => {
+      fetchLogs(1);
+    }, 2000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(intervalId);
+    };
   }, [fetchLogs]);
 
   const handleSearchSubmit = (e) => {
@@ -219,7 +233,7 @@ export default function AuditLogsPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         {log.isRootIntervention ? (
                           <span className="bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded-md border border-amber-200">
-                            Intervention ROOT
+                            {t('users.auditModal.stealthCheck')}
                           </span>
                         ) : (
                           <span className="text-xs text-slate-500 font-medium">
@@ -249,7 +263,7 @@ export default function AuditLogsPage() {
         {meta.totalPages > 1 && (
           <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
             <span>
-              Page <strong>{meta.page}</strong> sur <strong>{meta.totalPages}</strong> ({meta.total} entrées au total)
+              {t('users.pagination.showing', { from: ((meta.page - 1) * 15) + 1, to: Math.min(meta.page * 15, meta.total), total: meta.total })}
             </span>
             <div className="flex items-center gap-2">
               <button

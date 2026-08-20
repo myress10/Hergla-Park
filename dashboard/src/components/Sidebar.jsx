@@ -61,7 +61,7 @@ export default function Sidebar() {
           </div>
           <div>
             <p className="text-white font-bold text-sm leading-tight">Hergla Park</p>
-            <p className="text-slate-400 text-xs uppercase tracking-wider">Admin Dashboard</p>
+            <p className="text-slate-400 text-xs uppercase tracking-wider">{t('sidebar.adminDashboard')}</p>
           </div>
         </div>
       </div>
@@ -91,7 +91,7 @@ export default function Sidebar() {
       <div className="px-3 py-4 border-t border-white/10">
         {/* Role badge */}
         <div className="px-3 py-2 mb-3">
-          <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Role Status</p>
+          <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">{t('sidebar.roleStatus')}</p>
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
             <span className="text-emerald-400 text-xs font-semibold">{user?.role}</span>

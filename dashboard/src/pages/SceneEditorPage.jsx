@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getEspaces } from '../api/espacesApi';
@@ -15,10 +16,9 @@ import RootVerificationModal from '../components/RootVerificationModal';
 
 /**
  * Main scene editor page.
- * - SUPERADMIN: can select which space to edit via a dropdown
- * - ADMIN/EMPLOYE: their assigned space is loaded automatically
  */
 export default function SceneEditorPage() {
+  const { t } = useTranslation();
   const { espaceId: paramId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ export default function SceneEditorPage() {
 
   // ROOT verification modal
   const [rootSceneModalOpen, setRootSceneModalOpen] = useState(false);
-  const [pendingSceneAction, setPendingSceneAction] = useState(null); // { type: 'reset'|'set-original' }
+  const [pendingSceneAction, setPendingSceneAction] = useState(null);
 
   // Warn before leaving with unsaved changes
   useEffect(() => {
@@ -65,9 +65,9 @@ export default function SceneEditorPage() {
     setCatalogLoading(true);
     getObjects3D()
       .then((res) => setObjects(res.data.data || res.data || []))
-      .catch(() => toast.error('Impossible de charger le catalogue'))
+      .catch(() => toast.error(t('sceneEditor.emptyCatalog')))
       .finally(() => setCatalogLoading(false));
-  }, []);
+  }, [t]);
 
   // Load espaces list for SUPERADMIN selector
   useEffect(() => {
@@ -107,11 +107,11 @@ export default function SceneEditorPage() {
       const espace = espaces.find((e) => e.id === id);
       setEspaceName(espace?.nom || '');
     } catch {
-      toast.error('Impossible de charger la scène');
+      toast.error(t('common.error'));
     } finally {
       setSceneLoading(false);
     }
-  }, [objects, espaces]);
+  }, [objects, espaces, t]);
 
   useEffect(() => {
     if (selectedEspaceId) loadScene(selectedEspaceId);
@@ -172,13 +172,13 @@ export default function SceneEditorPage() {
       await updateSpaceScene(selectedEspaceId, payload);
       setIsDirty(false);
       historyRef.current = [];
-      toast.success('Scène enregistrée avec succès');
+      toast.success(t('sceneEditor.saveSuccess'));
     } catch {
-      toast.error("Erreur lors de l'enregistrement");
+      toast.error(t('sceneEditor.saveError'));
     } finally {
       setSaving(false);
     }
-  }, [selectedEspaceId, placements]);
+  }, [selectedEspaceId, placements, t]);
 
   // ── Reset ────────────────────────────────────────────────────────────────────────────
   const performReset = useCallback(async (reason) => {
@@ -204,11 +204,11 @@ export default function SceneEditorPage() {
       );
       setIsDirty(false);
       historyRef.current = [];
-      toast.success('Scène réinitialisée');
+      toast.success(t('sceneEditor.resetSuccess'));
     } catch {
-      toast.error('Erreur lors de la réinitialisation');
+      toast.error(t('common.error'));
     }
-  }, [selectedEspaceId, objects]);
+  }, [selectedEspaceId, objects, t]);
 
   const handleReset = useCallback(() => {
     if (user?.role === 'ROOT') {
@@ -225,13 +225,13 @@ export default function SceneEditorPage() {
     setSettingOriginal(true);
     try {
       await setAsOriginalSpaceScene(selectedEspaceId, reason);
-      toast.success('Disposition actuelle définie comme version officielle');
+      toast.success(t('sceneEditor.setOriginalSuccess'));
     } catch {
-      toast.error('Erreur lors de la définition de la version originale');
+      toast.error(t('common.error'));
     } finally {
       setSettingOriginal(false);
     }
-  }, [selectedEspaceId]);
+  }, [selectedEspaceId, t]);
 
   const handleSetAsOriginal = useCallback(() => {
     if (user?.role === 'ROOT') {
@@ -253,12 +253,12 @@ export default function SceneEditorPage() {
     setPendingSceneAction(null);
   };
 
-  // ── Catalog drag start (store in sessionStorage to bridge HTML5 drag ↔ R3F)
+  // ── Catalog drag start
   const handleCatalogDragStart = useCallback((obj) => {
     sessionStorage.setItem('draggingObject', JSON.stringify(obj));
   }, []);
 
-  // ── Upload callback ───────────────────────────────────────────────────────
+  // ── Upload callback
   const handleUploaded = useCallback((newObj) => {
     setObjects((p) => [...p, newObj]);
     setUploadOpen(false);
@@ -282,18 +282,18 @@ export default function SceneEditorPage() {
       {/* SUPERADMIN space selector */}
       {user?.role === 'SUPERADMIN' && (
         <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center gap-3">
-          <label className="text-xs font-semibold text-slate-600">Espace :</label>
+          <label className="text-xs font-semibold text-slate-600">{t('spaces.title')} :</label>
           <div className="relative">
             <select
               id="space-selector"
               value={selectedEspaceId}
               onChange={(e) => {
-                if (isDirty && !window.confirm('Quitter la scène actuelle sans enregistrer ?')) return;
+                if (isDirty && !window.confirm(t('sceneEditor.unsavedChanges'))) return;
                 setSelectedEspaceId(e.target.value);
               }}
-              className="appearance-none pe-8 ps-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white"
+              className="appearance-none pe-8 ps-3 py-1.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 bg-white cursor-pointer"
             >
-              <option value="">— Sélectionner un espace —</option>
+              <option value="">{t('sceneEditor.selectSpace')}</option>
               {espaces.map((e) => <option key={e.id} value={e.id}>{e.nom}</option>)}
             </select>
             <ChevronDown size={14} className="absolute end-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -317,7 +317,7 @@ export default function SceneEditorPage() {
         <div className="flex-1 relative bg-slate-900 overflow-hidden">
           {!selectedEspaceId ? (
             <div className="absolute inset-0 flex items-center justify-center text-slate-400 text-sm">
-              Sélectionnez un espace pour commencer l'édition
+              {t('sceneEditor.selectSpace')}
             </div>
           ) : sceneLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">
@@ -339,7 +339,7 @@ export default function SceneEditorPage() {
         <div className="w-52 flex-shrink-0 overflow-hidden border-s border-slate-200 bg-white flex flex-col">
           <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
             <Layers size={14} className="text-indigo-500" />
-            <h3 className="text-xs font-semibold text-slate-700">Objets placés</h3>
+            <h3 className="text-xs font-semibold text-slate-700">{t('sceneEditor.placedObjectsTitle', { count: placements.length })}</h3>
             <span className="ms-auto text-xs text-slate-400">{placements.length}</span>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -365,11 +365,11 @@ export default function SceneEditorPage() {
         isOpen={rootSceneModalOpen}
         onClose={() => { setRootSceneModalOpen(false); setPendingSceneAction(null); }}
         onConfirm={handleRootSceneConfirm}
-        title="Validation Sécurité ROOT — Scène 3D"
+        title={t('rootModal.title')}
         actionName={
           pendingSceneAction?.type === 'reset'
-            ? "Réinitialisation irréversible de la scène (retour état initial)"
-            : "Définition de la disposition actuelle comme version originale officielle"
+            ? t('sceneEditor.resetModal.title')
+            : t('sceneEditor.setOriginalModal.title')
         }
       />
     </div>
