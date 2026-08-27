@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../context/AuthContext';
 import { useLang } from '../context/LangContext';
@@ -10,9 +10,12 @@ import {
   Phone,
   Globe,
   Lock,
+  Unlock,
   Key,
   Shield,
+  ShieldCheck,
   MapPin,
+  Map,
   Calendar,
   CheckCircle2,
   AlertCircle,
@@ -24,6 +27,14 @@ import {
   Activity,
   Layers,
   Award,
+  Flag,
+  Box,
+  Users as UsersIcon,
+  SlidersHorizontal,
+  Search,
+  X,
+  Check,
+  Info,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -54,6 +65,76 @@ const ROLE_CONFIGS = {
   },
 };
 
+const PERMISSION_DOMAINS = [
+  {
+    id: 'espaces',
+    icon: Map,
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    titleKey: 'users.categories.espaces',
+    defaultTitle: 'Espaces 3D',
+    permissionKeys: ['espace:create', 'espace:update'],
+  },
+  {
+    id: 'karting',
+    icon: Flag,
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
+    titleKey: 'users.categories.karting',
+    defaultTitle: 'Karts & Pistes',
+    permissionKeys: ['kart:manage', 'kart:read'],
+  },
+  {
+    id: 'studio3d',
+    icon: Box,
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
+    titleKey: 'users.categories.studio3d',
+    defaultTitle: 'Studio 3D',
+    permissionKeys: ['scene:edit'],
+  },
+  {
+    id: 'users',
+    icon: UsersIcon,
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+    titleKey: 'users.categories.users',
+    defaultTitle: 'Collaborateurs',
+    permissionKeys: ['user:create'],
+  },
+  {
+    id: 'security',
+    icon: ShieldCheck,
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+    titleKey: 'users.categories.security',
+    defaultTitle: 'Audit & Sécurité',
+    permissionKeys: ['logs:view', 'report:export'],
+  },
+  {
+    id: 'rights',
+    icon: Key,
+    color: 'text-rose-600',
+    bg: 'bg-rose-50',
+    titleKey: 'users.categories.rights',
+    defaultTitle: 'Droits & Rôles',
+    permissionKeys: ['role:update', 'role:assign'],
+  },
+];
+
+const ALL_PERMISSION_KEYS = [
+  { key: 'espace:create', labelKey: 'users.permissions.espaceCreate', descKey: 'users.permissions.espaceCreateDesc', domainId: 'espaces' },
+  { key: 'espace:update', labelKey: 'users.permissions.espaceUpdate', descKey: 'users.permissions.espaceUpdateDesc', domainId: 'espaces' },
+  { key: 'kart:manage', labelKey: 'users.permissions.kartManage', descKey: 'users.permissions.kartManageDesc', domainId: 'karting' },
+  { key: 'kart:read', labelKey: 'users.permissions.kartRead', descKey: 'users.permissions.kartReadDesc', domainId: 'karting' },
+  { key: 'scene:edit', labelKey: 'users.permissions.sceneEdit', descKey: 'users.permissions.sceneEditDesc', domainId: 'studio3d' },
+  { key: 'user:create', labelKey: 'users.permissions.userCreate', descKey: 'users.permissions.userCreateDesc', domainId: 'users' },
+  { key: 'logs:view', labelKey: 'users.permissions.logsView', descKey: 'users.permissions.logsViewDesc', domainId: 'security' },
+  { key: 'report:export', labelKey: 'users.permissions.reportExport', descKey: 'users.permissions.reportExportDesc', domainId: 'security' },
+  { key: 'role:update', labelKey: 'users.permissions.roleUpdate', descKey: 'users.permissions.roleUpdateDesc', domainId: 'rights' },
+  { key: 'role:assign', labelKey: 'users.permissions.roleAssign', descKey: 'users.permissions.roleAssignDesc', domainId: 'rights' },
+];
+
 export default function ProfilePage() {
   const { t } = useTranslation();
   const { user: authUser } = useAuth();
@@ -81,6 +162,54 @@ export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Privilege Matrix Modal State
+  const [privilegeModalOpen, setPrivilegeModalOpen] = useState(false);
+  const [permSearch, setPermSearch] = useState('');
+
+  // Role & Permissions computations
+  const isRoot = profileData.role === 'ROOT';
+  const isSuperAdmin = profileData.role === 'SUPERADMIN';
+  const isFullPlatformAccess = isRoot || isSuperAdmin;
+
+  const userActivePermissions = useMemo(() => {
+    if (isRoot) {
+      return ALL_PERMISSION_KEYS.map((p) => p.key);
+    }
+    if (isSuperAdmin) {
+      return ['espace:create', 'espace:update', 'kart:manage', 'kart:read', 'scene:edit', 'logs:view', 'report:export', 'user:create'];
+    }
+    if (profileData.customPermissions && profileData.customPermissions.length > 0) {
+      return profileData.customPermissions;
+    }
+    if (profileData.role === 'ADMIN') {
+      return ['espace:update', 'kart:manage', 'kart:read', 'scene:edit', 'report:export'];
+    }
+    return ['espace:update', 'kart:read', 'scene:edit'];
+  }, [isRoot, isSuperAdmin, profileData.role, profileData.customPermissions]);
+
+  const totalPermCount = ALL_PERMISSION_KEYS.length;
+  const activePermCount = userActivePermissions.length;
+  const coveragePercent = isFullPlatformAccess ? 100 : Math.round((activePermCount / totalPermCount) * 100);
+
+  const domainStats = useMemo(() => {
+    return PERMISSION_DOMAINS.map((domain) => {
+      const total = domain.permissionKeys.length;
+      const active = domain.permissionKeys.filter((k) => userActivePermissions.includes(k)).length;
+      const isComplete = active === total;
+      const isPartial = active > 0 && active < total;
+      const isNone = active === 0;
+
+      return {
+        ...domain,
+        total,
+        active,
+        isComplete,
+        isPartial,
+        isNone,
+      };
+    });
+  }, [userActivePermissions]);
 
   // Load fresh user data
   useEffect(() => {
@@ -519,22 +648,29 @@ export default function ProfilePage() {
         {/* Right Column: Role & Assigned Space Overview (Read-Only) (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           {/* 4. Role Hierarchy Overview Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                <Shield size={16} />
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                  <Shield size={16} />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-slate-900 text-sm">{t('profile.roleOverview')}</h3>
+                  <p className="text-[11px] text-slate-400">{t('profile.roleOverviewSub')}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-extrabold text-slate-900 text-sm">{t('profile.roleOverview')}</h3>
-                <p className="text-[11px] text-slate-400">{t('profile.roleOverviewSub')}</p>
-              </div>
+              <span className="text-[11px] font-mono font-extrabold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                Level {roleInfo.level}
+              </span>
             </div>
 
+            {/* Active Role summary */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-700">{t('profile.activeRole')} :</span>
                 <span className={`text-xs font-bold px-2.5 py-0.5 rounded-md border ${roleInfo.badgeBg}`}>
-                  {roleInfo.label}
+                  {roleInfo.icon} {roleInfo.label}
                 </span>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed pt-1">
@@ -546,25 +682,95 @@ export default function ProfilePage() {
               </p>
             </div>
 
-            {/* Custom Permissions overview */}
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 mb-2">
-                {t('profile.associatedPermissions')}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {(profileData.customPermissions && profileData.customPermissions.length > 0
-                  ? profileData.customPermissions
-                  : ['espace:read', 'espace:update', 'kart:read', 'scene:edit']
-                ).map((permKey) => (
-                  <span
-                    key={permKey}
-                    className="text-[11px] font-semibold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg border border-slate-200/80 font-mono"
-                  >
-                    ✓ {permKey}
-                  </span>
-                ))}
+            {/* Authorization Tier Progress Gauge */}
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                  <Zap size={14} className={isFullPlatformAccess ? 'text-emerald-500' : 'text-indigo-500'} />
+                  {t('profile.authTier')}
+                </span>
+                <span className="font-bold text-[11px] text-slate-600 font-mono">
+                  {isFullPlatformAccess ? t('profile.fullAccess') : `${activePermCount}/${totalPermCount} (${coveragePercent}%)`}
+                </span>
+              </div>
+
+              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    isFullPlatformAccess
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                      : coveragePercent >= 50
+                      ? 'bg-gradient-to-r from-indigo-500 to-violet-500'
+                      : 'bg-gradient-to-r from-amber-500 to-orange-500'
+                  }`}
+                  style={{ width: `${Math.max(10, coveragePercent)}%` }}
+                />
               </div>
             </div>
+
+            {/* Categorized Capabilities Summary (Pills Grid) */}
+            <div className="space-y-2 pt-1">
+              <p className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400">
+                {t('profile.capabilities')}
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {domainStats.map((dom) => {
+                  const DomIcon = dom.icon;
+                  return (
+                    <div
+                      key={dom.id}
+                      className={`p-2.5 rounded-xl border transition-all flex items-center justify-between ${
+                        dom.isComplete
+                          ? 'bg-emerald-50/40 border-emerald-200/70 text-slate-800'
+                          : dom.isPartial
+                          ? 'bg-indigo-50/40 border-indigo-200/70 text-slate-800'
+                          : 'bg-slate-50 border-slate-200/60 text-slate-400 opacity-60'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`w-6 h-6 rounded-lg ${dom.bg} ${dom.color} flex items-center justify-center flex-shrink-0`}>
+                          <DomIcon size={13} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-slate-800 truncate">
+                            {t(dom.titleKey, dom.defaultTitle)}
+                          </p>
+                          <p className="text-[10px] font-semibold text-slate-400">
+                            {dom.active}/{dom.total}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Visual indicator dots */}
+                      <div className="flex items-center gap-0.5 flex-shrink-0 ps-1">
+                        {dom.permissionKeys.map((k) => {
+                          const isGranted = userActivePermissions.includes(k);
+                          return (
+                            <span
+                              key={k}
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                isGranted ? (dom.isComplete ? 'bg-emerald-500' : 'bg-indigo-500') : 'bg-slate-200'
+                              }`}
+                            />
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Button to open Privilege Matrix modal */}
+            <button
+              type="button"
+              onClick={() => setPrivilegeModalOpen(true)}
+              className="w-full py-2.5 px-4 bg-slate-50 hover:bg-indigo-50/70 text-slate-700 hover:text-indigo-700 border border-slate-200 hover:border-indigo-200/80 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all group active:scale-[0.99]"
+            >
+              <SlidersHorizontal size={14} className="text-slate-400 group-hover:text-indigo-600 transition-colors" />
+              <span>{t('profile.viewPrivileges')}</span>
+              <ChevronRight size={14} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+            </button>
           </div>
 
           {/* Assigned Space / Attraction Card */}
@@ -621,6 +827,137 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* ── Privilege Matrix Modal ────────────────────────────────────────── */}
+      {privilegeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center text-emerald-400">
+                  <ShieldCheck size={22} />
+                </div>
+                <div>
+                  <h3 className="font-black text-base tracking-tight">{t('profile.privilegeModalTitle')}</h3>
+                  <p className="text-xs text-slate-300 font-medium">
+                    {t('profile.activeCountSummary', { active: activePermCount, total: totalPermCount })}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setPrivilegeModalOpen(false)}
+                className="p-2 rounded-xl hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Search Bar */}
+            <div className="p-4 border-b border-slate-100 bg-slate-50/70 flex-shrink-0">
+              <div className="relative">
+                <Search size={15} className="absolute start-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="text"
+                  value={permSearch}
+                  onChange={(e) => setPermSearch(e.target.value)}
+                  placeholder={t('profile.searchPermissions')}
+                  className="w-full ps-10 pe-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Permissions List by Domain */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1 divide-y divide-slate-100">
+              {domainStats.map((dom) => {
+                const DomIcon = dom.icon;
+                const matchingPerms = ALL_PERMISSION_KEYS.filter((p) => {
+                  if (p.domainId !== dom.id) return false;
+                  if (!permSearch.trim()) return true;
+                  const q = permSearch.toLowerCase();
+                  const label = t(p.labelKey, '').toLowerCase();
+                  const desc = t(p.descKey, '').toLowerCase();
+                  return p.key.toLowerCase().includes(q) || label.includes(q) || desc.includes(q);
+                });
+
+                if (matchingPerms.length === 0) return null;
+
+                return (
+                  <div key={dom.id} className="pt-4 first:pt-0 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-7 h-7 rounded-lg ${dom.bg} ${dom.color} flex items-center justify-center`}>
+                          <DomIcon size={14} />
+                        </div>
+                        <h4 className="font-extrabold text-sm text-slate-900">{t(dom.titleKey, dom.defaultTitle)}</h4>
+                      </div>
+                      <span className="text-[11px] font-bold text-slate-400">
+                        {dom.active}/{dom.total} {t('profile.granted').toLowerCase()}
+                      </span>
+                    </div>
+
+                    <div className="grid gap-2">
+                      {matchingPerms.map((p) => {
+                        const isGranted = userActivePermissions.includes(p.key);
+                        return (
+                          <div
+                            key={p.key}
+                            className={`p-3 rounded-2xl border transition-all flex items-start justify-between gap-3 ${
+                              isGranted
+                                ? 'bg-emerald-50/30 border-emerald-200/60'
+                                : 'bg-slate-50/70 border-slate-200/50 opacity-60'
+                            }`}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                                  isGranted ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-500'
+                                }`}
+                              >
+                                {isGranted ? <Check size={13} strokeWidth={3} /> : <Lock size={12} />}
+                              </div>
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs font-extrabold text-slate-800">{t(p.labelKey)}</p>
+                                  <span className="text-[10px] font-mono text-slate-400 bg-white/80 px-1.5 py-0.5 rounded border border-slate-200/60">
+                                    {p.key}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-slate-500">{t(p.descKey)}</p>
+                              </div>
+                            </div>
+
+                            <span
+                              className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border flex-shrink-0 ${
+                                isGranted
+                                  ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                                  : 'bg-slate-200 text-slate-600 border-slate-300'
+                              }`}
+                            >
+                              {isGranted ? t('profile.granted') : t('profile.locked')}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setPrivilegeModalOpen(false)}
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+              >
+                {t('common.close', 'Fermer')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
