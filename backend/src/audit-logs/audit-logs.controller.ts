@@ -123,9 +123,9 @@ export class AuditLogsController {
 
     const where: any = {};
 
-    // 1. Role-Based Scope & Stealth Mode
+    // 1. Role-Based Scope & Strict Hierarchy Enforcement
     if (isRoot) {
-      // ROOT sees everything across all companies (Full Telemetry View)
+      // ROOT sees everything across all companies & roles (Full Telemetry View)
       if (companyId) {
         where.companyId = companyId;
       }
@@ -133,9 +133,6 @@ export class AuditLogsController {
         where.actorId = actorId;
       }
     } else {
-      // Non-ROOT users NEVER see actions performed by ROOT (Stealth Mode)
-      where.isRootIntervention = false;
-
       const userCompanyId = currentUser.companyId || userRecord?.companyId;
       if (!userCompanyId) {
         throw new ForbiddenException("Aucune entreprise rattachée à cet utilisateur.");
@@ -143,6 +140,31 @@ export class AuditLogsController {
 
       // Strictly isolate to the user's authorized company
       where.companyId = userCompanyId;
+      where.isRootIntervention = false;
+
+      // Define disallowed higher-tier actor roles according to strict organizational hierarchy:
+      // - SUPERADMIN: Can see their own actions, ADMINs, and EMPLOYEes (Blocks ROOT actions)
+      // - ADMIN: Can see actions from ADMINs and EMPLOYEes (Blocks ROOT and SUPERADMIN actions)
+      // - EMPLOYE: Can see only EMPLOYE actions / assigned space actions (Blocks ROOT, SUPERADMIN, and ADMIN actions)
+      const disallowedRoles: string[] = ['ROOT'];
+      if (isAdmin) {
+        disallowedRoles.push('SUPERADMIN');
+      } else if (isEmploye) {
+        disallowedRoles.push('SUPERADMIN', 'ADMIN');
+      }
+
+      where.AND = where.AND || [];
+      where.AND.push({
+        actor: {
+          roles: {
+            none: {
+              role: {
+                nom: { in: disallowedRoles },
+              },
+            },
+          },
+        },
+      });
 
       if (isEmploye) {
         // Standard Employees can only see their own logs or logs from staff in their assigned space

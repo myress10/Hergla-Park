@@ -103,65 +103,24 @@ export default function DashboardLayout() {
     () => localStorage.getItem('hergla_auto_assign') !== 'false'
   );
 
+  // User-scoped notifications store key
+  const notifStorageKey = `hergla_notifications_store_${user?.id || 'guest'}`;
+
   // Notifications state with localStorage persistence
   const [notifications, setNotifications] = useState(() => {
     try {
-      const saved = localStorage.getItem('hergla_notifications_store');
+      const saved = localStorage.getItem(`hergla_notifications_store_${user?.id || 'guest'}`);
       if (saved) return JSON.parse(saved);
     } catch (_) {}
-    return [
-      {
-        id: 'n1',
-        type: 'warning',
-        titleKey: 'notifications.n1Title',
-        messageKey: 'notifications.n1Msg',
-        timeKey: 'notifications.time5m',
-        targetRoute: '/audit-logs',
-        read: false,
-      },
-      {
-        id: 'n2',
-        type: 'info',
-        titleKey: 'notifications.n2Title',
-        messageKey: 'notifications.n2Msg',
-        timeKey: 'notifications.time14m',
-        targetRoute: '/utilisateurs',
-        read: false,
-      },
-      {
-        id: 'n3',
-        type: 'success',
-        titleKey: 'notifications.n3Title',
-        messageKey: 'notifications.n3Msg',
-        timeKey: 'notifications.time1h',
-        targetRoute: '/configuration-karts',
-        read: false,
-      },
-      {
-        id: 'n4',
-        type: 'info',
-        titleKey: 'notifications.n4Title',
-        messageKey: 'notifications.n4Msg',
-        timeKey: 'notifications.time2h',
-        targetRoute: '/espaces',
-        read: true,
-      },
-      {
-        id: 'n5',
-        type: 'error',
-        titleKey: 'notifications.n5Title',
-        messageKey: 'notifications.n5Msg',
-        timeKey: 'notifications.timeYesterday',
-        targetRoute: '/configuration-karts',
-        read: true,
-      },
-    ];
+    return [];
   });
 
-  // Sync notifications to localStorage
+  // Sync notifications to user-scoped localStorage
   useEffect(() => {
-    localStorage.setItem('hergla_notifications_store', JSON.stringify(notifications));
-  }, [notifications]);
+    if (user?.id) {
+      localStorage.setItem(`hergla_notifications_store_${user.id}`, JSON.stringify(notifications));
+    }
+  }, [notifications, user?.id]);
 
   const isFirstLoadRef = useRef(true);
 
@@ -212,12 +171,11 @@ export default function DashboardLayout() {
           const isRoot = user?.role === 'ROOT';
           const liveNotifs = logsRes.data.map((log) => formatRoleNotification(log, isRoot, t));
 
-          setNotifications((prev) => {
-            const existingIds = new Set(prev.map((n) => n.id));
+          // Pop a toast only for genuinely new events after initial load
+          if (liveNotifs.length > 0 && !isFirstLoadRef.current) {
+            const existingIds = new Set(notifications.map((n) => n.id));
             const newOnes = liveNotifs.filter((n) => !existingIds.has(n.id));
-            
-            // Pop a toast only for genuinely new events after initial load
-            if (newOnes.length > 0 && !isFirstLoadRef.current) {
+            if (newOnes.length > 0) {
               const latest = newOnes[0];
               toast(
                 (tObj) => (
@@ -259,12 +217,9 @@ export default function DashboardLayout() {
                 }
               );
             }
+          }
 
-            if (newOnes.length > 0) {
-              return [...newOnes, ...prev].slice(0, 30);
-            }
-            return prev;
-          });
+          setNotifications(liveNotifs);
 
           if (isFirstLoadRef.current) {
             isFirstLoadRef.current = false;
