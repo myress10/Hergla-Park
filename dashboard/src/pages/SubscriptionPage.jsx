@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   CreditCard,
@@ -42,13 +43,18 @@ export default function SubscriptionPage() {
   };
 
   useEffect(() => {
-    fetchPlan();
-  }, []);
+    if (user?.role !== 'ROOT') fetchPlan();
+  }, [user]);
 
   const openUpgrade = (target) => {
     setSelectedTargetPack(target);
     setUpgradeModalOpen(true);
   };
+
+  // ROOT has no personal subscription — redirect to management page
+  if (user?.role === 'ROOT') {
+    return <Navigate to="/root/demandes-upgrade" replace />;
+  }
 
   if (loading) {
     return (

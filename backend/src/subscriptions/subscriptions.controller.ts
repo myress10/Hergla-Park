@@ -70,6 +70,14 @@ export class SubscriptionsController {
 
   // ─── ROOT ENDPOINTS ────────────────────────────────────────────────────────
 
+  @Get('root/companies')
+  @RequirePermissions('upgrade:manage')
+  @ApiOperation({ summary: 'List all companies with subscription pack status and superadmins (ROOT only)' })
+  @ApiResponse({ status: 200, description: 'List of companies with packs' })
+  async listAllCompanies() {
+    return this.subscriptionsService.getAllCompaniesWithPacks();
+  }
+
   @Get('root/requests')
   @RequirePermissions('upgrade:manage')
   @ApiOperation({ summary: 'List all upgrade requests across companies (ROOT only)' })

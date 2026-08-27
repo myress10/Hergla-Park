@@ -106,6 +106,63 @@ export class SubscriptionsService {
   }
 
   /**
+   * Root: list all companies with their current subscription packs, superadmins, and quotas usage
+   */
+  async getAllCompaniesWithPacks() {
+    const companies = await this.prisma.company.findMany({
+      include: {
+        users: {
+          where: {
+            roles: {
+              some: {
+                role: {
+                  nom: 'SUPERADMIN',
+                },
+              },
+            },
+          },
+          select: {
+            id: true,
+            nom: true,
+            email: true,
+            telephone: true,
+          },
+        },
+        _count: {
+          select: {
+            espaces: true,
+            users: true,
+            objects3D: { where: { isCustom: true } },
+            upgradeRequests: { where: { status: UpgradeRequestStatus.EN_ATTENTE } },
+          },
+        },
+      },
+      orderBy: { nom: 'asc' },
+    });
+
+    return companies.map((c) => {
+      const pack = (c.pack as SubscriptionPack) || SubscriptionPack.STANDARD;
+      const packConfig = SUBSCRIPTION_PACKS_CONFIG[pack] || SUBSCRIPTION_PACKS_CONFIG[SubscriptionPack.STANDARD];
+
+      return {
+        id: c.id,
+        nom: c.nom,
+        slug: c.slug,
+        pack,
+        packConfig,
+        superadmins: c.users,
+        counts: {
+          espaces: c._count.espaces,
+          users: c._count.users,
+          customObjects: c._count.objects3D,
+          pendingUpgrades: c._count.upgradeRequests,
+        },
+        createdAt: c.createdAt,
+      };
+    });
+  }
+
+  /**
    * Quota assertion: verify if the company can create a new Espace
    */
   async assertCanCreateEspace(companyId: string) {

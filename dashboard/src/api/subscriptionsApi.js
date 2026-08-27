@@ -21,6 +21,13 @@ export const requestUpgrade = ({ targetPack, notes, contactPhone, companyId }) =
 };
 
 /**
+ * List all companies with subscription status and metrics (ROOT only)
+ */
+export const getRootCompanies = () => {
+  return axiosClient.get('/subscriptions/root/companies');
+};
+
+/**
  * List all upgrade requests across companies (ROOT only)
  */
 export const getRootUpgradeRequests = (status) => {

@@ -17,7 +17,6 @@ import {
 const ROOT_LINKS = [
   { to: '/espaces', icon: Map, labelKey: 'nav.spaces', id: 'nav-spaces' },
   { to: '/utilisateurs', icon: Users, labelKey: 'nav.users', id: 'nav-users' },
-  { to: '/abonnement', icon: CreditCard, labelKey: 'nav.subscription', id: 'nav-subscription' },
   { to: '/root/demandes-upgrade', icon: Sparkles, labelKey: 'nav.rootUpgrades', id: 'nav-root-upgrades' },
   { to: '/editeur-3d', icon: Box, labelKey: 'nav.editor3d', id: 'nav-editor-3d' },
   { to: '/configuration-karts', icon: Flag, labelKey: 'nav.kartsConfig', id: 'nav-karts' },
