@@ -116,14 +116,15 @@ export class AuditLogsController {
     });
 
     const userRoles = userRecord?.roles?.map((ur) => ur.role) || [];
-    const isRoot = userRoles.some((r) => r.nom === 'ROOT');
-    const isSuperAdmin = userRoles.some((r) => r.nom === 'SUPERADMIN');
-    const isAdmin = userRoles.some((r) => r.nom === 'ADMIN');
+    const isRoot = userRoles.some((r) => r.nom === 'ROOT' || (r.niveau ?? 0) >= 100);
+    const userMaxNiveau = Math.max(...userRoles.map((r) => r.niveau ?? 20), 20);
+    const isSuperAdmin = !isRoot && (userRoles.some((r) => r.nom === 'SUPERADMIN') || userMaxNiveau >= 90);
+    const isAdmin = !isRoot && !isSuperAdmin && (userRoles.some((r) => r.nom === 'ADMIN') || userMaxNiveau >= 50);
     const isEmploye = !isRoot && !isSuperAdmin && !isAdmin;
 
     const where: any = {};
 
-    // 1. Role-Based Scope & Strict Hierarchy Enforcement
+    // 1. Role-Based Scope & Strict Hierarchy Enforcement (System & Custom Roles)
     if (isRoot) {
       // ROOT sees everything across all companies & roles (Full Telemetry View)
       if (companyId) {
@@ -143,14 +144,15 @@ export class AuditLogsController {
       where.isRootIntervention = false;
 
       // Define disallowed higher-tier actor roles according to strict organizational hierarchy:
-      // - SUPERADMIN: Can see their own actions, ADMINs, and EMPLOYEes (Blocks ROOT actions)
-      // - ADMIN: Can see actions from ADMINs and EMPLOYEes (Blocks ROOT and SUPERADMIN actions)
-      // - EMPLOYE: Can see only EMPLOYE actions / assigned space actions (Blocks ROOT, SUPERADMIN, and ADMIN actions)
+      // - SUPERADMIN (90): Blocks ROOT (100)
+      // - ADMIN (50): Blocks ROOT (100) and SUPERADMIN (90)
+      // - EMPLOYE / Custom Roles (<= 40): Blocks ROOT (100), SUPERADMIN (90), and ADMIN (50)
       const disallowedRoles: string[] = ['ROOT'];
-      if (isAdmin) {
+      if (userMaxNiveau < 90) {
         disallowedRoles.push('SUPERADMIN');
-      } else if (isEmploye) {
-        disallowedRoles.push('SUPERADMIN', 'ADMIN');
+      }
+      if (userMaxNiveau < 50) {
+        disallowedRoles.push('ADMIN');
       }
 
       where.AND = where.AND || [];
@@ -159,7 +161,10 @@ export class AuditLogsController {
           roles: {
             none: {
               role: {
-                nom: { in: disallowedRoles },
+                OR: [
+                  { nom: { in: disallowedRoles } },
+                  { niveau: { gt: userMaxNiveau } },
+                ],
               },
             },
           },
