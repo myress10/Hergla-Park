@@ -5,7 +5,7 @@ import axiosClient from './axiosClient';
  */
 export const getMyPlan = (companyId) => {
   const params = companyId ? { companyId } : {};
-  return axiosClient.get('/api/subscriptions/my-plan', { params });
+  return axiosClient.get('/subscriptions/my-plan', { params });
 };
 
 /**
@@ -14,7 +14,7 @@ export const getMyPlan = (companyId) => {
 export const requestUpgrade = ({ targetPack, notes, contactPhone, companyId }) => {
   const params = companyId ? { companyId } : {};
   return axiosClient.post(
-    '/api/subscriptions/upgrade-request',
+    '/subscriptions/upgrade-request',
     { targetPack, notes, contactPhone },
     { params }
   );
@@ -25,14 +25,14 @@ export const requestUpgrade = ({ targetPack, notes, contactPhone, companyId }) =
  */
 export const getRootUpgradeRequests = (status) => {
   const params = status ? { status } : {};
-  return axiosClient.get('/api/subscriptions/root/requests', { params });
+  return axiosClient.get('/subscriptions/root/requests', { params });
 };
 
 /**
  * Approve an upgrade request (ROOT only)
  */
 export const approveUpgradeRequest = (requestId, adminResponse) => {
-  return axiosClient.post(`/api/subscriptions/root/requests/${requestId}/approve`, {
+  return axiosClient.post(`/subscriptions/root/requests/${requestId}/approve`, {
     adminResponse,
   });
 };
@@ -41,7 +41,7 @@ export const approveUpgradeRequest = (requestId, adminResponse) => {
  * Reject an upgrade request (ROOT only)
  */
 export const rejectUpgradeRequest = (requestId, adminResponse) => {
-  return axiosClient.post(`/api/subscriptions/root/requests/${requestId}/reject`, {
+  return axiosClient.post(`/subscriptions/root/requests/${requestId}/reject`, {
     adminResponse,
   });
 };
@@ -50,8 +50,9 @@ export const rejectUpgradeRequest = (requestId, adminResponse) => {
  * Manually update company pack (ROOT only)
  */
 export const updateCompanyPackDirectly = (companyId, pack, reason) => {
-  return axiosClient.patch(`/api/subscriptions/root/company/${companyId}/pack`, {
+  return axiosClient.patch(`/subscriptions/root/company/${companyId}/pack`, {
     pack,
     reason,
   });
 };
+

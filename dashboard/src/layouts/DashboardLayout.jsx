@@ -38,7 +38,7 @@ import {
   Command,
   ArrowRight,
 } from 'lucide-react';
-import { Toaster, toast } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 // Helper to format notification icon & colors
 function getNotifConfig(type) {
@@ -1161,19 +1161,6 @@ export default function DashboardLayout() {
           <Outlet />
         </main>
       </div>
-
-      {/* Global toast notifications */}
-      <Toaster
-        position="top-end"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            borderRadius: '12px',
-            fontSize: '13px',
-            fontWeight: '600',
-          },
-        }}
-      />
     </div>
   );
 }
