@@ -1522,18 +1522,18 @@ export default function UsersPage() {
         isOpen={rolesMatrixOpen}
         onClose={() => setRolesMatrixOpen(false)}
         title="Matrice Globale des Rôles & Permissions"
-        size="lg"
+        size="2xl"
       >
-        <div className="space-y-6 max-h-[82vh] overflow-y-auto pr-1">
+        <div className="space-y-5 max-h-[80vh] overflow-y-auto pr-1">
           {/* Header Banner */}
-          <div className="p-4 bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 rounded-2xl text-white flex items-center justify-between border border-indigo-500/20 shadow-lg">
+          <div className="p-5 bg-gradient-to-r from-slate-950 via-indigo-950 to-slate-900 rounded-2xl text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-indigo-500/20 shadow-lg">
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider">
                 <ShieldCheck size={12} />
                 <span>Gestion Centralisée des Droits</span>
               </div>
               <h3 className="text-base font-black">Éditeur de Rôles Système & Personnalisés</h3>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-300 max-w-xl">
                 {currentUser?.role === 'ROOT'
                   ? '⚡ Privilèges ROOT actifs : Vous pouvez modifier les permissions de tous les rôles (y compris les rôles par défaut).'
                   : 'Configurez les permissions accordées à chaque rôle du système.'}
@@ -1542,7 +1542,7 @@ export default function UsersPage() {
             <button
               type="button"
               onClick={() => setNewRoleMode(!newRoleMode)}
-              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer flex-shrink-0"
+              className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer flex-shrink-0 self-start sm:self-auto"
             >
               <Plus size={14} />
               <span>{newRoleMode ? 'Voir la liste' : 'Nouveau Rôle'}</span>
@@ -1551,7 +1551,7 @@ export default function UsersPage() {
 
           {newRoleMode ? (
             /* CREATE NEW CUSTOM ROLE FORM */
-            <form onSubmit={handleCreateCustomRole} className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+            <form onSubmit={handleCreateCustomRole} className="p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                 <h4 className="text-sm font-extrabold text-slate-900">Créer un Nouveau Rôle Personnalisé</h4>
                 <span className="text-xs text-slate-400">Niveau standard SaaS</span>
@@ -1567,7 +1567,7 @@ export default function UsersPage() {
                   onChange={(e) => setNewRoleNom(e.target.value)}
                   placeholder="Ex: SUPERVISEUR_PISTE, AUDITEUR_EXTERNE"
                   required
-                  className="w-full px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold uppercase tracking-wider focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
               </div>
 
@@ -1576,30 +1576,30 @@ export default function UsersPage() {
                   <label className="text-xs font-bold uppercase tracking-wider text-slate-600">
                     Permissions Attribuées ({newRolePerms.length})
                   </label>
-                  <div className="flex gap-2 text-[11px]">
+                  <div className="flex gap-2 text-xs font-bold">
                     <button
                       type="button"
                       onClick={() => setNewRolePerms(AVAILABLE_PERMISSIONS.map((p) => p.key))}
-                      className="text-indigo-600 font-bold hover:underline"
+                      className="text-indigo-600 hover:underline"
                     >
-                      {t('users.auditModal.rbacStatus')}
+                      Tout sélectionner
                     </button>
                     <span>•</span>
                     <button
                       type="button"
                       onClick={() => setNewRolePerms([])}
-                      className="text-slate-500 font-bold hover:underline"
+                      className="text-slate-500 hover:underline"
                     >
-                      {t('common.cancel')}
+                      Effacer
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white p-3 rounded-xl border border-slate-200 max-h-60 overflow-y-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-white p-4 rounded-xl border border-slate-200 max-h-64 overflow-y-auto">
                   {AVAILABLE_PERMISSIONS.map((p) => {
                     const isChecked = newRolePerms.includes(p.key);
                     return (
-                      <label key={p.key} className="flex items-start gap-2.5 p-2 rounded-lg hover:bg-slate-50 cursor-pointer transition-colors border border-transparent hover:border-slate-200">
+                      <label key={p.key} className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors border border-slate-100 hover:border-slate-300">
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -1608,11 +1608,11 @@ export default function UsersPage() {
                               prev.includes(p.key) ? prev.filter((k) => k !== p.key) : [...prev, p.key]
                             );
                           }}
-                          className="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
+                          className="w-4 h-4 mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
                         />
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-slate-800 leading-tight">{p.label}</p>
-                          <p className="text-[10px] text-slate-400 font-mono">{p.key}</p>
+                          <p className="text-[10px] text-slate-400 font-mono mt-0.5">{p.key}</p>
                         </div>
                       </label>
                     );
@@ -1639,10 +1639,10 @@ export default function UsersPage() {
             </form>
           ) : (
             /* ROLES LIST & PERMISSIONS MATRIX VIEW */
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Left Role Selector List */}
-              <div className="space-y-2 md:border-e md:border-slate-100 md:pe-3">
-                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1 pb-1">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+              {/* Left Role Selector List (4 cols) */}
+              <div className="md:col-span-4 space-y-2.5 max-h-[480px] overflow-y-auto pr-1">
+                <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1">
                   Rôles Définis ({rolesList.length})
                 </p>
                 {rolesList.map((r) => {
@@ -1652,27 +1652,27 @@ export default function UsersPage() {
                     <div
                       key={r.id}
                       onClick={() => handleSelectRoleInMatrix(r)}
-                      className={`p-3 rounded-xl cursor-pointer transition-all border ${
+                      className={`p-3.5 rounded-2xl cursor-pointer transition-all border ${
                         isSelected
-                          ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-indigo-400/30'
-                          : 'bg-slate-50 border-slate-200/80 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                          ? 'bg-slate-900 text-white border-slate-900 shadow-md ring-2 ring-indigo-500/40'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
                       }`}
                     >
-                      <div className="flex items-center justify-between gap-1 mb-1">
+                      <div className="flex items-center justify-between gap-1.5 mb-1.5">
                         <div className="flex items-center gap-1.5">
                           <RoleBadge role={r.nom} />
                         </div>
                         {isSys ? (
-                          <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                          <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'}`}>
                             Système
                           </span>
                         ) : (
-                          <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-emerald-500/30 text-emerald-200' : 'bg-emerald-100 text-emerald-700'}`}>
+                          <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${isSelected ? 'bg-emerald-500/30 text-emerald-200' : 'bg-emerald-100 text-emerald-700'}`}>
                             Personnalisé
                           </span>
                         )}
                       </div>
-                      <p className={`text-[10px] truncate ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
+                      <p className={`text-[11px] font-medium truncate ${isSelected ? 'text-slate-300' : 'text-slate-400'}`}>
                         {(r.permissions || []).length} permissions actives
                       </p>
                     </div>
@@ -1680,12 +1680,12 @@ export default function UsersPage() {
                 })}
               </div>
 
-              {/* Right Permissions Matrix Editor for Selected Role */}
-              <div className="md:col-span-2 space-y-4">
+              {/* Right Permissions Matrix Editor for Selected Role (8 cols) */}
+              <div className="md:col-span-8">
                 {selectedRole ? (
-                  <div className="p-4 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-4">
+                  <div className="p-5 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
                     {/* Role Header Banner */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="text-base font-black text-slate-900">{selectedRole.nom}</h4>
@@ -1702,33 +1702,37 @@ export default function UsersPage() {
                         </p>
                       </div>
 
-                      <div className="flex gap-2 text-[11px] self-start sm:self-auto">
+                      <div className="flex gap-2 text-xs font-bold self-start sm:self-auto flex-shrink-0">
                         <button
                           type="button"
                           onClick={() => setSelectedRolePerms(AVAILABLE_PERMISSIONS.map((p) => p.key))}
-                          className="text-indigo-600 font-bold hover:underline"
+                          className="text-indigo-600 hover:underline"
                         >
-                          {t('users.auditModal.rbacStatus')}
+                          Tout cocher
                         </button>
                         <span>•</span>
                         <button
                           type="button"
                           onClick={() => setSelectedRolePerms([])}
-                          className="text-slate-500 font-bold hover:underline"
+                          className="text-slate-500 hover:underline"
                         >
-                          {t('common.cancel')}
+                          Tout décocher
                         </button>
                       </div>
                     </div>
 
-                    {/* Permissions Grid */}
-                    <div className="space-y-2 max-h-80 overflow-y-auto divide-y divide-slate-200/60 pr-1">
+                    {/* Permissions Grid (Scrollable list with clean cards) */}
+                    <div className="space-y-2 max-h-[320px] overflow-y-auto pr-1">
                       {AVAILABLE_PERMISSIONS.map((p) => {
                         const isChecked = selectedRolePerms.includes(p.key);
                         return (
                           <label
                             key={p.key}
-                            className="flex items-start gap-3 pt-2.5 first:pt-0 cursor-pointer group"
+                            className={`flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
+                              isChecked
+                                ? 'bg-white border-indigo-200 shadow-2xs'
+                                : 'bg-slate-100/70 border-slate-200 opacity-70 hover:opacity-100 hover:bg-white'
+                            }`}
                           >
                             <input
                               type="checkbox"
@@ -1738,10 +1742,10 @@ export default function UsersPage() {
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
-                                <p className="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                <p className="text-xs font-extrabold text-slate-900">
                                   {p.label}
                                 </p>
-                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-slate-200 text-slate-600">
+                                <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">
                                   {p.category}
                                 </span>
                               </div>
@@ -1754,7 +1758,7 @@ export default function UsersPage() {
                     </div>
 
                     {/* Save Permissions Action */}
-                    <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
+                    <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3">
                       <span className="text-xs font-bold text-slate-600">
                         {selectedRolePerms.length} / {AVAILABLE_PERMISSIONS.length} {t('users.create.customPermissions').toLowerCase()}
                       </span>
@@ -1762,7 +1766,7 @@ export default function UsersPage() {
                         type="button"
                         onClick={handleSaveRolePermissions}
                         disabled={savingRolePerms}
-                        className="bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                        className="bg-slate-900 hover:bg-indigo-600 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer disabled:opacity-60"
                       >
                         {savingRolePerms ? (
                           <Loader2 size={15} className="animate-spin" />
@@ -1774,8 +1778,8 @@ export default function UsersPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-8 text-center text-slate-400">
-                    <p className="text-xs">Sélectionnez un rôle à gauche pour afficher ses permissions.</p>
+                  <div className="p-12 text-center text-slate-400 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <p className="text-xs font-semibold">Sélectionnez un rôle à gauche pour afficher et éditer ses permissions.</p>
                   </div>
                 )}
               </div>

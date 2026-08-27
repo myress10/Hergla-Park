@@ -319,12 +319,13 @@ export default function AuditLogsPage() {
           {/* IP Filter (ROOT Only) */}
           {isRoot && (
             <div className="relative">
+              <Globe size={13} className="absolute start-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={ipFilter}
                 onChange={(e) => setIpFilter(e.target.value)}
                 placeholder={t('audit.filterByIp')}
-                className="w-36 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600"
+                className="w-44 ps-8 pe-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all"
               />
             </div>
           )}
@@ -377,7 +378,7 @@ export default function AuditLogsPage() {
                   <th className="px-5 py-3.5 text-center">{t('audit.table.telemetry')}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-mono">
+              <tbody className="divide-y divide-slate-100">
                 {logs.map((log) => {
                   const dateStr = new Date(log.createdAt).toLocaleString(localeCode, {
                     dateStyle: 'short',
@@ -390,7 +391,7 @@ export default function AuditLogsPage() {
                   return (
                     <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
                       {/* Timestamp */}
-                      <td className="px-5 py-3.5 whitespace-nowrap text-slate-500 font-medium">
+                      <td className="px-5 py-3.5 whitespace-nowrap text-slate-600 font-medium">
                         <div className="flex items-center gap-1.5">
                           <Clock size={13} className="text-slate-400" />
                           <span>{dateStr}</span>
@@ -399,18 +400,19 @@ export default function AuditLogsPage() {
 
                       {/* Subsystem */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold border ${subCfg.color}`}>
-                          <SubIcon size={11} />
-                          {subCfg.label}
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[11px] font-bold border ${subCfg.color}`}>
+                          <SubIcon size={12} />
+                          <span>{subCfg.label}</span>
                         </span>
                       </td>
 
                       {/* Actor & IP */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div>
-                          <p className="font-sans font-bold text-slate-800">{log.actor?.nom || 'ROOT'}</p>
-                          <p className="text-[10px] text-slate-400 font-mono flex items-center gap-1">
-                            <Globe size={10} /> {log.ip || '127.0.0.1'}
+                          <p className="font-bold text-slate-900 text-xs">{log.actor?.nom || 'ROOT'}</p>
+                          <p className="text-[11px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
+                            <Globe size={11} className="text-slate-400" />
+                            <span>{log.ip || '127.0.0.1'}</span>
                           </p>
                         </div>
                       </td>
@@ -418,29 +420,29 @@ export default function AuditLogsPage() {
                       {/* Action & Method */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
-                          <span className="px-1.5 py-0.5 bg-slate-200 text-slate-800 rounded font-black text-[9px]">
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-300/80 rounded-md font-extrabold text-[10px] font-mono">
                             {log.method || 'POST'}
                           </span>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeStyle}`}>
+                          <span className={`px-2.5 py-0.5 rounded-lg text-[11px] font-bold border ${badgeStyle}`}>
                             {log.action}
                           </span>
                         </div>
                       </td>
 
                       {/* Entity */}
-                      <td className="px-5 py-3.5 whitespace-nowrap font-sans text-slate-700 font-medium">
+                      <td className="px-5 py-3.5 whitespace-nowrap font-medium text-slate-800 text-xs">
                         {getLocalizedEntityName(log.entityType, t)}
                       </td>
 
                       {/* Company & Stealth Indicator */}
                       <td className="px-5 py-3.5 whitespace-nowrap">
                         {log.isRootIntervention ? (
-                          <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-black flex items-center gap-1 w-fit">
-                            <Zap size={10} className="text-amber-600" />
+                          <span className="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-200 text-[10px] font-black flex items-center gap-1 w-fit">
+                            <Zap size={11} className="text-amber-600" />
                             ROOT STEALTH
                           </span>
                         ) : (
-                          <span className="font-sans text-slate-600 text-[11px]">
+                          <span className="text-slate-600 text-xs font-medium">
                             {log.company?.nom || 'Global'}
                           </span>
                         )}
@@ -454,7 +456,7 @@ export default function AuditLogsPage() {
                             setSelectedLog(log);
                             setInspectorTab('network');
                           }}
-                          className="px-3 py-1 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-[11px] font-sans font-bold flex items-center gap-1 mx-auto transition-colors shadow-2xs"
+                          className="px-3 py-1 bg-slate-900 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 mx-auto transition-colors shadow-2xs cursor-pointer"
                         >
                           <Terminal size={12} />
                           <span>Inspecter</span>

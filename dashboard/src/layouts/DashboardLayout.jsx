@@ -222,7 +222,7 @@ export default function DashboardLayout() {
               toast(
                 (tObj) => (
                   <div
-                    className="flex items-center gap-3 cursor-pointer"
+                    className="flex items-center gap-3 cursor-pointer max-w-md"
                     onClick={() => {
                       toast.dismiss(tObj.id);
                       if (latest.targetRoute) navigate(latest.targetRoute);
@@ -235,24 +235,25 @@ export default function DashboardLayout() {
                           : 'bg-indigo-500/20 text-indigo-400'
                       }`}
                     >
-                      <Bell size={16} className="animate-pulse" />
+                      <Bell size={15} className="animate-pulse" />
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-white leading-tight flex items-center gap-1.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-white leading-tight">
                         {latest.title}
                       </p>
-                      <p className="text-[11px] text-slate-300 truncate">{latest.message}</p>
+                      <p className="text-[11px] text-slate-300 line-clamp-2 mt-0.5">{latest.message}</p>
                     </div>
                   </div>
                 ),
                 {
-                  duration: 4000,
+                  duration: 4500,
                   style: {
                     background: '#0f172a',
                     color: '#f8fafc',
                     border: isRoot ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
                     borderRadius: '16px',
                     padding: '10px 14px',
+                    maxWidth: '480px',
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
                   },
                 }
