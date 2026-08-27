@@ -39,6 +39,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getLocalizedLogSummary, getLocalizedEntityName } from '../utils/toastUtils';
 
 const ACTION_COLORS = {
   CREATE: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/30',
@@ -428,7 +429,7 @@ export default function AuditLogsPage() {
 
                       {/* Entity */}
                       <td className="px-5 py-3.5 whitespace-nowrap font-sans text-slate-700 font-medium">
-                        {log.entityType || 'Général'}
+                        {getLocalizedEntityName(log.entityType, t)}
                       </td>
 
                       {/* Company & Stealth Indicator */}
@@ -490,10 +491,10 @@ export default function AuditLogsPage() {
                     <div className="space-y-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="text-xs font-black text-slate-900">
-                          {log.summary || `${log.actor?.nom || 'Membre'} a effectué une action`}
+                          {getLocalizedLogSummary(log, t)}
                         </p>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${badgeStyle}`}>
-                          {log.entityType || 'Activité'}
+                          {getLocalizedEntityName(log.entityType, t)}
                         </span>
                       </div>
                       <div className="flex items-center gap-3 text-[11px] text-slate-400 font-medium">
@@ -734,10 +735,10 @@ export default function AuditLogsPage() {
           <div className="space-y-4">
             <div className="p-4 bg-indigo-50/60 rounded-2xl border border-indigo-100 space-y-1.5">
               <span className="text-[10px] font-extrabold uppercase tracking-widest text-indigo-700">
-                {selectedLog.entityType || 'Opération'}
+                {getLocalizedEntityName(selectedLog.entityType, t)}
               </span>
               <p className="text-sm font-black text-slate-900">
-                {selectedLog.summary}
+                {getLocalizedLogSummary(selectedLog, t)}
               </p>
             </div>
 

@@ -180,15 +180,132 @@ export function notifyWarning(message) {
 }
 
 /**
+ * Translate entity name based on active i18n
+ */
+export function getLocalizedEntityName(entityType, t) {
+  if (!entityType) return t ? t('audit.entities.System', 'Système') : 'Système';
+  if (t) {
+    const key = `audit.entities.${entityType}`;
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+  }
+  switch (entityType) {
+    case 'UpgradeRequest':
+      return t ? t('audit.entities.UpgradeRequest', 'Demande d\'Upgrade') : 'Demande d\'Upgrade';
+    case 'Company':
+      return t ? t('audit.entities.Company', 'Entreprise') : 'Entreprise';
+    case 'Espace':
+      return t ? t('audit.entities.Espace', 'Espace 3D') : 'Espace 3D';
+    case 'Kart':
+      return t ? t('audit.entities.Kart', 'Flotte Karting') : 'Flotte Karting';
+    case 'User':
+      return t ? t('audit.entities.User', 'Utilisateur') : 'Utilisateur';
+    case 'Role':
+      return t ? t('audit.entities.Role', 'Droits & Rôles') : 'Droits & Rôles';
+    case 'Object3D':
+    case 'SceneObject':
+      return t ? t('audit.entities.Object3D', 'Objet 3D') : 'Objet 3D';
+    default:
+      return entityType;
+  }
+}
+
+/**
+ * Generate fully localized human-readable summary
+ */
+export function getLocalizedLogSummary(log, t) {
+  if (!log) return '';
+  const action = (log.action || '').toLowerCase();
+  const entityType = log.entityType || '';
+  const meta = log.metadata || {};
+  const actor = log.actor?.nom || (t ? t('common.user', 'Utilisateur') : 'Utilisateur');
+
+  if (!t) return log.summary || `${actor} a effectué une opération.`;
+
+  const localizedEntity = getLocalizedEntityName(entityType, t);
+
+  // Upgrade requests
+  if (action.includes('upgrade_request.create') || (entityType === 'UpgradeRequest' && action.includes('create'))) {
+    return t('audit.summaries.upgradeRequestCreated', { actor, pack: meta.targetPack || 'Avancé' });
+  }
+  if (action.includes('upgrade_approved') || (entityType === 'UpgradeRequest' && action.includes('approve'))) {
+    return t('audit.summaries.upgradeRequestApproved', { pack: meta.newPack || meta.targetPack || 'Avancé' });
+  }
+  if (action.includes('upgrade_rejected') || (entityType === 'UpgradeRequest' && action.includes('reject'))) {
+    return t('audit.summaries.upgradeRequestRejected');
+  }
+  if (
+    entityType === 'UpgradeRequest' ||
+    action.includes('upgrade_request') ||
+    action.includes('pack_override') ||
+    action.includes('pack_upgraded')
+  ) {
+    if (meta.targetPack || meta.newPack) {
+      return t('audit.summaries.companyPackUpdated', { pack: meta.newPack || meta.targetPack });
+    }
+    return t('audit.summaries.upgradeRequestUpdated', { actor });
+  }
+
+  // Espaces
+  if (action.includes('espace.create') || (entityType === 'Espace' && action.includes('create'))) {
+    return t('audit.summaries.espaceCreated', { actor, name: meta.nom || 'Espace' });
+  }
+  if (action.includes('espace.update') || (entityType === 'Espace' && action.includes('update'))) {
+    return t('audit.summaries.espaceUpdated', { actor, name: meta.nom || 'Espace' });
+  }
+  if (action.includes('espace.delete') || (entityType === 'Espace' && action.includes('delete'))) {
+    return t('audit.summaries.espaceDeleted', { actor });
+  }
+
+  // Karts
+  if (action.includes('kart.create') || (entityType === 'Kart' && action.includes('create'))) {
+    return t('audit.summaries.kartCreated', { actor, number: meta.numero || '01' });
+  }
+  if (action.includes('kart.update') || (entityType === 'Kart' && action.includes('update'))) {
+    return t('audit.summaries.kartUpdated', { actor, number: meta.numero || '01' });
+  }
+  if (action.includes('kart.delete') || (entityType === 'Kart' && action.includes('delete'))) {
+    return t('audit.summaries.kartDeleted', { actor, number: meta.numero || '01' });
+  }
+  if (action.includes('reorder') || action.includes('karts.reorder')) {
+    return t('audit.summaries.kartsReordered', { actor });
+  }
+
+  // Users
+  if (action.includes('user.create') || (entityType === 'User' && action.includes('create'))) {
+    return t('audit.summaries.userCreated', { actor, name: meta.nom || meta.email || 'Utilisateur' });
+  }
+  if (action.includes('user.update') || (entityType === 'User' && action.includes('update'))) {
+    return t('audit.summaries.userUpdated', { actor, name: meta.nom || meta.email || 'Utilisateur' });
+  }
+  if (action.includes('user.delete') || (entityType === 'User' && action.includes('delete'))) {
+    return t('audit.summaries.userDeleted', { actor });
+  }
+
+  // Roles
+  if (action.includes('role') || entityType === 'Role') {
+    return t('audit.summaries.roleUpdated', { actor });
+  }
+
+  // 3D Scene
+  if (action.includes('scene') || action.includes('placement') || entityType === 'SceneObject' || entityType === 'Object3D') {
+    return t('audit.summaries.sceneSaved', { actor });
+  }
+
+  // Fallback localized summary
+  return t('audit.summaries.generic', { actor, entity: localizedEntity });
+}
+
+/**
  * Helper to convert live activity bus events into clean, role-sanitized notification objects
  */
-export function formatRoleNotification(log, isRoot = false) {
+export function formatRoleNotification(log, isRoot = false, t = null) {
   const action = (log.action || '').toLowerCase();
   const meta = log.metadata || {};
   const actorNom = log.actor?.nom || 'Admin';
 
-  let title = 'Action Système';
-  let message = log.summary || `${actorNom} a effectué une modification.`;
+  let title = t ? t('audit.entities.System', 'Action Système') : 'Action Système';
+  let message = getLocalizedLogSummary(log, t) || log.summary || `${actorNom} a effectué une modification.`;
   let type = 'info';
   let targetRoute = '/audit-logs';
   let isPriority = false;
@@ -200,38 +317,22 @@ export function formatRoleNotification(log, isRoot = false) {
   }
 
   if (action.includes('kart')) {
-    title = 'Flotte de Karts';
-    message = meta.numero
-      ? `Mise à jour du kart #${meta.numero} par ${actorNom}`
-      : `Configuration des karts mise à jour par ${actorNom}`;
+    title = t ? t('audit.entities.Kart', 'Flotte de Karts') : 'Flotte de Karts';
     targetRoute = '/configuration-karts';
   } else if (action.includes('espace')) {
-    title = 'Espaces & Visites 3D';
-    message = meta.nom
-      ? `L'espace "${meta.nom}" a été mis à jour par ${actorNom}`
-      : `Modifications apportées aux espaces par ${actorNom}`;
+    title = t ? t('audit.entities.Espace', 'Espaces 3D') : 'Espaces & Visites 3D';
     targetRoute = '/espaces';
   } else if (action.includes('user') || action.includes('role')) {
-    title = 'Équipe & Utilisateurs';
-    message = meta.nom
-      ? `Profil de ${meta.nom} mis à jour par ${actorNom}`
-      : `Gestion des accès d'équipe par ${actorNom}`;
+    title = t ? t('audit.entities.User', 'Équipe & Utilisateurs') : 'Équipe & Utilisateurs';
     targetRoute = '/utilisateurs';
   } else if (action.includes('scene') || action.includes('placement')) {
-    title = 'Studio 3D';
-    message = `Nouvelle disposition 3D enregistrée par ${actorNom}`;
+    title = t ? t('audit.entities.Object3D', 'Studio 3D') : 'Studio 3D';
     targetRoute = '/editeur-3d';
   } else if (action.includes('upgrade') || action.includes('pack')) {
-    title = 'Abonnement & Pack';
+    title = t ? t('audit.entities.UpgradeRequest', 'Abonnement & Pack') : 'Abonnement & Pack';
+    targetRoute = isRoot ? '/root/demandes-upgrade' : '/abonnement';
     if (action.includes('requested')) {
-      title = 'Demande de Mise à Niveau';
-      message = `${actorNom} a demandé le passage au pack ${meta.targetPack || 'supérieur'}`;
-      targetRoute = isRoot ? '/root/demandes-upgrade' : '/abonnement';
       isPriority = true;
-    } else if (action.includes('approved') || action.includes('pack_upgraded') || action.includes('override')) {
-      title = 'Pack Activé';
-      message = `Le pack de votre entreprise a été mis à jour vers ${meta.newPack || meta.targetPack || 'Supérieur'} !`;
-      targetRoute = isRoot ? '/root/demandes-upgrade' : '/abonnement';
     }
   }
 
@@ -239,8 +340,8 @@ export function formatRoleNotification(log, isRoot = false) {
     return {
       id: log.id || `notif-${Date.now()}-${Math.random()}`,
       type,
-      title: isPriority ? `🚨 [PRIORITÉ ROOT] ${title}` : `[ROOT] ${title}`,
-      message: `${message} · Entreprise : ${log.company?.nom || 'Global'}`,
+      title: isPriority ? `🚨 [ROOT] ${title}` : `[ROOT] ${title}`,
+      message: `${message} · ${log.company?.nom || 'Global'}`,
       createdAt: log.createdAt || new Date().toISOString(),
       targetRoute,
       read: false,

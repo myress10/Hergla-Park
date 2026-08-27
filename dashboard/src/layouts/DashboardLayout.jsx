@@ -210,7 +210,7 @@ export default function DashboardLayout() {
         const logsRes = await getAuditLogs({ limit: 12 }).catch(() => null);
         if (isMounted && logsRes?.data && Array.isArray(logsRes.data)) {
           const isRoot = user?.role === 'ROOT';
-          const liveNotifs = logsRes.data.map((log) => formatRoleNotification(log, isRoot));
+          const liveNotifs = logsRes.data.map((log) => formatRoleNotification(log, isRoot, t));
 
           setNotifications((prev) => {
             const existingIds = new Set(prev.map((n) => n.id));
