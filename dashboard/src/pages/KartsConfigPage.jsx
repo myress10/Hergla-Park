@@ -7,8 +7,9 @@ import { getKarts, createKart, updateKart, deleteKart, reorderKarts } from '../a
 import KartList from '../components/karts/KartList';
 import KartPreviewCanvas from '../components/karts/KartPreviewCanvas';
 import { PRESET_COLORS } from '../components/karts/KartFormRow';
-import { Flag, Save, Loader2, Layers, AlertCircle, ChevronDown, CheckCircle } from 'lucide-react';
+import { Flag, Save, Loader2, Layers, AlertCircle, ChevronDown, CheckCircle, Lock, Sparkles, ArrowRight } from 'lucide-react';
 import RootVerificationModal from '../components/RootVerificationModal';
+import FeatureLockModal from '../components/subscription/FeatureLockModal';
 import toast from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -31,6 +32,8 @@ export default function KartsConfigPage() {
   const [deletedKartIds, setDeletedKartIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [lockedBySubscription, setLockedBySubscription] = useState(false);
+  const [featureLockModalOpen, setFeatureLockModalOpen] = useState(false);
 
   // Warn before leaving with unsaved changes
   const [isDirty, setIsDirty] = useState(false);
@@ -74,6 +77,7 @@ export default function KartsConfigPage() {
     setEspaceLoading(true);
     setIsDirty(false);
     setDeletedKartIds([]);
+    setLockedBySubscription(false);
 
     try {
       // 1. Fetch space info
@@ -92,7 +96,11 @@ export default function KartsConfigPage() {
         }))
       );
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Impossible de charger la configuration des karts');
+      if (err.response?.status === 403 && (err.response?.data?.code === 'MODULE_LOCKED_KARTS' || err.response?.data?.message?.includes('Pack Avancé'))) {
+        setLockedBySubscription(true);
+      } else {
+        toast.error(err.response?.data?.message || 'Impossible de charger la configuration des karts');
+      }
     } finally {
       setLoading(false);
       setEspaceLoading(false);
@@ -336,7 +344,7 @@ export default function KartsConfigPage() {
       {/* Navigation Tabs (Éditeur 3D <-> Configuration Karts) */}
       {selectedEspaceId && (
         <div className="flex border-b border-slate-200 space-x-2">
-            <Link
+          <Link
             to={`/espaces/${selectedEspaceId}/editeur-3d`}
             className="px-4 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-2 border-b-2 border-transparent transition-colors"
           >
@@ -353,21 +361,41 @@ export default function KartsConfigPage() {
         </div>
       )}
 
-      {/* Non-karting space warning */}
-      {!espaceLoading && !isKartingCategory && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-800 flex items-center gap-3">
-          <AlertCircle size={24} className="text-amber-600 flex-shrink-0" />
-          <div>
-            <p className="font-bold text-sm">{t('karts.unsavedWarning')}</p>
-            <p className="text-xs text-amber-700">
-              {t('spaces.card.status')} "{espace?.nom}" - {espace?.categorie}
+      {/* Locked by subscription state */}
+      {lockedBySubscription ? (
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-8 sm:p-12 text-center max-w-2xl mx-auto space-y-5 animate-in fade-in duration-200">
+          <div className="w-16 h-16 rounded-3xl bg-indigo-50 border border-indigo-100 mx-auto flex items-center justify-center text-indigo-600 shadow-inner">
+            <Lock size={30} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-slate-900">
+              {t('subscription.featureLockedTitle', 'Module Karts Verrouillé')}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+              La gestion dynamique de flotte de karts, numéros et carrosseries nécessite le pack <strong>🥈 Avancé</strong> ou <strong>🥇 Premium</strong>.
             </p>
           </div>
-        </div>
-      )}
 
-      {/* Main Content Grid: Editor (Left) & Live 3D Preview (Right) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setFeatureLockModalOpen(true)}
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all"
+            >
+              <Sparkles size={16} />
+              <span>{t('subscription.requestUpgradeBtn', 'Débloquer avec le Pack Avancé')}</span>
+            </button>
+            <Link
+              to="/abonnement"
+              className="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+            >
+              {t('subscription.title', 'Voir tous les packs')}
+            </Link>
+          </div>
+        </div>
+      ) : (
+        /* Main Content Grid: Editor (Left) & Live 3D Preview (Right) */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Karts Form List */}
         <div className="lg:col-span-6 space-y-4">
           {/* Summary & Save Header Card */}
@@ -438,6 +466,7 @@ export default function KartsConfigPage() {
           </div>
         </div>
       </div>
+      )}
 
       {/* ROOT Verification Security Modal */}
       <RootVerificationModal
@@ -446,6 +475,15 @@ export default function KartsConfigPage() {
         onConfirm={handleRootKartConfirm}
         title={t('rootModal.title')}
         actionName={t('karts.saveFleet')}
+      />
+
+      {/* Feature Lock Modal */}
+      <FeatureLockModal
+        isOpen={featureLockModalOpen}
+        onClose={() => setFeatureLockModalOpen(false)}
+        title={t('subscription.featureLockedTitle', 'Module Karts Verrouillé')}
+        message="Le module Karts & Pistes nécessite le pack Avancé ou Premium. Contactez votre administrateur ou demandez un upgrade."
+        targetPack="AVANCE"
       />
     </div>
   );

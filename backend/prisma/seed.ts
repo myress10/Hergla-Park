@@ -41,6 +41,9 @@ async function main() {
     { key: 'kart:manage', description: 'Créer, modifier, réordonner et supprimer les karts d\'un espace' },
     { key: 'kart:read', description: 'Consulter la configuration des karts d\'un espace' },
 
+    { key: 'upgrade:request', description: 'Consulter les quotas et soumettre une demande de mise à niveau' },
+    { key: 'upgrade:manage', description: 'Gérer, approuver ou refuser les demandes d\'upgrade (réservé ROOT)' },
+
     { key: 'logs:view', description: 'Consulter le journal d\'activité (réservé ROOT)' },
   ];
 
@@ -78,7 +81,7 @@ async function main() {
 
   const rolePermissionMappings: { [roleId: string]: string[] } = {
     'system-role-root': allPermissions.map((p) => p.key), // ROOT gets EVERYTHING
-    'system-role-superadmin': allPermissions.map((p) => p.key).filter((k) => k !== 'logs:view'), // All except logs:view
+    'system-role-superadmin': allPermissions.map((p) => p.key).filter((k) => k !== 'logs:view' && k !== 'upgrade:manage'), // All except logs:view and upgrade:manage
     'system-role-admin': ['espace:read', 'espace:update', 'user:read', 'kart:manage', 'kart:read'],
     'system-role-employe': ['espace:read', 'espace:update', 'scene:edit', 'kart:read'],
   };

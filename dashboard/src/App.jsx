@@ -12,6 +12,8 @@ import UsersPage from './pages/UsersPage';
 import SceneEditorPage from './pages/SceneEditorPage';
 import KartsConfigPage from './pages/KartsConfigPage';
 import AuditLogsPage from './pages/AuditLogsPage';
+import SubscriptionPage from './pages/SubscriptionPage';
+import RootUpgradeRequestsPage from './pages/RootUpgradeRequestsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import './i18n/index';
 import { Toaster } from 'react-hot-toast';
@@ -75,6 +77,26 @@ export default function App() {
                 element={
                   <RoleRoute allowedRoles={['SUPERADMIN', 'ROOT', 'ADMIN']}>
                     <AuditLogsPage />
+                  </RoleRoute>
+                }
+              />
+
+              {/* Subscriptions & Quotas (SUPERADMIN, ROOT, ADMIN) */}
+              <Route
+                path="/abonnement"
+                element={
+                  <RoleRoute allowedRoles={['SUPERADMIN', 'ROOT', 'ADMIN']}>
+                    <SubscriptionPage />
+                  </RoleRoute>
+                }
+              />
+
+              {/* ROOT Only: Upgrade Requests Management */}
+              <Route
+                path="/root/demandes-upgrade"
+                element={
+                  <RoleRoute allowedRoles={['ROOT']}>
+                    <RootUpgradeRequestsPage />
                   </RoleRoute>
                 }
               />

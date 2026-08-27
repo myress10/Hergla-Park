@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateEspaceDto } from './dto/create-espace.dto';
 import { UpdateEspaceDto } from './dto/update-espace.dto';
 import { AuditLogService } from '../common/audit-log.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 type AuthUser = { id: string; role: string; companyId: string | null; isRoot?: boolean };
 
@@ -11,6 +12,7 @@ export class EspacesService {
   constructor(
     private prisma: PrismaService,
     private auditLogService: AuditLogService,
+    private subscriptionsService: SubscriptionsService,
   ) {}
 
   /**
@@ -33,6 +35,9 @@ export class EspacesService {
     if (!companyId) {
       throw new BadRequestException("Une entreprise cible ('companyId') est requise pour créer un espace.");
     }
+
+    // Verify subscription quota before creation
+    await this.subscriptionsService.assertCanCreateEspace(companyId);
 
     const espace = await this.prisma.espace.create({
       data: {

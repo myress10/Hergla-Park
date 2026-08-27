@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import RootVerificationModal from '../components/RootVerificationModal';
+import FeatureLockModal from '../components/subscription/FeatureLockModal';
 import { subscribeActivity } from '../utils/activityBus';
 import toast from 'react-hot-toast';
 
@@ -166,6 +167,7 @@ export default function EspacesOverviewPage() {
 
   const { user } = useAuth();
   const [rootCreateModalOpen, setRootCreateModalOpen] = useState(false);
+  const [featureLockModal, setFeatureLockModal] = useState({ isOpen: false, message: '', targetPack: 'AVANCE' });
 
   // ── CREATE ────────────────────────────────────────────────────────────────
   const performCreate = async (reason) => {
@@ -178,7 +180,16 @@ export default function EspacesOverviewPage() {
       setNewEspace({ nom: '', categorie: '', statut: 'OUVERT' });
       toast.success(t('spaces.create.success'));
     } catch (err) {
-      toast.error(err.response?.data?.message || t('spaces.create.error'));
+      if (err.response?.status === 403 && (err.response?.data?.code === 'QUOTA_EXCEEDED_ESPACES' || err.response?.data?.message?.includes('Limite'))) {
+        setCreateModalOpen(false);
+        setFeatureLockModal({
+          isOpen: true,
+          message: err.response?.data?.message || 'Limite d\'espaces atteinte pour votre pack. Veuillez passer au pack supérieur pour en créer d\'autres.',
+          targetPack: 'AVANCE',
+        });
+      } else {
+        toast.error(err.response?.data?.message || t('spaces.create.error'));
+      }
     } finally {
       setCreating(false);
     }
@@ -479,6 +490,15 @@ export default function EspacesOverviewPage() {
         onConfirm={handleRootCreateConfirm}
         title={t('rootModal.title')}
         actionName={`${t('spaces.create.submit')}: ${newEspace.nom} (${newEspace.categorie})`}
+      />
+
+      {/* Subscription Quota Feature Lock Modal */}
+      <FeatureLockModal
+        isOpen={featureLockModal.isOpen}
+        onClose={() => setFeatureLockModal((prev) => ({ ...prev, isOpen: false }))}
+        title={t('subscription.featureLockedTitle', 'Limite d\'espaces atteinte')}
+        message={featureLockModal.message}
+        targetPack={featureLockModal.targetPack}
       />
     </div>
   );

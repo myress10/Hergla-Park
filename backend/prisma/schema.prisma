@@ -27,6 +27,7 @@ model User {
   roles             UserRole[]
   auditLogs         AuditLog[]
   userCompanies     UserCompany[]
+  upgradeRequests   UpgradeRequest[]
 }
 
 model Espace {
@@ -86,21 +87,53 @@ enum StatutEspace {
   MAINTENANCE
 }
 
-model Company {
-  id          String   @id @default(uuid())
-  nom         String
-  slug        String   @unique   // ex: "hergla-park", utilisé dans les URLs publiques
-  logoUrl     String?
-  actif       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum SubscriptionPack {
+  STANDARD
+  AVANCE
+  PREMIUM
+}
 
-  users         User[]
-  espaces       Espace[]
-  objects3D     Object3D[]
-  roles         Role[]
-  userCompanies UserCompany[]
-  auditLogs     AuditLog[]
+enum UpgradeRequestStatus {
+  EN_ATTENTE
+  APPROUVE
+  REFUSE
+}
+
+model Company {
+  id          String           @id @default(uuid())
+  nom         String
+  slug        String           @unique   // ex: "hergla-park", utilisé dans les URLs publiques
+  logoUrl     String?
+  actif       Boolean          @default(true)
+  pack        SubscriptionPack @default(STANDARD)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  users           User[]
+  espaces         Espace[]
+  objects3D       Object3D[]
+  roles           Role[]
+  userCompanies   UserCompany[]
+  auditLogs       AuditLog[]
+  upgradeRequests UpgradeRequest[]
+}
+
+model UpgradeRequest {
+  id              String               @id @default(uuid())
+  companyId       String
+  company         Company              @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  requestedById   String
+  requestedBy     User                 @relation(fields: [requestedById], references: [id], onDelete: Cascade)
+  currentPack     SubscriptionPack
+  targetPack      SubscriptionPack
+  status          UpgradeRequestStatus @default(EN_ATTENTE)
+  notes           String?
+  contactPhone    String?
+  processedById   String?
+  processedAt     DateTime?
+  adminResponse   String?
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 }
 
 model UserCompany {
@@ -180,5 +213,6 @@ model Kart {
 
   @@unique([espaceId, numero])             // deux karts du même espace ne peuvent pas avoir le même numéro
 }
+
 
 

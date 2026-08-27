@@ -10,6 +10,7 @@ import { RolesModule } from './roles/roles.module';
 import { RootModule } from './root/root.module';
 import { KartsModule } from './karts/karts.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { AuditLogsModule } from './audit-logs/audit-logs.module';
     RootModule,
     KartsModule,
     AuditLogsModule,
+    SubscriptionsModule,
   ],
 })
 export class AppModule {}

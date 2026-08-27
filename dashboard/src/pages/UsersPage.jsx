@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { subscribeActivity } from '../utils/activityBus';
 import Modal from '../components/Modal';
 import RootVerificationModal from '../components/RootVerificationModal';
+import FeatureLockModal from '../components/subscription/FeatureLockModal';
 import {
   Users,
   UserCheck,
@@ -171,6 +172,7 @@ export default function UsersPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [customPermsExpanded, setCustomPermsExpanded] = useState(false);
+  const [featureLockModal, setFeatureLockModal] = useState({ isOpen: false, message: '', targetPack: 'AVANCE' });
   const [newUser, setNewUser] = useState({
     nom: '',
     email: '',
@@ -525,7 +527,16 @@ export default function UsersPage() {
       toast.success(t('users.create.submit') + ' ✓');
       fetchRecentActivities();
     } catch (err) {
-      toast.error(err.response?.data?.message || t('common.error'));
+      if (err.response?.status === 403 && (err.response?.data?.code === 'QUOTA_EXCEEDED_USERS' || err.response?.data?.message?.includes('Limite de collaborateurs'))) {
+        setCreateOpen(false);
+        setFeatureLockModal({
+          isOpen: true,
+          message: err.response?.data?.message || 'Limite de collaborateurs atteinte pour votre pack actuel. Passez au pack supérieur pour ajouter d\'autres membres.',
+          targetPack: 'AVANCE',
+        });
+      } else {
+        toast.error(err.response?.data?.message || t('common.error'));
+      }
     } finally {
       setCreating(false);
     }
@@ -1964,6 +1975,15 @@ export default function UsersPage() {
           </form>
         )}
       </Modal>
+
+      {/* Subscription Quota Feature Lock Modal */}
+      <FeatureLockModal
+        isOpen={featureLockModal.isOpen}
+        onClose={() => setFeatureLockModal((p) => ({ ...p, isOpen: false }))}
+        title={t('subscription.featureLockedTitle', 'Limite de collaborateurs atteinte')}
+        message={featureLockModal.message}
+        targetPack={featureLockModal.targetPack}
+      />
     </div>
   );
 }

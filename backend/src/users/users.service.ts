@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuditLogService } from '../common/audit-log.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import * as bcrypt from 'bcryptjs';
 
 type AuthUser = { id: string; role: string; companyId: string | null; isRoot?: boolean };
@@ -12,6 +13,7 @@ export class UsersService {
   constructor(
     private prisma: PrismaService,
     private auditLogService: AuditLogService,
+    private subscriptionsService: SubscriptionsService,
   ) {}
 
   async create(createUserDto: CreateUserDto, actor: AuthUser, targetCompanyId?: string, reason?: string) {
@@ -21,6 +23,9 @@ export class UsersService {
     if (!companyId) {
       throw new BadRequestException("Une entreprise cible ('companyId') est requise pour créer un utilisateur.");
     }
+
+    // Verify subscription user quota before creation
+    await this.subscriptionsService.assertCanCreateUser(companyId);
 
     const userExists = await this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },

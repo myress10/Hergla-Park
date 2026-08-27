@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../common/storage.service';
 import { CreateObject3dDto } from './dto/create-object3d.dto';
 import { AuditLogService } from '../common/audit-log.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 type AuthUser = { id: string; role: string; companyId: string | null; isRoot?: boolean };
 
@@ -12,6 +13,7 @@ export class Objects3dService {
     private prisma: PrismaService,
     private storageService: StorageService,
     private auditLogService: AuditLogService,
+    private subscriptionsService: SubscriptionsService,
   ) {}
 
   /**
@@ -90,6 +92,9 @@ export class Objects3dService {
     if (!companyId) {
       throw new BadRequestException("Une entreprise cible ('companyId') est requise.");
     }
+
+    // Verify subscription pack quota for custom 3D model uploads
+    await this.subscriptionsService.assertCanUploadCustomObject(companyId);
 
     // Save GLB model using StorageService
     const modelUrl = await this.storageService.saveFile(

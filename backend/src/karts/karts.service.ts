@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateKartDto } from './dto/create-kart.dto';
 import { UpdateKartDto } from './dto/update-kart.dto';
 import { ReorderKartItemDto } from './dto/reorder-karts.dto';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 type AuthUser = {
   id: string;
@@ -14,7 +15,10 @@ type AuthUser = {
 
 @Injectable()
 export class KartsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private subscriptionsService: SubscriptionsService,
+  ) {}
 
   /**
    * Private helper to verify tenant isolation and assignedSpaceId permission.
@@ -30,6 +34,11 @@ export class KartsService {
 
     if (!user.isRoot && space.companyId !== user.companyId) {
       throw new NotFoundException(`Espace avec l'ID ${espaceId} introuvable.`);
+    }
+
+    // Verify pack entitlement for karts module (only for non-root users or root scoped)
+    if (!user.isRoot) {
+      await this.subscriptionsService.assertCanAccessModule(space.companyId, 'karts');
     }
 
     // Checking roles

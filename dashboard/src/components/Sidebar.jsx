@@ -10,11 +10,25 @@ import {
   Box,
   Flag,
   ShieldCheck,
+  CreditCard,
+  Sparkles,
 } from 'lucide-react';
+
+const ROOT_LINKS = [
+  { to: '/espaces', icon: Map, labelKey: 'nav.spaces', id: 'nav-spaces' },
+  { to: '/utilisateurs', icon: Users, labelKey: 'nav.users', id: 'nav-users' },
+  { to: '/abonnement', icon: CreditCard, labelKey: 'nav.subscription', id: 'nav-subscription' },
+  { to: '/root/demandes-upgrade', icon: Sparkles, labelKey: 'nav.rootUpgrades', id: 'nav-root-upgrades' },
+  { to: '/editeur-3d', icon: Box, labelKey: 'nav.editor3d', id: 'nav-editor-3d' },
+  { to: '/configuration-karts', icon: Flag, labelKey: 'nav.kartsConfig', id: 'nav-karts' },
+  { to: '/audit-logs', icon: ShieldCheck, labelKey: 'nav.auditLogs', id: 'nav-audit-logs' },
+  { to: '/mon-profil', icon: User, labelKey: 'nav.myProfile', id: 'nav-profile' },
+];
 
 const SUPERADMIN_LINKS = [
   { to: '/espaces', icon: Map, labelKey: 'nav.spaces', id: 'nav-spaces' },
   { to: '/utilisateurs', icon: Users, labelKey: 'nav.users', id: 'nav-users' },
+  { to: '/abonnement', icon: CreditCard, labelKey: 'nav.subscription', id: 'nav-subscription' },
   { to: '/editeur-3d', icon: Box, labelKey: 'nav.editor3d', id: 'nav-editor-3d' },
   { to: '/configuration-karts', icon: Flag, labelKey: 'nav.kartsConfig', id: 'nav-karts' },
   { to: '/audit-logs', icon: ShieldCheck, labelKey: 'nav.auditLogs', id: 'nav-audit-logs' },
@@ -34,8 +48,12 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const isGlobalAdmin = user?.role === 'SUPERADMIN' || user?.role === 'ROOT';
-  const links = isGlobalAdmin ? SUPERADMIN_LINKS : STAFF_LINKS;
+  const links =
+    user?.role === 'ROOT'
+      ? ROOT_LINKS
+      : user?.role === 'SUPERADMIN'
+      ? SUPERADMIN_LINKS
+      : STAFF_LINKS;
 
   const handleLogout = () => {
     logout();
