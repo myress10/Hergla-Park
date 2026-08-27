@@ -1,7 +1,70 @@
-import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards, Req, ForbiddenException } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/auth.guard';
 import { PrismaService } from '../prisma/prisma.service';
+
+/**
+ * Helper to build clean, human-readable summaries for business users
+ */
+function buildHumanReadableSummary(action: string, entityType: string, metadata: any, actorName: string): string {
+  const act = (action || '').toLowerCase();
+  const meta = metadata || {};
+  const targetName = meta.nom || meta.numero || meta.targetPack || entityType || 'élément';
+
+  if (act.includes('espace.create') || act.includes('espace_created')) {
+    return `${actorName} a créé l'espace "${meta.nom || 'Nouveau'}"`;
+  }
+  if (act.includes('espace.update') || act.includes('espace_updated')) {
+    const statusNote = meta.statut ? ` (Statut : ${meta.statut})` : '';
+    return `${actorName} a modifié l'espace "${meta.nom || targetName}"${statusNote}`;
+  }
+  if (act.includes('espace.delete') || act.includes('espace_deleted')) {
+    return `${actorName} a supprimé un espace`;
+  }
+  if (act.includes('kart.create') || act.includes('kart_created')) {
+    return `${actorName} a ajouté le kart #${meta.numero || targetName}`;
+  }
+  if (act.includes('kart.update') || act.includes('kart_updated')) {
+    const statusNote = meta.actif !== undefined ? (meta.actif ? ' (Actif)' : ' (En Maintenance)') : '';
+    return `${actorName} a mis à jour le kart #${meta.numero || targetName}${statusNote}`;
+  }
+  if (act.includes('kart.delete') || act.includes('kart_deleted')) {
+    return `${actorName} a retiré le kart #${meta.numero || targetName}`;
+  }
+  if (act.includes('karts.reorder')) {
+    return `${actorName} a réorganisé l'ordre de la flotte de karts`;
+  }
+  if (act.includes('scene.save') || act.includes('placement')) {
+    return `${actorName} a mis à jour la disposition 3D des objets`;
+  }
+  if (act.includes('user.create')) {
+    return `${actorName} a ajouté un nouveau collaborateur (${meta.nom || meta.email || 'Utilisateur'})`;
+  }
+  if (act.includes('user.update')) {
+    return `${actorName} a mis à jour le profil de (${meta.nom || meta.email || 'Utilisateur'})`;
+  }
+  if (act.includes('user.delete')) {
+    return `${actorName} a supprimé un compte utilisateur`;
+  }
+  if (act.includes('company.pack_upgraded') || act.includes('company.pack_override')) {
+    return `Mise à niveau du pack entreprise vers "${meta.newPack || meta.targetPack || 'Nouveau Pack'}"`;
+  }
+  if (act.includes('company.upgrade_requested')) {
+    return `${actorName} a soumis une demande de mise à niveau vers le pack "${meta.targetPack || 'Avancé'}"`;
+  }
+  if (act.includes('company.upgrade_approved')) {
+    return `Demande d'upgrade validée : activation du pack "${meta.newPack || meta.targetPack || 'Pack Supérieur'}"`;
+  }
+  if (act.includes('company.upgrade_rejected')) {
+    return `Demande d'upgrade refusée pour le moment`;
+  }
+  if (act.includes('role.create') || act.includes('role.update')) {
+    return `${actorName} a mis à jour les droits et rôles d'équipe`;
+  }
+
+  // Fallback high-level summary
+  return `${actorName} a effectué une opération sur ${entityType || 'le système'}`;
+}
 
 @ApiTags('audit-logs')
 @ApiBearerAuth()
@@ -11,10 +74,13 @@ export class AuditLogsController {
   constructor(private prisma: PrismaService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Retrieve system/company activity audit logs with RBAC filtering and stealth ROOT mode' })
+  @ApiOperation({ summary: 'Retrieve system/company activity audit logs with strict RBAC sanitization and telemetry segregation' })
   @ApiQuery({ name: 'companyId', required: false })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'action', required: false })
+  @ApiQuery({ name: 'subsystem', required: false, description: 'Filter by subsystem (ROOT only: karts, espaces, users, subscriptions, studio3d, system)' })
+  @ApiQuery({ name: 'ip', required: false, description: 'Filter by IP address (ROOT only)' })
+  @ApiQuery({ name: 'actorId', required: false, description: 'Filter by Actor ID' })
   @ApiQuery({ name: 'startDate', required: false })
   @ApiQuery({ name: 'endDate', required: false })
   @ApiQuery({ name: 'page', required: false, type: Number })
@@ -25,6 +91,9 @@ export class AuditLogsController {
     @Query('companyId') companyId?: string,
     @Query('search') search?: string,
     @Query('action') action?: string,
+    @Query('subsystem') subsystem?: string,
+    @Query('ip') ip?: string,
+    @Query('actorId') actorId?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('page') page?: number,
@@ -56,18 +125,24 @@ export class AuditLogsController {
 
     // 1. Role-Based Scope & Stealth Mode
     if (isRoot) {
-      // ROOT sees everything across all companies and spaces (Stealth View)
+      // ROOT sees everything across all companies (Full Telemetry View)
       if (companyId) {
         where.companyId = companyId;
+      }
+      if (actorId) {
+        where.actorId = actorId;
       }
     } else {
       // Non-ROOT users NEVER see actions performed by ROOT (Stealth Mode)
       where.isRootIntervention = false;
 
-      const activeCompanyId = companyId || currentUser.companyId || userRecord?.companyId;
-      if (activeCompanyId) {
-        where.companyId = activeCompanyId;
+      const userCompanyId = currentUser.companyId || userRecord?.companyId;
+      if (!userCompanyId) {
+        throw new ForbiddenException("Aucune entreprise rattachée à cet utilisateur.");
       }
+
+      // Strictly isolate to the user's authorized company
+      where.companyId = userCompanyId;
 
       if (isEmploye) {
         // Standard Employees can only see their own logs or logs from staff in their assigned space
@@ -75,7 +150,7 @@ export class AuditLogsController {
           const spaceStaff = await this.prisma.user.findMany({
             where: {
               assignedSpaceId: userRecord.assignedSpaceId,
-              companyId: activeCompanyId || undefined,
+              companyId: userCompanyId,
             },
             select: { id: true },
           });
@@ -142,11 +217,83 @@ export class AuditLogsController {
       }),
     ]);
 
+    // 5. Server-Side Data Stripping & Sanitization
+    let sanitizedData: any[] = [];
+
+    if (isRoot) {
+      // ROOT receives FULL raw telemetry (IP, userAgent, method, route, transactionId, before/after diffs, stackTrace)
+      sanitizedData = items.map((log) => {
+        const meta = (log.metadata as any) || {};
+        return {
+          id: log.id,
+          createdAt: log.createdAt,
+          action: log.action,
+          entityType: log.entityType,
+          entityId: log.entityId,
+          companyId: log.companyId,
+          company: log.company,
+          actor: log.actor,
+          isRootIntervention: log.isRootIntervention,
+          subsystem: meta.subsystem || 'system',
+          ip: meta.ip || '127.0.0.1 (Local/Gateway)',
+          userAgent: meta.userAgent || 'Mozilla/5.0 (Client)',
+          method: meta.method || (log.action.includes('create') ? 'POST' : log.action.includes('delete') ? 'DELETE' : 'PUT'),
+          route: meta.route || `/api/${log.entityType?.toLowerCase() || 'system'}`,
+          transactionId: meta.transactionId || `tx-${log.id.slice(0, 8)}`,
+          before: meta.before || null,
+          after: meta.after || null,
+          diff: meta.diff || null,
+          stackTrace: meta.stackTrace || null,
+          reason: meta.reason || null,
+          metadata: meta,
+          summary: buildHumanReadableSummary(log.action, log.entityType, meta, log.actor?.nom || 'Utilisateur'),
+        };
+      });
+
+      // In-memory filter for ROOT custom filters if needed
+      if (subsystem && subsystem !== 'ALL') {
+        sanitizedData = sanitizedData.filter((d) => (d.subsystem || '').toLowerCase() === subsystem.toLowerCase());
+      }
+      if (ip && ip.trim() !== '') {
+        const ipQuery = ip.trim().toLowerCase();
+        sanitizedData = sanitizedData.filter((d) => (d.ip || '').toLowerCase().includes(ipQuery));
+      }
+    } else {
+      // Non-ROOT users: Server completely strips all sensitive developer keys and technical telemetry
+      sanitizedData = items.map((log) => {
+        const meta = (log.metadata as any) || {};
+        const safeMetadata: any = {};
+
+        // Only keep safe, user-friendly business keys
+        if (meta.nom) safeMetadata.nom = meta.nom;
+        if (meta.numero) safeMetadata.numero = meta.numero;
+        if (meta.category || meta.categorie) safeMetadata.category = meta.category || meta.categorie;
+        if (meta.statut || meta.status) safeMetadata.status = meta.statut || meta.status;
+        if (meta.targetPack) safeMetadata.targetPack = meta.targetPack;
+        if (meta.newPack) safeMetadata.newPack = meta.newPack;
+        if (meta.reason && !log.isRootIntervention) safeMetadata.reason = meta.reason;
+
+        return {
+          id: log.id,
+          createdAt: log.createdAt,
+          action: log.action,
+          entityType: log.entityType,
+          actor: {
+            id: log.actor?.id,
+            nom: log.actor?.nom,
+            email: log.actor?.email,
+          },
+          summary: buildHumanReadableSummary(log.action, log.entityType, meta, log.actor?.nom || 'Collaborateur'),
+          metadata: safeMetadata,
+        };
+      });
+    }
+
     return {
       success: true,
-      data: items,
+      data: sanitizedData,
       meta: {
-        total,
+        total: isRoot && (subsystem || ip) ? sanitizedData.length : total,
         page: pageNum,
         limit: limitNum,
         totalPages: Math.ceil(total / limitNum),
@@ -154,4 +301,5 @@ export class AuditLogsController {
     };
   }
 }
+
 

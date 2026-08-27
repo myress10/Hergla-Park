@@ -39,6 +39,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { formatRoleNotification } from '../utils/toastUtils';
 
 // Helper to format notification icon & colors
 function getNotifConfig(type) {
@@ -208,27 +209,8 @@ export default function DashboardLayout() {
 
         const logsRes = await getAuditLogs({ limit: 12 }).catch(() => null);
         if (isMounted && logsRes?.data && Array.isArray(logsRes.data)) {
-          const liveNotifs = logsRes.data.map((log, idx) => {
-            const isWarning = log.action?.includes('DELETE') || log.action?.includes('LOCK');
-            const isSuccess = log.action?.includes('CREATE') || log.action?.includes('STATUS');
-            const type = isWarning ? 'warning' : isSuccess ? 'success' : 'info';
-
-            let targetRoute = '/audit-logs';
-            if (log.action?.includes('KART')) targetRoute = '/configuration-karts';
-            else if (log.action?.includes('ESPACE')) targetRoute = '/espaces';
-            else if (log.action?.includes('USER') || log.action?.includes('ROLE')) targetRoute = '/utilisateurs';
-            else if (log.action?.includes('SCENE') || log.action?.includes('OBJECT')) targetRoute = '/editeur-3d';
-
-            return {
-              id: log.id || `live-log-${idx}-${Date.now()}`,
-              type,
-              title: `${log.action?.replace(/_/g, ' ') || 'Action Système'}`,
-              message: `${log.actor?.nom || 'Admin'} : ${log.entityType || 'Module'} (${log.company?.nom || 'Hergla Park'})`,
-              createdAt: log.createdAt || new Date().toISOString(),
-              targetRoute,
-              read: false,
-            };
-          });
+          const isRoot = user?.role === 'ROOT';
+          const liveNotifs = logsRes.data.map((log) => formatRoleNotification(log, isRoot));
 
           setNotifications((prev) => {
             const existingIds = new Set(prev.map((n) => n.id));
@@ -239,12 +221,26 @@ export default function DashboardLayout() {
               const latest = newOnes[0];
               toast(
                 (tObj) => (
-                  <div className="flex items-center gap-3 cursor-pointer" onClick={() => { toast.dismiss(tObj.id); if (latest.targetRoute) navigate(latest.targetRoute); }}>
-                    <div className="w-8 h-8 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center flex-shrink-0">
+                  <div
+                    className="flex items-center gap-3 cursor-pointer"
+                    onClick={() => {
+                      toast.dismiss(tObj.id);
+                      if (latest.targetRoute) navigate(latest.targetRoute);
+                    }}
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        isRoot
+                          ? 'bg-amber-500/20 text-amber-400'
+                          : 'bg-indigo-500/20 text-indigo-400'
+                      }`}
+                    >
                       <Bell size={16} className="animate-pulse" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-white leading-tight">{latest.title}</p>
+                      <p className="text-xs font-bold text-white leading-tight flex items-center gap-1.5">
+                        {latest.title}
+                      </p>
                       <p className="text-[11px] text-slate-300 truncate">{latest.message}</p>
                     </div>
                   </div>
@@ -254,7 +250,7 @@ export default function DashboardLayout() {
                   style: {
                     background: '#0f172a',
                     color: '#f8fafc',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    border: isRoot ? '1px solid rgba(245, 158, 11, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
                     borderRadius: '16px',
                     padding: '10px 14px',
                     boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
