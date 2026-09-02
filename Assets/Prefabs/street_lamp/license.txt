@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly Psx Street lamp
+* source:	https://sketchfab.com/3d-models/low-poly-psx-street-lamp-81a8d1861bbd4cef8ab1aed2986bf873
+* author:	SaukrDev (https://sketchfab.com/SaukrDev)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly Psx Street lamp" (https://sketchfab.com/3d-models/low-poly-psx-street-lamp-81a8d1861bbd4cef8ab1aed2986bf873) by SaukrDev (https://sketchfab.com/SaukrDev) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

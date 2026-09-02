@@ -1,0 +1,11 @@
+Model Information:
+* title:	Tropical Plant
+* source:	https://sketchfab.com/3d-models/tropical-plant-3ee280726f1f496e9b2377d43b4cbb2d
+* author:	alint (https://sketchfab.com/alint)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Tropical Plant" (https://sketchfab.com/3d-models/tropical-plant-3ee280726f1f496e9b2377d43b4cbb2d) by alint (https://sketchfab.com/alint) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
