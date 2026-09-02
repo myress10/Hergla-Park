@@ -1,3 +1,17 @@
+
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+UserSettings/
+.vs/
+*.csproj
+*.sln
+*.tmp
+
 # Dependency directories
 node_modules/
 **/node_modules/
