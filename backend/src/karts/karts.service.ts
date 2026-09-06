@@ -65,35 +65,36 @@ export class KartsService {
 
     return this.prisma.kart.findMany({
       where: { espaceId },
-      orderBy: [{ ordre: 'asc' }, { numero: 'asc' }],
+      orderBy: [{ ordre: 'asc' }, { numeroPlaque: 'asc' }],
     });
   }
 
   async create(espaceId: string, createKartDto: CreateKartDto, user: AuthUser) {
     await this.verifySpaceAccess(espaceId, user);
 
-    const { numero, couleur, actif, ordre } = createKartDto;
+    const { numeroPlaque, couleurs, modeleBaseUrl, actif, ordre } = createKartDto;
 
     const existing = await this.prisma.kart.findUnique({
       where: {
-        espaceId_numero: {
+        espaceId_numeroPlaque: {
           espaceId,
-          numero,
+          numeroPlaque,
         },
       },
     });
 
     if (existing) {
       throw new BadRequestException(
-        `Un kart avec le numéro "${numero}" existe déjà dans cet espace.`,
+        `Un kart avec le numéro de plaque "${numeroPlaque}" existe déjà dans cet espace.`,
       );
     }
 
     const kart = await this.prisma.kart.create({
       data: {
         espaceId,
-        numero,
-        couleur,
+        numeroPlaque,
+        couleurs,
+        modeleBaseUrl: modeleBaseUrl || null,
         actif: actif !== undefined ? actif : true,
         ordre: ordre !== undefined ? ordre : 0,
       },
@@ -113,19 +114,19 @@ export class KartsService {
       throw new NotFoundException(`Kart avec l'ID ${kartId} introuvable dans cet espace.`);
     }
 
-    if (updateKartDto.numero && updateKartDto.numero !== kart.numero) {
+    if (updateKartDto.numeroPlaque && updateKartDto.numeroPlaque !== kart.numeroPlaque) {
       const existing = await this.prisma.kart.findUnique({
         where: {
-          espaceId_numero: {
+          espaceId_numeroPlaque: {
             espaceId,
-            numero: updateKartDto.numero,
+            numeroPlaque: updateKartDto.numeroPlaque,
           },
         },
       });
 
       if (existing && existing.id !== kartId) {
         throw new BadRequestException(
-          `Un kart avec le numéro "${updateKartDto.numero}" existe déjà dans cet espace.`,
+          `Un kart avec le numéro de plaque "${updateKartDto.numeroPlaque}" existe déjà dans cet espace.`,
         );
       }
     }
@@ -133,8 +134,9 @@ export class KartsService {
     const updatedKart = await this.prisma.kart.update({
       where: { id: kartId },
       data: {
-        ...(updateKartDto.numero !== undefined && { numero: updateKartDto.numero }),
-        ...(updateKartDto.couleur !== undefined && { couleur: updateKartDto.couleur }),
+        ...(updateKartDto.numeroPlaque !== undefined && { numeroPlaque: updateKartDto.numeroPlaque }),
+        ...(updateKartDto.couleurs !== undefined && { couleurs: updateKartDto.couleurs }),
+        ...(updateKartDto.modeleBaseUrl !== undefined && { modeleBaseUrl: updateKartDto.modeleBaseUrl }),
         ...(updateKartDto.actif !== undefined && { actif: updateKartDto.actif }),
         ...(updateKartDto.ordre !== undefined && { ordre: updateKartDto.ordre }),
       },
@@ -195,7 +197,7 @@ export class KartsService {
 
     const karts = await this.prisma.kart.findMany({
       where: { espaceId },
-      orderBy: [{ ordre: 'asc' }, { numero: 'asc' }],
+      orderBy: [{ ordre: 'asc' }, { numeroPlaque: 'asc' }],
     });
 
     return { success: true, message: 'Ordre des karts mis à jour avec succès.', data: karts };
@@ -229,8 +231,9 @@ export class KartsService {
         ordre: 'asc',
       },
       select: {
-        numero: true,
-        couleur: true,
+        numeroPlaque: true,
+        couleurs: true,
+        modeleBaseUrl: true,
       },
     });
   }

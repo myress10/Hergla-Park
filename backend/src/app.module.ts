@@ -11,6 +11,7 @@ import { RootModule } from './root/root.module';
 import { KartsModule } from './karts/karts.module';
 import { AuditLogsModule } from './audit-logs/audit-logs.module';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { LapTimesModule } from './laptimes/laptimes.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SubscriptionsModule } from './subscriptions/subscriptions.module';
     KartsModule,
     AuditLogsModule,
     SubscriptionsModule,
+    LapTimesModule,
   ],
 })
 export class AppModule {}

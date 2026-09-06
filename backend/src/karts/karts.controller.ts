@@ -40,10 +40,10 @@ export class KartsController {
 
   @Post()
   @RequirePermissions('kart:manage')
-  @ApiOperation({ summary: "Création d'un kart pour un espace" })
+  @ApiOperation({ summary: "Création d'un kart pour un espace (numéro de plaque, couleurs par pièce, modèle 3D)" })
   @ApiParam({ name: 'id', description: "ID de l'espace" })
   @ApiResponse({ status: 201, description: 'Kart créé avec succès' })
-  @ApiResponse({ status: 400, description: 'Numéro de kart déjà existant dans cet espace' })
+  @ApiResponse({ status: 400, description: 'Numéro de plaque déjà existant dans cet espace' })
   @ApiResponse({ status: 403, description: 'Accès refusé' })
   async create(@Param('id') id: string, @Body() createKartDto: CreateKartDto, @Req() req) {
     const caller = { ...req.user, isRoot: req.isRootUser || false };
@@ -63,7 +63,7 @@ export class KartsController {
 
   @Put(':kartId')
   @RequirePermissions('kart:manage')
-  @ApiOperation({ summary: "Modification d'un kart (numéro, couleur, statut actif, ordre)" })
+  @ApiOperation({ summary: "Modification d'un kart (numéro de plaque, couleurs par pièce, modèle 3D, statut actif, ordre)" })
   @ApiParam({ name: 'id', description: "ID de l'espace" })
   @ApiParam({ name: 'kartId', description: 'ID du kart à modifier' })
   @ApiResponse({ status: 200, description: 'Kart mis à jour avec succès' })
@@ -98,14 +98,14 @@ export class PublicKartsController {
 
   @Get()
   @ApiOperation({
-    summary: 'Configuration des karts pour Unity (Public)',
-    description: 'Consommé par l’application Unity — aucune authentification requise. Retourne uniquement les karts actifs triés par ordre.',
+    summary: 'Configuration des karts pour Unity & aperçu web (Public)',
+    description: 'Consommé par l’application Unity et aperçu web — aucune authentification requise. Retourne uniquement les karts actifs triés par ordre.',
   })
   @ApiParam({ name: 'slug', example: 'hergla-park', description: 'Slug de l’entreprise' })
   @ApiParam({ name: 'espaceId', description: "ID de l'espace Karting" })
   @ApiResponse({
     status: 200,
-    description: 'Liste minimale des karts actifs [{ numero, couleur }]',
+    description: 'Liste minimale des karts actifs [{ numeroPlaque, couleurs, modeleBaseUrl }]',
   })
   async getPublicKarts(@Param('slug') slug: string, @Param('espaceId') espaceId: string) {
     return this.kartsService.findPublicKarts(slug, espaceId);

@@ -6,6 +6,7 @@ import WelcomePage from './pages/WelcomePage';
 import ControlsPage from './pages/ControlsPage';
 import SafetyPage from './pages/SafetyPage';
 import LaunchPage from './pages/LaunchPage';
+import KartingPrototypePage from './karting-prototype/KartingPrototypePage';
 import { AnimatePresence, motion } from 'framer-motion';
 import './i18n/index';
 
@@ -16,6 +17,11 @@ function LayoutWrapper({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const path = location.pathname;
+
+  // Don't render landing layout wrapper for full-screen prototype
+  if (path === '/prototype-karting') {
+    return children;
+  }
 
   const currentIdx = STEPS_PATH.indexOf(path);
 
@@ -68,18 +74,15 @@ function LayoutWrapper({ children }) {
         </AnimatePresence>
       </div>
 
-      {/* Bottom Actions Bar (Matches maquettes Stitch) */}
+      {/* Bottom Actions Bar */}
       <footer className="relative z-20 bg-slate-950/40 backdrop-blur-md border-t border-white/5 py-4 px-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-400">
-        {/* Left footer links */}
         <div className="flex items-center gap-4 order-2 sm:order-1">
           <a href="#" className="hover:text-white transition-colors">{t('actions.privacy')}</a>
           <span>•</span>
           <a href="#" className="hover:text-white transition-colors">{t('actions.help')}</a>
         </div>
 
-        {/* Navigation Actions — dynamic Back/Next for every step */}
         <div className="flex items-center gap-3 order-1 sm:order-2 w-full sm:w-auto">
-          {/* Back button — hide on first step */}
           {currentIdx > 0 && (
             <button
               onClick={handleBack}
@@ -90,7 +93,6 @@ function LayoutWrapper({ children }) {
             </button>
           )}
 
-          {/* Next / Start button — hide on last step */}
           {currentIdx < STEPS_PATH.length - 1 && (
             <button
               onClick={handleNext}
@@ -104,7 +106,6 @@ function LayoutWrapper({ children }) {
           )}
         </div>
 
-        {/* Right copyright notice */}
         <div className="order-3 text-slate-500">
           {t('actions.copyright')}
         </div>
@@ -122,6 +123,7 @@ export default function App() {
           <Route path="/controles" element={<ControlsPage />} />
           <Route path="/securite" element={<SafetyPage />} />
           <Route path="/lancer" element={<LaunchPage />} />
+          <Route path="/prototype-karting" element={<KartingPrototypePage />} />
           <Route path="*" element={<WelcomePage />} />
         </Routes>
       </LayoutWrapper>

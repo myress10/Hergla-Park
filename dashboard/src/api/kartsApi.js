@@ -5,13 +5,13 @@ export const getKarts = (espaceId) => axiosClient.get(`/espaces/${espaceId}/kart
 
 export const createKart = async (espaceId, data) => {
   const res = await axiosClient.post(`/espaces/${espaceId}/karts`, data);
-  broadcastActivity('KART_CREATED', 'Karting', { espaceId, numero: data.numero });
+  broadcastActivity('KART_CREATED', 'Karting', { espaceId, numeroPlaque: data.numeroPlaque || data.numero });
   return res;
 };
 
 export const updateKart = async (espaceId, kartId, data) => {
   const res = await axiosClient.put(`/espaces/${espaceId}/karts/${kartId}`, data);
-  broadcastActivity('KART_UPDATED', 'Karting', { espaceId, kartId, numero: data.numero });
+  broadcastActivity('KART_UPDATED', 'Karting', { espaceId, kartId, numeroPlaque: data.numeroPlaque || data.numero });
   return res;
 };
 

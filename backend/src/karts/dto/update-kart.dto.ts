@@ -1,17 +1,29 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsInt, IsOptional, IsString, Matches } from 'class-validator';
+import { IsBoolean, IsInt, IsObject, IsOptional, IsString, Validate } from 'class-validator';
+import { IsHexColorMapConstraint } from './create-kart.dto';
 
 export class UpdateKartDto {
-  @ApiPropertyOptional({ description: 'Numéro de course du kart', example: '07' })
+  @ApiPropertyOptional({ description: 'Numéro de plaque du kart', example: '07' })
   @IsString()
   @IsOptional()
-  numero?: string;
+  numeroPlaque?: string;
 
-  @ApiPropertyOptional({ description: 'Code couleur hexadécimal de la carrosserie', example: '#E53935' })
+  @ApiPropertyOptional({
+    description: 'Map des couleurs par pièce (ex: { piece_carrosserie: "#E53935", piece_aileron: "#1A1A1A" })',
+    example: { piece_carrosserie: '#E53935', piece_aileron: '#1A1A1A' },
+  })
+  @IsObject()
+  @Validate(IsHexColorMapConstraint)
+  @IsOptional()
+  couleurs?: Record<string, string>;
+
+  @ApiPropertyOptional({
+    description: 'URL du modèle .glb de base si personnalisé',
+    example: 'https://backend-app-nine-mu.vercel.app/uploads/models/kart_base.glb',
+  })
   @IsString()
   @IsOptional()
-  @Matches(/^#([0-9A-Fa-f]{3}){1,2}$/, { message: 'La couleur doit être un code hexadécimal valide (ex: #E53935)' })
-  couleur?: string;
+  modeleBaseUrl?: string;
 
   @ApiPropertyOptional({ description: 'Statut actif/inactif du kart' })
   @IsBoolean()

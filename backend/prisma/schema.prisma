@@ -45,6 +45,7 @@ model Espace {
   employes           User[]
   placements         ScenePlacement[]
   karts              Kart[]
+  lapTimes           LapTime[]
 }
 
 model Object3D {
@@ -201,18 +202,32 @@ model AuditLog {
 }
 
 model Kart {
-  id          String   @id @default(uuid())
-  espaceId    String
-  espace      Espace   @relation(fields: [espaceId], references: [id], onDelete: Cascade)
-  numero      String                       // ex: "07" — affiché sur la carrosserie
-  couleur     String                       // code couleur hexadécimal, ex: "#E53935"
-  actif       Boolean  @default(true)      // permet de désactiver un kart sans le supprimer (maintenance)
-  ordre       Int      @default(0)         // ordre d'affichage dans le panneau et sur la piste
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String    @id @default(uuid())
+  espaceId       String
+  espace         Espace    @relation(fields: [espaceId], references: [id], onDelete: Cascade)
+  numeroPlaque   String                       // ex: "07" — dessiné dynamiquement sur la texture de la plaque
+  couleurs       Json                         // map { "piece_carrosserie": "#E53935", "piece_aileron": "#1A1A1A" }
+  modeleBaseUrl  String?                      // URL du modèle .glb de base (orange) si différent du modèle par défaut de l'espace
+  actif          Boolean   @default(true)      // permet de désactiver un kart sans le supprimer (maintenance)
+  ordre          Int       @default(0)         // ordre d'affichage dans le panneau et sur la piste
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  lapTimes       LapTime[]
 
-  @@unique([espaceId, numero])             // deux karts du même espace ne peuvent pas avoir le même numéro
+  @@unique([espaceId, numeroPlaque])          // deux karts du même espace ne peuvent pas avoir la même plaque
 }
+
+model LapTime {
+  id         String   @id @default(uuid())
+  espaceId   String
+  espace     Espace   @relation(fields: [espaceId], references: [id], onDelete: Cascade)
+  kartId     String?
+  kart       Kart?    @relation(fields: [kartId], references: [id])
+  pseudo     String                     // pseudo saisi librement par le visiteur, pas de compte requis
+  tempsMs    Int                        // temps du tour en millisecondes
+  createdAt  DateTime @default(now())
+}
+
 
 
 

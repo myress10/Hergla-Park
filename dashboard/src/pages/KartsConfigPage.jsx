@@ -5,9 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import { getEspaces, getEspace } from '../api/espacesApi';
 import { getKarts, createKart, updateKart, deleteKart, reorderKarts } from '../api/kartsApi';
 import KartList from '../components/karts/KartList';
+import KartCustomizer from '../components/karts/KartCustomizer';
 import KartPreviewCanvas from '../components/karts/KartPreviewCanvas';
-import { PRESET_COLORS } from '../components/karts/KartFormRow';
-import { Flag, Save, Loader2, Layers, AlertCircle, ChevronDown, CheckCircle, Lock, Sparkles, ArrowRight } from 'lucide-react';
+import { SUGGESTED_COLORS } from '../components/karts/PieceColorPicker';
+import { Flag, Save, Loader2, Layers, AlertCircle, ChevronDown, Lock, Sparkles, Plus } from 'lucide-react';
 import RootVerificationModal from '../components/RootVerificationModal';
 import FeatureLockModal from '../components/subscription/FeatureLockModal';
 import toast from 'react-hot-toast';
@@ -29,6 +30,7 @@ export default function KartsConfigPage() {
 
   // Karts state
   const [karts, setKarts] = useState([]);
+  const [editingKartIndex, setEditingKartIndex] = useState(null);
   const [deletedKartIds, setDeletedKartIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -56,7 +58,6 @@ export default function KartsConfigPage() {
         .then((res) => {
           const list = res.data.data || [];
           setEspaces(list);
-          // If no selected space ID set yet, default to first karting space or first space
           if (!selectedEspaceId && list.length > 0) {
             const kartingSpace = list.find((s) => (s.categorie || '').toLowerCase().includes('kart'));
             setSelectedEspaceId(kartingSpace ? kartingSpace.id : list[0].id);
@@ -76,22 +77,30 @@ export default function KartsConfigPage() {
     setLoading(true);
     setEspaceLoading(true);
     setIsDirty(false);
+    setEditingKartIndex(null);
     setDeletedKartIds([]);
     setLockedBySubscription(false);
 
     try {
-      // 1. Fetch space info
       const spaceRes = await getEspace(id);
       const spaceData = spaceRes.data.data;
       setEspace(spaceData);
 
-      // 2. Fetch karts list
       const kartsRes = await getKarts(id);
       const kartsList = kartsRes.data.data || kartsRes.data || [];
 
       setKarts(
         kartsList.map((k, idx) => ({
           ...k,
+          numeroPlaque: k.numeroPlaque || k.numero || `${idx + 1}`.padStart(2, '0'),
+          couleurs: k.couleurs && typeof k.couleurs === 'object'
+            ? k.couleurs
+            : {
+                piece_carrosserie: k.couleur || '#E53935',
+                piece_aileron: '#1A1A1A',
+                piece_capot: k.couleur || '#E53935',
+                piece_pontons: k.couleur || '#E53935',
+              },
           ordre: k.ordre !== undefined ? k.ordre : idx,
         }))
       );
@@ -113,25 +122,25 @@ export default function KartsConfigPage() {
     }
   }, [selectedEspaceId, loadKartsData]);
 
-  // Validation rules (uniqueness & non-empty numbers)
+  // Validation rules (uniqueness & non-empty plate numbers)
   const validationErrors = useMemo(() => {
     const errors = {};
     const seenNumbers = new Map();
 
     karts.forEach((k, idx) => {
-      const numStr = (k.numero || '').trim();
+      const numStr = (k.numeroPlaque || k.numero || '').trim();
       if (!numStr) {
-        errors[idx] = t('karts.validation.emptyNumber');
+        errors[idx] = 'Le numéro de plaque est requis';
         return;
       }
       if (numStr.length < 1 || numStr.length > 3) {
-        errors[idx] = t('karts.validation.lengthNumber');
+        errors[idx] = 'Le numéro doit comporter entre 1 et 3 caractères';
         return;
       }
       const lower = numStr.toLowerCase();
       if (seenNumbers.has(lower)) {
-        errors[idx] = t('karts.validation.duplicateNumber', { other: seenNumbers.get(lower) + 1 });
-        errors[seenNumbers.get(lower)] = t('karts.validation.duplicateNumber', { other: idx + 1 });
+        errors[idx] = `Numéro en double avec le kart #${seenNumbers.get(lower) + 1}`;
+        errors[seenNumbers.get(lower)] = `Numéro en double avec le kart #${idx + 1}`;
       } else {
         seenNumbers.set(lower, idx);
       }
@@ -148,8 +157,7 @@ export default function KartsConfigPage() {
 
   // Add new kart with suggested free number
   const handleAddKart = () => {
-    // Generate next free number (e.g. "01", "02", "03"...)
-    const existingNums = new Set(karts.map((k) => (k.numero || '').trim()));
+    const existingNums = new Set(karts.map((k) => (k.numeroPlaque || k.numero || '').trim()));
     let nextNum = '01';
     for (let i = 1; i <= 99; i++) {
       const candidate = i < 10 ? `0${i}` : `${i}`;
@@ -159,37 +167,46 @@ export default function KartsConfigPage() {
       }
     }
 
-    // Pick next color from preset palette
-    const nextColor = PRESET_COLORS[karts.length % PRESET_COLORS.length].hex;
+    const nextColor = SUGGESTED_COLORS[karts.length % SUGGESTED_COLORS.length].hex;
 
     const newKart = {
       tempId: uuidv4(),
-      numero: nextNum,
-      couleur: nextColor,
+      numeroPlaque: nextNum,
+      couleurs: {
+        piece_carrosserie: nextColor,
+        piece_aileron: '#1A1A1A',
+        piece_capot: nextColor,
+        piece_pontons: nextColor,
+      },
       actif: true,
       ordre: karts.length,
       isNew: true,
     };
 
     setKarts((prev) => [...prev, newKart]);
+    setEditingKartIndex(karts.length); // Open customizer immediately
     setIsDirty(true);
   };
 
-  // Update a kart row
-  const handleUpdateKart = (index, updatedFields) => {
+  // Update kart from Customizer
+  const handleCustomizerSave = (updatedKart) => {
     setKarts((prev) =>
-      prev.map((k, idx) => (idx === index ? { ...k, ...updatedFields } : k))
+      prev.map((k, idx) => (idx === editingKartIndex ? updatedKart : k))
     );
+    setEditingKartIndex(null);
     setIsDirty(true);
   };
 
-  // Delete a kart row
+  // Delete a kart
   const handleDeleteKart = (index) => {
     const kartToDelete = karts[index];
     if (kartToDelete.id) {
       setDeletedKartIds((prev) => [...prev, kartToDelete.id]);
     }
     setKarts((prev) => prev.filter((_, idx) => idx !== index));
+    if (editingKartIndex === index) {
+      setEditingKartIndex(null);
+    }
     setIsDirty(true);
   };
 
@@ -201,7 +218,6 @@ export default function KartsConfigPage() {
       const temp = copy[index];
       copy[index] = copy[index - 1];
       copy[index - 1] = temp;
-      // Reassign order
       return copy.map((k, idx) => ({ ...k, ordre: idx }));
     });
     setIsDirty(true);
@@ -214,7 +230,6 @@ export default function KartsConfigPage() {
       const temp = copy[index];
       copy[index] = copy[index + 1];
       copy[index + 1] = temp;
-      // Reassign order
       return copy.map((k, idx) => ({ ...k, ordre: idx }));
     });
     setIsDirty(true);
@@ -226,7 +241,7 @@ export default function KartsConfigPage() {
   const performSave = async (reason) => {
     if (!selectedEspaceId) return;
     if (hasValidationErrors) {
-      toast.error(t('karts.saveError'));
+      toast.error('Corrigez les erreurs de validation avant d’enregistrer');
       return;
     }
 
@@ -237,12 +252,13 @@ export default function KartsConfigPage() {
         await deleteKart(selectedEspaceId, id, reason);
       }
 
-      // 2. Create or update karts
+      // 2. Create or update karts with v2 schema
       for (let i = 0; i < karts.length; i++) {
         const kart = karts[i];
         const payload = {
-          numero: kart.numero.trim(),
-          couleur: kart.couleur,
+          numeroPlaque: (kart.numeroPlaque || kart.numero || '??').trim(),
+          couleurs: kart.couleurs || { piece_carrosserie: '#E53935' },
+          modeleBaseUrl: kart.modeleBaseUrl || null,
           actif: kart.actif !== false,
           ordre: i,
         };
@@ -265,10 +281,10 @@ export default function KartsConfigPage() {
         await reorderKarts(selectedEspaceId, reorderItems);
       }
 
-      toast.success(t('karts.saveSuccess'));
+      toast.success('Flotte de karts sauvegardée avec succès !');
       await loadKartsData(selectedEspaceId);
     } catch (err) {
-      toast.error(err.response?.data?.message || t('karts.saveError'));
+      toast.error(err.response?.data?.message || 'Erreur lors de la sauvegarde de la flotte');
     } finally {
       setSaving(false);
     }
@@ -286,24 +302,21 @@ export default function KartsConfigPage() {
     performSave(`${reason} [Validé avec code ${passcode}]`);
   };
 
-  const isKartingCategory =
-    !espace || (espace.categorie || '').toLowerCase().includes('kart');
-
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Top Header & Space Selector */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-navy text-white flex items-center justify-center">
-              <Flag size={20} />
+            <div className="w-11 h-11 rounded-2xl bg-navy text-white flex items-center justify-center shadow-md shadow-navy/20">
+              <Flag size={22} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">
-                {t('karts.title')} {espace?.nom ? `— ${espace.nom}` : ''}
+              <h1 className="text-xl font-black text-slate-800">
+                Personnalisation des Karts {espace?.nom ? `— ${espace.nom}` : ''}
               </h1>
               <p className="text-xs text-slate-500">
-                {t('karts.subtitle')}
+                Gestion des numéros de plaque, couleurs par pièce de carrosserie et synchronisation Unity
               </p>
             </div>
           </div>
@@ -313,7 +326,7 @@ export default function KartsConfigPage() {
         {user?.role === 'SUPERADMIN' && espaces.length > 0 && (
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              {t('karts.selectSpace')}
+              {t('karts.selectSpace', 'Espace')} :
             </span>
             <div className="relative">
               <select
@@ -349,27 +362,27 @@ export default function KartsConfigPage() {
             className="px-4 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-800 flex items-center gap-2 border-b-2 border-transparent transition-colors"
           >
             <Layers size={16} />
-            <span>{t('nav.editor3d')}</span>
+            <span>{t('nav.editor3d', 'Éditeur 3D')}</span>
           </Link>
           <button
             type="button"
             className="px-4 py-2.5 text-sm font-semibold text-navy border-b-2 border-navy flex items-center gap-2"
           >
             <Flag size={16} />
-            <span>{t('nav.kartsConfig')}</span>
+            <span>Personnalisation Karts</span>
           </button>
         </div>
       )}
 
       {/* Locked by subscription state */}
       {lockedBySubscription ? (
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-8 sm:p-12 text-center max-w-2xl mx-auto space-y-5 animate-in fade-in duration-200">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-md p-8 sm:p-12 text-center max-w-2xl mx-auto space-y-5">
           <div className="w-16 h-16 rounded-3xl bg-indigo-50 border border-indigo-100 mx-auto flex items-center justify-center text-indigo-600 shadow-inner">
             <Lock size={30} />
           </div>
           <div className="space-y-2">
             <h2 className="text-xl font-black text-slate-900">
-              {t('subscription.featureLockedTitle', 'Module Karts Verrouillé')}
+              Module Karts Verrouillé
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
               La gestion dynamique de flotte de karts, numéros et carrosseries nécessite le pack <strong>🥈 Avancé</strong> ou <strong>🥇 Premium</strong>.
@@ -380,92 +393,116 @@ export default function KartsConfigPage() {
             <button
               type="button"
               onClick={() => setFeatureLockModalOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all"
+              className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-indigo-500/25 flex items-center gap-2 transition-all cursor-pointer"
             >
               <Sparkles size={16} />
-              <span>{t('subscription.requestUpgradeBtn', 'Débloquer avec le Pack Avancé')}</span>
+              <span>Débloquer avec le Pack Avancé</span>
             </button>
             <Link
               to="/abonnement"
               className="px-5 py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-colors"
             >
-              {t('subscription.title', 'Voir tous les packs')}
+              Voir tous les packs
             </Link>
           </div>
         </div>
+      ) : editingKartIndex !== null && karts[editingKartIndex] ? (
+        /* Single Kart Customizer Mode */
+        <KartCustomizer
+          kart={karts[editingKartIndex]}
+          onSave={handleCustomizerSave}
+          onCancel={() => setEditingKartIndex(null)}
+          saving={saving}
+          existingPlates={karts.map((k) => k.numeroPlaque || k.numero || '')}
+        />
       ) : (
-        /* Main Content Grid: Editor (Left) & Live 3D Preview (Right) */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Karts Form List */}
-        <div className="lg:col-span-6 space-y-4">
-          {/* Summary & Save Header Card */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex items-center justify-between gap-3">
+        /* Fleet Overview & List Mode */
+        <div className="space-y-6">
+          {/* Summary & Save Action Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                {t('karts.totalKarts')}
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Flotte de karts sur circuit
               </p>
-              <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
-                <span className="text-navy">{t('karts.saveFleet', { defaultValue: `${totalCount} karts` })}</span>
+              <div className="flex items-center gap-2 text-sm font-black text-slate-800 mt-0.5">
+                <span className="text-navy">{totalCount} karts au total</span>
                 <span className="text-slate-300">•</span>
-                <span className="text-emerald-600">{activeCount} {t('karts.activeKarts').toLowerCase()}</span>
+                <span className="text-emerald-600">{activeCount} actifs sur la piste</span>
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={saving || hasValidationErrors || !isDirty}
-              id="save-karts-btn"
-              className={`px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all shadow-sm ${
-                hasValidationErrors
-                  ? 'bg-red-100 text-red-500 cursor-not-allowed opacity-75'
-                  : isDirty
-                  ? 'bg-navy text-white hover:bg-navy/90 shadow-navy/20 cursor-pointer'
-                  : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-              }`}
-            >
-              {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-              <span>{saving ? t('karts.saving') : t('karts.saveFleet')}</span>
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleAddKart}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer"
+              >
+                <Plus size={16} />
+                <span>Nouveau kart</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={saving || hasValidationErrors || !isDirty}
+                id="save-karts-btn"
+                className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all shadow-sm ${
+                  hasValidationErrors
+                    ? 'bg-red-100 text-red-500 cursor-not-allowed opacity-75'
+                    : isDirty
+                    ? 'bg-navy text-white hover:bg-navy/90 shadow-navy/20 cursor-pointer'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                <span>{saving ? 'Enregistrement...' : 'Enregistrer la flotte'}</span>
+              </button>
+            </div>
           </div>
 
-          {/* Validation Warning Alert */}
+          {/* Validation Alert */}
           {hasValidationErrors && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3.5 text-xs font-semibold flex items-center gap-2">
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-2xl p-4 text-xs font-semibold flex items-center gap-2">
               <AlertCircle size={16} className="flex-shrink-0" />
-              <span>{t('karts.validation.emptyNumber')}</span>
+              <span>Certains karts comportent des numéros de plaque vides ou en double. Veuillez les corriger avant de sauvegarder.</span>
             </div>
           )}
 
-          {/* Kart Form Rows List */}
-          {loading ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3">
-              <Loader2 size={24} className="animate-spin text-navy mx-auto" />
-              <p className="text-sm font-medium text-slate-500">{t('common.loading')}</p>
+          {/* Main Grid: Karts Cards & Live 3D Canvas */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left: Karts Cards Grid */}
+            <div className="lg:col-span-7">
+              {loading ? (
+                <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3">
+                  <Loader2 size={28} className="animate-spin text-navy mx-auto" />
+                  <p className="text-sm font-medium text-slate-500">Chargement de la flotte...</p>
+                </div>
+              ) : (
+                <KartList
+                  karts={karts}
+                  onSelectEdit={(index) => setEditingKartIndex(index)}
+                  onDeleteKart={handleDeleteKart}
+                  onMoveUp={handleMoveUp}
+                  onMoveDown={handleMoveDown}
+                  onAddKart={handleAddKart}
+                />
+              )}
             </div>
-          ) : (
-            <KartList
-              karts={karts}
-              errors={validationErrors}
-              onUpdateKart={handleUpdateKart}
-              onDeleteKart={handleDeleteKart}
-              onMoveUp={handleMoveUp}
-              onMoveDown={handleMoveDown}
-              onAddKart={handleAddKart}
-            />
-          )}
-        </div>
 
-        {/* Right Column: Live 3D Preview Canvas */}
-        <div className="lg:col-span-6 flex flex-col">
-          <div className="sticky top-20 space-y-3">
-            <KartPreviewCanvas karts={karts} />
-            <p className="text-xs text-slate-500 text-center">
-              💡 {t('karts.subtitle')}
-            </p>
+            {/* Right: Live 3D Preview of Selected / First Kart */}
+            <div className="lg:col-span-5">
+              <div className="sticky top-6 space-y-3">
+                <KartPreviewCanvas
+                  couleurs={karts[0]?.couleurs || { piece_carrosserie: '#E53935' }}
+                  numeroPlaque={karts[0]?.numeroPlaque || '07'}
+                />
+                <p className="text-xs text-slate-400 text-center">
+                  💡 Cliquez sur <strong>Personnaliser</strong> sur n’importe quel kart pour modifier ses pièces en direct.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* ROOT Verification Security Modal */}
@@ -473,15 +510,15 @@ export default function KartsConfigPage() {
         isOpen={rootKartModalOpen}
         onClose={() => setRootKartModalOpen(false)}
         onConfirm={handleRootKartConfirm}
-        title={t('rootModal.title')}
-        actionName={t('karts.saveFleet')}
+        title={t('rootModal.title', 'Confirmation ROOT requise')}
+        actionName="Enregistrer la configuration des karts"
       />
 
       {/* Feature Lock Modal */}
       <FeatureLockModal
         isOpen={featureLockModalOpen}
         onClose={() => setFeatureLockModalOpen(false)}
-        title={t('subscription.featureLockedTitle', 'Module Karts Verrouillé')}
+        title="Module Karts Verrouillé"
         message="Le module Karts & Pistes nécessite le pack Avancé ou Premium. Contactez votre administrateur ou demandez un upgrade."
         targetPack="AVANCE"
       />

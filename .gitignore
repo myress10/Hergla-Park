@@ -31,3 +31,15 @@ backend/uploads/thumbnails/*
 # Demo credentials
 SEED_CREDENTIALS.md
 backend/SEED_CREDENTIALS.md
+
+# Unity — dossier projet
+unity/[Ll]ibrary/
+unity/[Tt]emp/
+unity/[Oo]bj/
+unity/[Bb]uild/
+unity/[Bb]uilds/
+unity/[Ll]ogs/
+unity/[Uu]ser[Ss]ettings/
+unity/*.apk
+unity/*.aab
+unity/[Mm]emory[Cc]aptures/

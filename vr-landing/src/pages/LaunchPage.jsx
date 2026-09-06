@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import UnityPlaceholder from '../components/UnityPlaceholder';
-import { Loader2, ShieldAlert } from 'lucide-react';
+import ExperienceChoice from '../components/ExperienceChoice';
+import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const LOADING_STEPS = [
@@ -14,21 +15,20 @@ const LOADING_STEPS = [
 export default function LaunchPage() {
   const { t } = useTranslation();
   
-  const [loading, setLoading] = useState(false);
+  // States: 'choice' -> 'loading' -> 'loaded'
+  const [stage, setStage] = useState('choice'); // 'choice' | 'loading' | 'loaded'
   const [progress, setProgress] = useState(0);
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
-  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Simulated loading sequence
+  // Simulated loading sequence for Unity
   useEffect(() => {
-    if (!loading) return;
+    if (stage !== 'loading') return;
 
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setLoading(false);
-          setIsLoaded(true);
+          setStage('loaded');
           return 100;
         }
         return prev + 1;
@@ -36,32 +36,30 @@ export default function LaunchPage() {
     }, 35); // Approx 3.5 seconds total load
 
     return () => clearInterval(interval);
-  }, [loading]);
+  }, [stage]);
 
   // Rotate loading sub-messages
   useEffect(() => {
-    if (!loading) return;
+    if (stage !== 'loading') return;
     const stepInterval = setInterval(() => {
       setCurrentStepIdx((prev) => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev));
     }, 900);
     return () => clearInterval(stepInterval);
-  }, [loading]);
+  }, [stage]);
 
-  const handleLaunch = () => {
-    setLoading(true);
+  const handleLaunchUnity = () => {
+    setStage('loading');
     setProgress(0);
     setCurrentStepIdx(0);
-    setIsLoaded(false);
   };
 
   const handleReset = () => {
-    setIsLoaded(false);
+    setStage('choice');
     setProgress(0);
-    setLoading(false);
   };
 
   return (
-    <div className="relative w-full min-h-screen flex flex-col justify-between pt-24 pb-8" id="vr-launch-page">
+    <div className="relative w-full min-h-screen flex flex-col justify-between pt-24 pb-12" id="vr-launch-page">
       {/* Background Image: Deep digital futuristic dark tech theme */}
       <div className="absolute inset-0 z-0">
         <img
@@ -69,58 +67,31 @@ export default function LaunchPage() {
           alt="Abstract dark cyberpunk background"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-[5px]" />
+        <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-[6px]" />
       </div>
 
       {/* Main Content Area */}
       <div className="relative z-10 max-w-5xl mx-auto px-6 w-full my-auto flex flex-col items-center justify-center">
         <AnimatePresence mode="wait">
-          {!loading && !isLoaded && (
-            /* 1. Launch Button state */
+          {stage === 'choice' && (
             <motion.div
-              key="launch-button-state"
-              initial={{ opacity: 0, scale: 0.95 }}
+              key="choice-state"
+              initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="text-center space-y-12"
+              exit={{ opacity: 0, scale: 0.96 }}
+              className="w-full"
             >
-              <div className="space-y-4">
-                <span className="inline-block px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider">
-                  {t('launch.badge')}
-                </span>
-                <p className="text-slate-400 text-sm max-w-xs mx-auto">
-                  {t('launch.readyToStart')}
-                </p>
-              </div>
-
-              {/* Large Neon Glow button */}
-              <button
-                onClick={handleLaunch}
-                id="launch-virtual-tour-btn"
-                className="relative group w-80 h-32 rounded-3xl bg-slate-950 border border-cyan-500/30 flex items-center justify-center cursor-pointer overflow-hidden transition-all duration-300
-                  hover:border-cyan-400 hover:shadow-[0_0_50px_rgba(6,182,212,0.3)]"
-              >
-                {/* Neon glow effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 opacity-60 group-hover:opacity-100 transition-opacity" />
-                
-                {/* Active neon frame line */}
-                <div className="absolute inset-0 border border-cyan-500 rounded-3xl animate-pulse opacity-40" />
-
-                <span className="relative z-10 text-xl font-black text-cyan-400 tracking-widest text-center uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.7)] group-hover:text-white transition-colors duration-300">
-                  {t('launch.title')}
-                </span>
-              </button>
+              <ExperienceChoice onSelectUnity={handleLaunchUnity} />
             </motion.div>
           )}
 
-          {loading && (
-            /* 2. Loading state */
+          {stage === 'loading' && (
             <motion.div
               key="loading-state"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="w-full max-w-md bg-slate-900/60 border border-white/5 p-8 rounded-3xl space-y-6 text-center shadow-2xl backdrop-blur-md"
+              className="w-full max-w-md bg-slate-900/80 border border-white/10 p-8 rounded-3xl space-y-6 text-center shadow-2xl backdrop-blur-md"
             >
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="animate-spin text-cyan-400" size={32} />
@@ -145,8 +116,7 @@ export default function LaunchPage() {
             </motion.div>
           )}
 
-          {isLoaded && (
-            /* 3. Unity Simulation view */
+          {stage === 'loaded' && (
             <motion.div
               key="loaded-state"
               initial={{ opacity: 0, scale: 0.98 }}
