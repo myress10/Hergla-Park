@@ -1,6 +1,6 @@
 import React, { Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, useGLTF } from '@react-three/drei';
+import { OrbitControls, Grid, useGLTF, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import CanvasErrorBoundary from '../scene-editor/CanvasErrorBoundary';
 import { generatePlateTexture } from './plateTexture';
@@ -111,17 +111,20 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
       const isBody = pieceKey === 'piece_carrosserie' || pieceKey === 'piece_capot' || pieceKey === 'piece_pontons' || pieceKey === 'piece_aileron';
       const isSeat = pieceKey === 'piece_sieges';
 
-      const colorHex = effectiveCouleurs[pieceKey] || (isSeat ? '#1E293B' : (isBody ? '#E53935' : '#334155'));
+      // Wheels are always black regardless of user color selection
+      const isWheel = pieceKey === 'piece_jantes';
+      const finalColor = isWheel ? '#111111' : (effectiveCouleurs[pieceKey] || (isSeat ? '#1E293B' : (isBody ? '#E53935' : '#334155')));
 
       const std = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(colorHex),
-        roughness: isSeat ? 0.92 : (isBody ? 0.40 : 0.50),
-        metalness: isSeat ? 0.0 : (isBody ? 0.05 : 0.25),
+        color: new THREE.Color(finalColor),
+        roughness: isWheel ? 0.90 : (isSeat ? 0.92 : (isBody ? 0.45 : 0.55)),
+        metalness: isWheel ? 0.0 : (isSeat ? 0.0 : (isBody ? 0.05 : 0.20)),
         side: THREE.DoubleSide,
       });
 
       child.material = std;
       child.userData.pieceKey = pieceKey;
+      child.userData.isWheel = isWheel;
       child.castShadow = true;
       child.receiveShadow = true;
     });
@@ -153,6 +156,8 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
       if (!child.isMesh || !child.material) return;
       const pieceKey = child.userData.pieceKey;
 
+      // Skip wheels — they are always black, never user-colored
+      if (child.userData.isWheel) return;
       if (pieceKey && effectiveCouleurs[pieceKey]) {
         child.material.color.set(effectiveCouleurs[pieceKey]);
       }
@@ -237,13 +242,13 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           antialias: true,
           alpha: false,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 0.75,
+          toneMappingExposure: 1.0,
         }}
-        onCreated={({ gl }) => { gl.setClearColor('#0f172a'); }}
+        onCreated={({ gl }) => { gl.setClearColor('#c9c5c0'); }}
       >
-        {/* Room-wide even lighting: no spotlight, no hotspot on the car */}
-        <ambientLight intensity={0.30} />
-        <hemisphereLight skyColor="#ffffff" groundColor="#1a1a2e" intensity={0.45} />
+        {/* Studio environment: even daylight from all angles, no hotspots */}
+        <Environment preset="studio" background={false} />
+        <ambientLight intensity={0.35} />
 
         <Grid
           position={[0, 0, 0]}
