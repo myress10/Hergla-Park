@@ -5,24 +5,35 @@ import * as THREE from 'three';
 import CanvasErrorBoundary from '../scene-editor/CanvasErrorBoundary';
 import { generatePlateTexture } from './plateTexture';
 
-// ─── Piece name mappings — material name is ground truth (artist-assigned) ────────────────
+// ─── Piece name mappings — material name & mesh name ────────────────────────
 function getPieceKey(meshName, mat) {
   const m = (meshName || '').toLowerCase();
   const matName = (mat ? (Array.isArray(mat) ? mat[0]?.name : mat.name) : '').toLowerCase();
 
-  // PRIMARY: material name (reliable — assigned by the 3D artist)
-  if (matName.includes('body'))    return 'piece_carrosserie';
-  if (matName.includes('chassis')) return 'piece_jantes'; // kart steel frame → dark
-  if (matName.includes('chair'))   return 'piece_sieges';
-  if (matName.includes('engine'))  return 'piece_pontons';
+  // Wheels detection (Frame_Left_Front001 = rear wheels, Frame_Left_Front002 = front wheels)
+  if (m.includes('frame_left_front001') || m.includes('frame_left_front002') || m.includes('wheel') || m.includes('tire')) {
+    return 'piece_jantes';
+  }
 
-  // SECONDARY: override specific mesh names
-  if (m === 'body_rear_bumper')    return 'piece_capot';   // nose cone
-  if (m === 'seat')                return 'piece_sieges';
+  // Engine mechanical parts (engine_bake) -> mechanical alloy
+  if (matName.includes('engine') || m.includes('engine')) {
+    return 'piece_moteur';
+  }
+
+  // Seat
+  if (matName.includes('chair') || m === 'seat') {
+    return 'piece_sieges';
+  }
+
+  // Body panels / Nassau cone / nose
+  if (m === 'body_rear_bumper') return 'piece_capot';
+  if (matName.includes('body') || m.includes('body')) return 'piece_carrosserie';
+
+  // Front spoiler / upper aerodynamic frames
   if (m.includes('front_upper') || m.includes('front_support')) return 'piece_aileron';
 
-  // Unknown → dark (never red)
-  return 'piece_jantes';
+  // Chassis steel frame / axles / steering / pedals
+  return 'piece_chassis';
 }
 
 const DEFAULT_KART_COLORS = {
@@ -31,7 +42,7 @@ const DEFAULT_KART_COLORS = {
   piece_pontons: '#E53935',
   piece_aileron: '#1A1A1A',
   piece_sieges: '#1E293B',
-  piece_jantes: '#475569',
+  piece_jantes: '#111111',
   piece_plaque: '#0F172A',
 };
 
@@ -54,10 +65,35 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
   const gltf = useGLTF('/Car.glb');
   const rawScene = gltf?.scene;
 
+  // Defensive: ensure any embedded Blender lights or cameras are purged from cache
+  useEffect(() => {
+    if (!rawScene) return;
+    const toRemove = [];
+    rawScene.traverse((child) => {
+      if (child.isLight || child.isCamera) toRemove.push(child);
+    });
+    toRemove.forEach((child) => {
+      if (child.parent) child.parent.remove(child);
+      if (child.dispose) child.dispose();
+    });
+  }, [rawScene]);
+
   // Deep-clone and compute normalized scale & center ONCE when model loads
   const scene = useMemo(() => {
     if (!rawScene) return null;
     const clone = rawScene.clone(true);
+
+    // CRITICAL: Strip any embedded lights (e.g. Blender default 1000W PointLight) & cameras
+    const toRemove = [];
+    clone.traverse((child) => {
+      if (child.isLight || child.isCamera) {
+        toRemove.push(child);
+      }
+    });
+    toRemove.forEach((child) => {
+      if (child.parent) child.parent.remove(child);
+      if (child.dispose) child.dispose();
+    });
 
     // Reset initial transform
     clone.position.set(0, 0, 0);
@@ -65,7 +101,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     clone.scale.set(1, 1, 1);
     clone.updateMatrixWorld(true);
 
-    // Compute bounding box on unscaled model
+    // Compute bounding box on pure mesh geometry
     const box = new THREE.Box3().setFromObject(clone);
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
@@ -81,23 +117,58 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     clone.position.set(-scaledCenter.x, -scaledBox.min.y, -scaledCenter.z);
     clone.updateMatrixWorld(true);
 
-    // Initialize materials on every renderable object (mesh, line, etc.)
+    // Initialize clean materials tailored per part type
     clone.traverse((child) => {
       if (!child.material) return; // skip non-renderable
       const pieceKey = getPieceKey(child.name, child.material);
 
-      const isBody = pieceKey === 'piece_carrosserie' || pieceKey === 'piece_capot' || pieceKey === 'piece_pontons' || pieceKey === 'piece_aileron';
-      const isSeat = pieceKey === 'piece_sieges';
-
-      // Wheels are always black regardless of user color selection
       const isWheel = pieceKey === 'piece_jantes';
-      const finalColor = isWheel ? '#111111' : (effectiveCouleurs[pieceKey] || (isSeat ? '#1E293B' : (isBody ? '#E53935' : '#334155')));
+      const isEngine = pieceKey === 'piece_moteur';
+      const isChassis = pieceKey === 'piece_chassis';
+      const isSeat = pieceKey === 'piece_sieges';
+      const isBody = !isWheel && !isEngine && !isChassis && !isSeat;
 
-      // Pure matte plastic: roughness=0.95 metalness=0.0 → zero specular → no white hotspots, colors stay vivid
+      let matColor = '#111111';
+      let roughness = 0.65;
+      let metalness = 0.1;
+      let canCustomize = false;
+
+      if (isWheel) {
+        // Wheels are always pure matte black rubber
+        matColor = '#111111';
+        roughness = 0.95;
+        metalness = 0.0;
+        canCustomize = false;
+      } else if (isEngine) {
+        // Engine block: dark mechanical alloy
+        matColor = '#2b2d32';
+        roughness = 0.45;
+        metalness = 0.6;
+        canCustomize = false;
+      } else if (isChassis) {
+        // Tubular chassis frame: dark satin steel
+        matColor = '#18181b';
+        roughness = 0.65;
+        metalness = 0.35;
+        canCustomize = false;
+      } else if (isSeat) {
+        // Racing bucket seat
+        matColor = effectiveCouleurs.piece_sieges || '#18181b';
+        roughness = 0.90;
+        metalness = 0.05;
+        canCustomize = true;
+      } else {
+        // Body panels / nose cone / spoiler: vivid automotive finish
+        matColor = effectiveCouleurs[pieceKey] || '#E53935';
+        roughness = 0.55;
+        metalness = 0.1;
+        canCustomize = true;
+      }
+
       const std = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(finalColor),
-        roughness: 0.95,
-        metalness: 0.0,
+        color: new THREE.Color(matColor),
+        roughness,
+        metalness,
         side: THREE.DoubleSide,
       });
 
@@ -105,7 +176,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
       child.material.needsUpdate = true;
       if (child.isMesh) {
         child.userData.pieceKey = pieceKey;
-        child.userData.isWheel = isWheel;
+        child.userData.canCustomize = canCustomize;
         child.castShadow = false;
         child.receiveShadow = false;
       }
@@ -130,15 +201,14 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     ]);
   }, [scene, onPiecesDiscovered]);
 
-  // Dynamically update colors without touching position/scale
+  // Dynamically update colors when user picks a color
   useEffect(() => {
     if (!scene) return;
 
     scene.traverse((child) => {
       if (!child.isMesh || !child.material) return;
+      if (!child.userData.canCustomize) return;
       const pieceKey = child.userData.pieceKey;
-      // Skip wheels — they are always black, never user-colored
-      if (child.userData.isWheel) return;
       if (pieceKey && effectiveCouleurs[pieceKey]) {
         child.material.color.set(effectiveCouleurs[pieceKey]);
       }
@@ -154,34 +224,9 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
 
   if (!scene) return null;
 
-  // Shared dark charcoal material for cockpit interior panels
-  const interiorMat = new THREE.MeshStandardMaterial({ color: '#1a1a1e', roughness: 0.98, metalness: 0.0, side: THREE.DoubleSide });
-
   return (
     <group ref={groupRef}>
       <primitive object={scene} />
-
-      {/* ── Cockpit Interior Panels — close the hollow body shell ── */}
-      {/* Floor pan */}
-      <mesh position={[0, 0.185, -0.08]} rotation={[0, 0, 0]} material={interiorMat}>
-        <boxGeometry args={[0.72, 0.02, 1.05]} />
-      </mesh>
-      {/* Left inner wall */}
-      <mesh position={[-0.34, 0.30, -0.08]} material={interiorMat}>
-        <boxGeometry args={[0.02, 0.24, 1.00]} />
-      </mesh>
-      {/* Right inner wall */}
-      <mesh position={[0.34, 0.30, -0.08]} material={interiorMat}>
-        <boxGeometry args={[0.02, 0.24, 1.00]} />
-      </mesh>
-      {/* Front dash inner face */}
-      <mesh position={[0, 0.30, 0.50]} material={interiorMat}>
-        <boxGeometry args={[0.72, 0.26, 0.02]} />
-      </mesh>
-      {/* Rear inner bulkhead */}
-      <mesh position={[0, 0.30, -0.62]} material={interiorMat}>
-        <boxGeometry args={[0.72, 0.26, 0.02]} />
-      </mesh>
 
       {/* ── Front Racing Number Plate (fitted onto Nassau nose fairing) ── */}
       <group position={[0, 0.485, 0.92]} rotation={[-0.50, 0, 0]}>
@@ -249,23 +294,24 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           antialias: true,
           alpha: false,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.0,
+          toneMappingExposure: 0.95,
         }}
-        onCreated={({ gl }) => { gl.setClearColor('#2a2725'); }}
+        onCreated={({ gl }) => { gl.setClearColor('#18181b'); }}
       >
-        {/* Balanced studio lighting: low enough to never wash colors, high enough for clear 3D shading */}
-        <ambientLight intensity={0.40} />
-        <directionalLight position={[2, 4, 2]} intensity={0.35} />
+        {/* Soft diffused daylight — completely even, zero harsh hotspots */}
+        <ambientLight intensity={0.70} />
+        <directionalLight position={[5, 10, 4]} intensity={0.45} />
+        <directionalLight position={[-5, 4, -4]} intensity={0.25} />
 
         <Grid
           position={[0, 0, 0]}
           args={[20, 20]}
           cellSize={0.5}
           cellThickness={0.4}
-          cellColor="#334155"
+          cellColor="#27272a"
           sectionSize={2}
           sectionThickness={0.8}
-          sectionColor="#475569"
+          sectionColor="#3f3f46"
           fadeDistance={14}
           infiniteGrid
         />
@@ -281,10 +327,9 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           enablePan={false}
           minDistance={1.5}
           maxDistance={10}
+          autoRotate={false}
           maxPolarAngle={Math.PI / 2 - 0.05}
           target={[0, 0.4, 0]}
-          autoRotate
-          autoRotateSpeed={1.5}
         />
       </Canvas>
     </div>
