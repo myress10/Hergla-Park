@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import KartPreviewCanvas from './KartPreviewCanvas';
 import PieceColorPicker from './PieceColorPicker';
 import PlateNumberInput from './PlateNumberInput';
-import { Save, ArrowLeft, Loader2, Sparkles, CheckCircle, AlertCircle } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Sparkles, CheckCircle, AlertCircle, RotateCcw } from 'lucide-react';
 
 export default function KartCustomizer({
   kart,
@@ -15,7 +15,7 @@ export default function KartCustomizer({
   const [couleurs, setCouleurs] = useState(
     kart.couleurs && typeof kart.couleurs === 'object'
       ? { ...kart.couleurs }
-      : { piece_carrosserie: '#E53935', piece_aileron: '#1A1A1A' }
+      : {}
   );
   const [actif, setActif] = useState(kart.actif !== false);
   const [piecesList, setPiecesList] = useState([
@@ -129,6 +129,7 @@ export default function KartCustomizer({
             couleurs={couleurs}
             numeroPlaque={trimmedPlate}
             onPiecesDiscovered={handlePiecesDiscovered}
+            isEditing={true}
           />
         </div>
 
@@ -147,9 +148,20 @@ export default function KartCustomizer({
                   <Sparkles size={14} className="text-navy" />
                   <span>Couleurs par pièce</span>
                 </span>
-                <span className="text-[10px] font-semibold text-slate-400">
-                  {piecesList.length} pièces détectées
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCouleurs({})}
+                    className="text-[11px] font-bold text-navy hover:text-blue-600 flex items-center gap-1 transition-colors px-2 py-0.5 rounded-md hover:bg-slate-100 cursor-pointer"
+                    title="Restaurer le modèle original avec textures d'usine"
+                  >
+                    <RotateCcw size={11} />
+                    <span>Format d'origine</span>
+                  </button>
+                  <span className="text-[10px] font-semibold text-slate-400">
+                    {piecesList.length} pièces
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-2.5 max-h-[340px] overflow-y-auto pe-1">

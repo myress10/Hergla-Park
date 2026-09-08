@@ -4,6 +4,13 @@ import { OrbitControls, Grid, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import CanvasErrorBoundary from '../scene-editor/CanvasErrorBoundary';
 import { generatePlateTexture } from './plateTexture';
+import {
+  getBodyTexture,
+  getEngineTexture,
+  getChassisTexture,
+  getWheelTexture,
+  getSeatTexture,
+} from './kartTextures';
 
 // ─── Piece name mappings — material name & mesh name ────────────────────────
 function getPieceKey(meshName, mat) {
@@ -36,7 +43,7 @@ function getPieceKey(meshName, mat) {
   return 'piece_chassis';
 }
 
-const DEFAULT_KART_COLORS = {
+const DEFAULT_CUSTOM_COLORS = {
   piece_carrosserie: '#E53935',
   piece_capot: '#E53935',
   piece_pontons: '#E53935',
@@ -46,26 +53,40 @@ const DEFAULT_KART_COLORS = {
   piece_plaque: '#0F172A',
 };
 
-// ─── Real Car GLB loader (clean, zero texture 404s, fast) ─────────────────────
-function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
+// ─── Real Car Model with Factory Textures & Dynamic Color Overrides ──────────
+function RealCarModel({
+  couleurs = {},
+  numeroPlaque = '07',
+  onPiecesDiscovered,
+  isEditing = false,
+}) {
   const groupRef = useRef(null);
 
+  // Check if kart is in its authentic original format (before editing or without custom colors)
+  const hasCustomColors = useMemo(() => {
+    if (!couleurs || typeof couleurs !== 'object') return false;
+    return Object.keys(couleurs).some((k) => !!couleurs[k]);
+  }, [couleurs]);
+
+  // isOriginalMode: kart is in original format if not in edit mode and no custom colors
+  const isOriginalMode = !isEditing && !hasCustomColors;
+
   const effectiveCouleurs = useMemo(() => ({
-    ...DEFAULT_KART_COLORS,
+    ...DEFAULT_CUSTOM_COLORS,
     ...couleurs,
   }), [couleurs]);
 
-  // Generate responsive plate texture whenever plate number or plate color changes
+  // Generate responsive plate texture
   const plateTexture = useMemo(
-    () => generatePlateTexture(numeroPlaque, effectiveCouleurs.piece_plaque),
-    [numeroPlaque, effectiveCouleurs.piece_plaque]
+    () => generatePlateTexture(numeroPlaque, isOriginalMode ? '#0F172A' : (effectiveCouleurs.piece_plaque || '#0F172A')),
+    [numeroPlaque, effectiveCouleurs.piece_plaque, isOriginalMode]
   );
 
-  // Load self-contained GLB model (zero missing texture errors)
+  // Load self-contained GLB model
   const gltf = useGLTF('/Car.glb');
   const rawScene = gltf?.scene;
 
-  // Defensive: ensure any embedded Blender lights or cameras are purged from cache
+  // Defensive: ensure any embedded lights or cameras are purged from cache
   useEffect(() => {
     if (!rawScene) return;
     const toRemove = [];
@@ -83,7 +104,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     if (!rawScene) return null;
     const clone = rawScene.clone(true);
 
-    // CRITICAL: Strip any embedded lights (e.g. Blender default 1000W PointLight) & cameras
+    // CRITICAL: Strip any embedded lights (e.g. Blender default PointLights) & cameras
     const toRemove = [];
     clone.traverse((child) => {
       if (child.isLight || child.isCamera) {
@@ -117,62 +138,78 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     clone.position.set(-scaledCenter.x, -scaledBox.min.y, -scaledCenter.z);
     clone.updateMatrixWorld(true);
 
-    // Initialize clean materials tailored per part type
+    // Initialize materials with rich PBR textures
     clone.traverse((child) => {
-      if (!child.material) return; // skip non-renderable
+      if (!child.material) return;
       const pieceKey = getPieceKey(child.name, child.material);
 
       const isWheel = pieceKey === 'piece_jantes';
       const isEngine = pieceKey === 'piece_moteur';
       const isChassis = pieceKey === 'piece_chassis';
       const isSeat = pieceKey === 'piece_sieges';
-      const isBody = !isWheel && !isEngine && !isChassis && !isSeat;
 
-      let matColor = '#111111';
-      let roughness = 0.65;
-      let metalness = 0.1;
+      let mat;
       let canCustomize = false;
 
       if (isWheel) {
-        // Wheels are always pure matte black rubber
-        matColor = '#111111';
-        roughness = 0.95;
-        metalness = 0.0;
-        canCustomize = false;
+        // High-grip racing tire rubber with tread pattern
+        mat = new THREE.MeshStandardMaterial({
+          map: getWheelTexture(),
+          color: new THREE.Color('#ffffff'),
+          roughness: 0.85,
+          metalness: 0.10,
+          side: THREE.DoubleSide,
+        });
+        canCustomize = true;
       } else if (isEngine) {
-        // Engine block: dark mechanical alloy
-        matColor = '#2b2d32';
-        roughness = 0.45;
-        metalness = 0.6;
+        // Machined cylinder cooling fins & cast aluminum
+        mat = new THREE.MeshStandardMaterial({
+          map: getEngineTexture(),
+          color: new THREE.Color('#ffffff'),
+          roughness: 0.35,
+          metalness: 0.65,
+          side: THREE.DoubleSide,
+        });
         canCustomize = false;
       } else if (isChassis) {
-        // Tubular chassis frame: dark satin steel
-        matColor = '#18181b';
-        roughness = 0.65;
-        metalness = 0.35;
+        // Powder-coated satin steel tubes with weld seams
+        mat = new THREE.MeshStandardMaterial({
+          map: getChassisTexture(),
+          color: new THREE.Color('#ffffff'),
+          roughness: 0.50,
+          metalness: 0.45,
+          side: THREE.DoubleSide,
+        });
         canCustomize = false;
       } else if (isSeat) {
-        // Racing bucket seat
-        matColor = effectiveCouleurs.piece_sieges || '#18181b';
-        roughness = 0.90;
-        metalness = 0.05;
+        // Perforated motorsport bucket seat
+        const seatTex = isOriginalMode
+          ? getSeatTexture(true)
+          : getSeatTexture(false, effectiveCouleurs.piece_sieges);
+        mat = new THREE.MeshStandardMaterial({
+          map: seatTex,
+          color: new THREE.Color('#ffffff'),
+          roughness: 0.75,
+          metalness: 0.10,
+          side: THREE.DoubleSide,
+        });
         canCustomize = true;
       } else {
-        // Body panels / nose cone / spoiler: vivid automotive finish
-        matColor = effectiveCouleurs[pieceKey] || '#E53935';
-        roughness = 0.55;
-        metalness = 0.1;
+        // Body panels / Nassau cone / spoiler
+        const bodyTex = isOriginalMode
+          ? getBodyTexture(true)
+          : getBodyTexture(false, effectiveCouleurs[pieceKey] || '#E53935');
+        mat = new THREE.MeshStandardMaterial({
+          map: bodyTex,
+          color: new THREE.Color('#ffffff'),
+          roughness: 0.45,
+          metalness: 0.18,
+          side: THREE.DoubleSide,
+        });
         canCustomize = true;
       }
 
-      const std = new THREE.MeshStandardMaterial({
-        color: new THREE.Color(matColor),
-        roughness,
-        metalness,
-        side: THREE.DoubleSide,
-      });
-
-      child.material = std;
+      child.material = mat;
       child.material.needsUpdate = true;
       if (child.isMesh) {
         child.userData.pieceKey = pieceKey;
@@ -183,7 +220,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     });
 
     return clone;
-  }, [rawScene, effectiveCouleurs]);
+  }, [rawScene, isOriginalMode]);
 
   // Discover pieces once per scene load
   const discoveredReportedRef = useRef(false);
@@ -201,19 +238,70 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     ]);
   }, [scene, onPiecesDiscovered]);
 
-  // Dynamically update colors when user picks a color
+  // Dynamically update materials and textures when user customizes colors
   useEffect(() => {
     if (!scene) return;
 
     scene.traverse((child) => {
       if (!child.isMesh || !child.material) return;
-      if (!child.userData.canCustomize) return;
       const pieceKey = child.userData.pieceKey;
-      if (pieceKey && effectiveCouleurs[pieceKey]) {
-        child.material.color.set(effectiveCouleurs[pieceKey]);
+      if (!pieceKey) return;
+
+      if (isOriginalMode) {
+        // Revert to authentic original format & factory textures
+        if (pieceKey === 'piece_sieges') {
+          child.material.map = getSeatTexture(true);
+          child.material.color.set('#ffffff');
+          child.material.roughness = 0.75;
+          child.material.metalness = 0.10;
+        } else if (pieceKey === 'piece_jantes') {
+          child.material.map = getWheelTexture();
+          child.material.color.set('#ffffff');
+          child.material.roughness = 0.85;
+          child.material.metalness = 0.10;
+        } else if (pieceKey === 'piece_moteur') {
+          child.material.map = getEngineTexture();
+          child.material.color.set('#ffffff');
+          child.material.roughness = 0.35;
+          child.material.metalness = 0.65;
+        } else if (pieceKey === 'piece_chassis') {
+          child.material.map = getChassisTexture();
+          child.material.color.set('#ffffff');
+          child.material.roughness = 0.50;
+          child.material.metalness = 0.45;
+        } else {
+          // Bodywork original factory livery
+          child.material.map = getBodyTexture(true);
+          child.material.color.set('#ffffff');
+          child.material.roughness = 0.45;
+          child.material.metalness = 0.18;
+        }
+        child.material.needsUpdate = true;
+      } else {
+        // Editing / Custom colors mode: apply chosen colors while preserving surface texture
+        if (child.userData.canCustomize) {
+          const customColor = effectiveCouleurs[pieceKey];
+          if (customColor) {
+            if (pieceKey === 'piece_sieges') {
+              child.material.map = getSeatTexture(false, customColor);
+              child.material.color.set('#ffffff');
+              child.material.roughness = 0.75;
+            } else if (pieceKey === 'piece_jantes') {
+              child.material.map = getWheelTexture();
+              child.material.color.set(customColor);
+            } else {
+              // Bodywork parts (carrosserie, capot, pontons, aileron)
+              child.material.map = getBodyTexture(false, customColor);
+              child.material.color.set('#ffffff');
+              child.material.roughness = 0.42;
+              child.material.metalness = 0.18;
+            }
+            child.material.needsUpdate = true;
+          }
+        }
       }
     });
-  }, [scene, effectiveCouleurs]);
+  }, [scene, effectiveCouleurs, isOriginalMode]);
 
   // Smooth floating animation
   useFrame((state) => {
@@ -233,7 +321,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
         <mesh position={[0, 0, -0.003]} castShadow>
           <boxGeometry args={[0.30, 0.18, 0.006]} />
           <meshStandardMaterial
-            color={couleurs.piece_plaque || '#0F172A'}
+            color={effectiveCouleurs.piece_plaque || '#0F172A'}
             roughness={0.4}
             metalness={0.2}
           />
@@ -249,7 +337,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
         <mesh position={[0, 0, -0.003]} castShadow>
           <boxGeometry args={[0.26, 0.15, 0.006]} />
           <meshStandardMaterial
-            color={couleurs.piece_plaque || '#0F172A'}
+            color={effectiveCouleurs.piece_plaque || '#0F172A'}
             roughness={0.4}
             metalness={0.2}
           />
@@ -264,7 +352,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
 }
 
 // ─── Wrapper: GLB inside Suspense + ErrorBoundary ───────────────────────────
-function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered }) {
+function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered, isEditing }) {
   return (
     <CanvasErrorBoundary fallback={null}>
       <Suspense fallback={null}>
@@ -272,6 +360,7 @@ function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered }) {
           couleurs={couleurs}
           numeroPlaque={numeroPlaque}
           onPiecesDiscovered={onPiecesDiscovered}
+          isEditing={isEditing}
         />
       </Suspense>
     </CanvasErrorBoundary>
@@ -279,12 +368,27 @@ function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered }) {
 }
 
 // ─── Public component ─────────────────────────────────────────────────────────
-export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
+export default function KartPreviewCanvas({
+  couleurs = {},
+  numeroPlaque = '07',
+  onPiecesDiscovered,
+  isEditing = false,
+}) {
+  const hasCustomColors = Boolean(
+    couleurs && typeof couleurs === 'object' && Object.values(couleurs).some((v) => !!v)
+  );
+  const isOriginal = !isEditing && !hasCustomColors;
+
   return (
     <div className="w-full h-[400px] lg:h-[480px] bg-slate-950 rounded-2xl overflow-hidden relative border border-slate-800 shadow-inner">
+      {/* Dynamic Status Badge */}
       <div className="absolute top-4 start-4 z-10 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-2 pointer-events-none">
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span>Aperçu 3D — Modèle Kart Réel</span>
+        <span className={`w-2 h-2 rounded-full ${isOriginal ? 'bg-sky-400' : 'bg-emerald-400'} animate-pulse`} />
+        <span>
+          {isOriginal
+            ? 'Aperçu 3D — Modèle d’Origine (Textures d’Usine)'
+            : 'Aperçu 3D — Personnalisation Live'}
+        </span>
       </div>
 
       <Canvas
@@ -294,14 +398,16 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           antialias: true,
           alpha: false,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 0.95,
+          toneMappingExposure: 1.05,
         }}
         onCreated={({ gl }) => { gl.setClearColor('#18181b'); }}
       >
-        {/* Soft diffused daylight — completely even, zero harsh hotspots */}
-        <ambientLight intensity={0.70} />
-        <directionalLight position={[5, 10, 4]} intensity={0.45} />
-        <directionalLight position={[-5, 4, -4]} intensity={0.25} />
+        {/* Soft studio lighting — reveals textures & contours clearly with zero blowout */}
+        <ambientLight intensity={0.85} />
+        <hemisphereLight skyColor="#f8fafc" groundColor="#334155" intensity={0.40} />
+        <directionalLight position={[5, 8, 4]} intensity={0.60} />
+        <directionalLight position={[-5, 4, -4]} intensity={0.35} />
+        <directionalLight position={[0, 1.5, 4]} intensity={0.25} />
 
         <Grid
           position={[0, 0, 0]}
@@ -320,6 +426,7 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           couleurs={couleurs}
           numeroPlaque={numeroPlaque}
           onPiecesDiscovered={onPiecesDiscovered}
+          isEditing={isEditing}
         />
 
         <OrbitControls
@@ -337,4 +444,3 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
 }
 
 useGLTF.preload('/Car.glb');
-

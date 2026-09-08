@@ -93,14 +93,9 @@ export default function KartsConfigPage() {
         kartsList.map((k, idx) => ({
           ...k,
           numeroPlaque: k.numeroPlaque || k.numero || `${idx + 1}`.padStart(2, '0'),
-          couleurs: k.couleurs && typeof k.couleurs === 'object'
+          couleurs: k.couleurs && typeof k.couleurs === 'object' && Object.keys(k.couleurs).length > 0
             ? k.couleurs
-            : {
-                piece_carrosserie: k.couleur || '#E53935',
-                piece_aileron: '#1A1A1A',
-                piece_capot: k.couleur || '#E53935',
-                piece_pontons: k.couleur || '#E53935',
-              },
+            : (k.couleur ? { piece_carrosserie: k.couleur } : {}),
           ordre: k.ordre !== undefined ? k.ordre : idx,
         }))
       );
@@ -495,19 +490,20 @@ export default function KartsConfigPage() {
                 <KartPreviewCanvas
                   couleurs={
                     editingKartIndex !== null
-                      ? (karts[editingKartIndex]?.couleurs || { piece_carrosserie: '#E53935' })
-                      : (karts[0]?.couleurs || { piece_carrosserie: '#E53935' })
+                      ? karts[editingKartIndex]?.couleurs
+                      : (karts[0]?.couleurs || {})
                   }
                   numeroPlaque={
                     editingKartIndex !== null
                       ? (karts[editingKartIndex]?.numeroPlaque || '07')
                       : (karts[0]?.numeroPlaque || '07')
                   }
+                  isEditing={false}
                 />
                 <p className="text-xs text-slate-400 text-center">
                   💡 {editingKartIndex !== null
                     ? `Aperçu live du kart #${karts[editingKartIndex]?.numeroPlaque || '??'} — Car.fbx réel`
-                    : 'Cliquez sur Personnaliser sur un kart pour le voir en 3D'}
+                    : 'Modèle original avec textures d’usine. Cliquez sur Personnaliser pour modifier les couleurs.'}
                 </p>
               </div>
             </div>
