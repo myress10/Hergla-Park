@@ -113,9 +113,10 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
 
       const colorHex = effectiveCouleurs[pieceKey] || (isSeat ? '#1E293B' : (isBody ? '#E53935' : '#334155'));
 
-      // MeshBasicMaterial: ignores all scene lighting → pure vivid color output
-      const std = new THREE.MeshBasicMaterial({
+      const std = new THREE.MeshStandardMaterial({
         color: new THREE.Color(colorHex),
+        roughness: isSeat ? 0.92 : (isBody ? 0.40 : 0.50),
+        metalness: isSeat ? 0.0 : (isBody ? 0.05 : 0.25),
         side: THREE.DoubleSide,
       });
 
@@ -223,8 +224,9 @@ function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered }) {
 // ─── Public component ─────────────────────────────────────────────────────────
 export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
   return (
-    <div className="w-full h-[400px] lg:h-[480px] bg-stone-950 rounded-2xl overflow-hidden relative border border-stone-800 shadow-inner">
-      <div className="absolute top-4 start-4 z-10 bg-stone-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-stone-300 pointer-events-none">
+    <div className="w-full h-[400px] lg:h-[480px] bg-slate-950 rounded-2xl overflow-hidden relative border border-slate-800 shadow-inner">
+      <div className="absolute top-4 start-4 z-10 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-2 pointer-events-none">
+        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         <span>Aperçu 3D — Modèle Kart Réel</span>
       </div>
 
@@ -234,28 +236,25 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
         gl={{
           antialias: true,
           alpha: false,
-          toneMapping: THREE.NoToneMapping,
-          toneMappingExposure: 1.0,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 0.75,
         }}
-        onCreated={({ gl }) => { gl.setClearColor('#1c1917'); }}
+        onCreated={({ gl }) => { gl.setClearColor('#0f172a'); }}
       >
-        {/* No ambient light — MeshBasicMaterial renders pure vivid colors without any light source */}
-
-        {/* Dark asphalt floor */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
-          <planeGeometry args={[60, 60]} />
-          <meshBasicMaterial color="#2a2825" />
-        </mesh>
+        {/* Very low studio lighting: just enough to see 3D shape + texture without washing out colors */}
+        <ambientLight intensity={0.25} />
+        <directionalLight position={[3, 5, 3]} intensity={0.30} />
+        <directionalLight position={[-3, 2, -2]} intensity={0.10} />
 
         <Grid
           position={[0, 0, 0]}
           args={[20, 20]}
           cellSize={0.5}
-          cellThickness={0.5}
-          cellColor="#a8a195"
+          cellThickness={0.4}
+          cellColor="#334155"
           sectionSize={2}
-          sectionThickness={0.9}
-          sectionColor="#c4bcaf"
+          sectionThickness={0.8}
+          sectionColor="#475569"
           fadeDistance={14}
           infiniteGrid
         />
