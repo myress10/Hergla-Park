@@ -2,29 +2,55 @@ import * as THREE from 'three';
 
 /**
  * Generates an optimized CanvasTexture with the kart's racing plate number.
- * Conforms to prompt specification: 256x128 canvas, black bold text on white background.
+ * High-resolution 512x256 texture with race styling.
  */
-export function generatePlateTexture(numero = '00') {
+export function generatePlateTexture(numero = '07', plateColor = '#1E293B') {
   const canvas = document.createElement('canvas');
-  canvas.width = 256;
-  canvas.height = 128;
+  canvas.width = 512;
+  canvas.height = 256;
   const ctx = canvas.getContext('2d');
 
-  // Plate background
+  // Outer bezel / plate background
+  ctx.fillStyle = plateColor || '#1E293B';
+  if (ctx.roundRect) {
+    ctx.roundRect(0, 0, canvas.width, canvas.height, 28);
+  } else {
+    ctx.rect(0, 0, canvas.width, canvas.height);
+  }
+  ctx.fill();
+
+  // White inner badge
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (ctx.roundRect) {
+    ctx.roundRect(16, 16, canvas.width - 32, canvas.height - 32, 20);
+  } else {
+    ctx.rect(16, 16, canvas.width - 32, canvas.height - 32);
+  }
+  ctx.fill();
 
-  // Outer border
+  // Inner racing border
   ctx.lineWidth = 8;
-  ctx.strokeStyle = '#111827';
-  ctx.strokeRect(4, 4, canvas.width - 8, canvas.height - 8);
+  ctx.strokeStyle = '#0F172A';
+  if (ctx.roundRect) {
+    ctx.roundRect(24, 24, canvas.width - 48, canvas.height - 48, 14);
+  } else {
+    ctx.rect(24, 24, canvas.width - 48, canvas.height - 48);
+  }
+  ctx.stroke();
 
-  // Plate Number
-  ctx.fillStyle = '#111827';
-  ctx.font = '900 64px sans-serif';
+  // Header banner: "HERGLA PARK"
+  ctx.fillStyle = '#E53935';
+  ctx.font = '900 24px system-ui, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('HERGLA PARK', canvas.width / 2, 36);
+
+  // Big Bold Racing Number
+  ctx.fillStyle = '#0F172A';
+  ctx.font = '900 120px system-ui, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(String(numero || '??').trim(), canvas.width / 2, canvas.height / 2 + 2);
+  ctx.fillText(String(numero || '07').trim(), canvas.width / 2, canvas.height / 2 + 28);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;

@@ -493,11 +493,21 @@ export default function KartsConfigPage() {
             <div className="lg:col-span-5">
               <div className="sticky top-6 space-y-3">
                 <KartPreviewCanvas
-                  couleurs={karts[0]?.couleurs || { piece_carrosserie: '#E53935' }}
-                  numeroPlaque={karts[0]?.numeroPlaque || '07'}
+                  couleurs={
+                    editingKartIndex !== null
+                      ? (karts[editingKartIndex]?.couleurs || { piece_carrosserie: '#E53935' })
+                      : (karts[0]?.couleurs || { piece_carrosserie: '#E53935' })
+                  }
+                  numeroPlaque={
+                    editingKartIndex !== null
+                      ? (karts[editingKartIndex]?.numeroPlaque || '07')
+                      : (karts[0]?.numeroPlaque || '07')
+                  }
                 />
                 <p className="text-xs text-slate-400 text-center">
-                  💡 Cliquez sur <strong>Personnaliser</strong> sur n’importe quel kart pour modifier ses pièces en direct.
+                  💡 {editingKartIndex !== null
+                    ? `Aperçu live du kart #${karts[editingKartIndex]?.numeroPlaque || '??'} — Car.fbx réel`
+                    : 'Cliquez sur Personnaliser sur un kart pour le voir en 3D'}
                 </p>
               </div>
             </div>

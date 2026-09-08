@@ -13,19 +13,21 @@ export const SUGGESTED_COLORS = [
 ];
 
 function formatPieceLabel(pieceKey) {
-  const clean = pieceKey.replace(/^piece_/, '');
+  const clean = pieceKey.replace(/^piece_/, '').toLowerCase();
   const labels = {
     carrosserie: 'Carrosserie Principale',
-    aileron: 'Aileron Arrière',
-    capot: 'Capot Avant',
-    pontons: 'Pontons Latéraux',
-    chassis: 'Châssis',
+    aileron: 'Arceaux & Aileron',
+    capot: 'Nez / Capot Avant',
+    pontons: 'Pontons & Moteur',
+    chassis: 'Châssis & Tubes',
+    sieges: 'Siège Baquet',
     siege: 'Siège Baquet',
-    volant: 'Volant',
-    jantes: 'Jantes',
+    volant: 'Volant & Colonne',
+    jantes: 'Éléments Mécaniques & Châssis',
+    plaque: 'Plaque Numéro de Course',
   };
-  if (labels[clean.toLowerCase()]) {
-    return labels[clean.toLowerCase()];
+  if (labels[clean]) {
+    return labels[clean];
   }
   return clean.charAt(0).toUpperCase() + clean.slice(1).replace(/_/g, ' ');
 }

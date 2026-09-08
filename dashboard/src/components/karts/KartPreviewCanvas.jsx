@@ -1,224 +1,315 @@
-import React, { Suspense, useMemo, useRef, useEffect, useState } from 'react';
+import React, { Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, Grid, Html } from '@react-three/drei';
+import { OrbitControls, Environment, Grid, useFBX } from '@react-three/drei';
 import * as THREE from 'three';
 import CanvasErrorBoundary from '../scene-editor/CanvasErrorBoundary';
 import { generatePlateTexture } from './plateTexture';
 
-/**
- * Procedural Kart with Blender-compliant piece naming:
- * piece_carrosserie, piece_aileron, piece_capot, piece_pontons, piece_plaque, piece_sieges, piece_chassis
- */
-function ProceduralCustomizableKart({
-  couleurs = {},
-  numeroPlaque = '07',
-  onPiecesDiscovered,
-}) {
+// ─── Piece name mappings for Car.fbx ──────────────────────────────────────────
+function getPieceKey(meshName, mat) {
+  const m = (meshName || '').toLowerCase();
+  const matName = (mat ? (Array.isArray(mat) ? mat[0]?.name : mat.name) : '').toLowerCase();
+
+  // 1. Seat
+  if (m === 'seat' || matName.includes('chair')) return 'piece_sieges';
+
+  // 2. Front Nassau / Nose Cone panel
+  if (m === 'body_rear_bumper') return 'piece_capot';
+
+  // 3. Main Bodywork & Side Pods (Body_Rear_Bumper001 is the main wrap-around shell)
+  if (
+    m === 'body_rear_bumper001' ||
+    m === 'body_rear_bumper002' ||
+    m.includes('frame_left_front') ||
+    m.includes('frame_left_side')
+  ) {
+    return 'piece_carrosserie';
+  }
+
+  // 4. Engine & side engine covers
+  if (m.includes('engine') || m.includes('side_panel')) {
+    return 'piece_pontons';
+  }
+
+  // 5. Aero bars & front upper supports
+  if (m.includes('front_upper') || m.includes('front_support') || m === 'rear_axle001') {
+    return 'piece_aileron';
+  }
+
+  // 6. Mechanical running gear: axles, brakes, steering, pedals
+  if (m.includes('axle') || m.includes('brake') || m.includes('steering') || m.includes('pedal')) {
+    return 'piece_jantes';
+  }
+
+  // General fallbacks
+  if (matName.includes('body')) return 'piece_carrosserie';
+  if (matName.includes('chassis')) return 'piece_jantes';
+  return 'piece_carrosserie';
+}
+
+// ─── Real Car.fbx loader ─────────────────────────────────────────────────────
+function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
   const groupRef = useRef(null);
-  const plateTexture = useMemo(() => generatePlateTexture(numeroPlaque), [numeroPlaque]);
 
-  // Discover customizable pieces once
+  // Generate responsive plate texture whenever plate number or plate color changes
+  const plateTexture = useMemo(
+    () => generatePlateTexture(numeroPlaque, couleurs.piece_plaque),
+    [numeroPlaque, couleurs.piece_plaque]
+  );
+
+  // Load raw FBX from public/Car.fbx (D:\visite virtuelle\unity\Assets\Prefabs\Car.fbx)
+  const fbx = useFBX('/Car.fbx');
+
+  // Deep-clone and compute normalized scale & center ONCE when fbx changes
+  const scene = useMemo(() => {
+    if (!fbx) return null;
+    const clone = fbx.clone(true);
+
+    // Reset initial transform
+    clone.position.set(0, 0, 0);
+    clone.rotation.set(0, 0, 0);
+    clone.scale.set(1, 1, 1);
+    clone.updateMatrixWorld(true);
+
+    // Compute bounding box on unscaled model
+    const box = new THREE.Box3().setFromObject(clone);
+    const size = box.getSize(new THREE.Vector3());
+    const maxDim = Math.max(size.x, size.y, size.z);
+
+    // Target ~2.8 meters total length/width
+    const targetScale = maxDim > 0.001 ? 2.8 / maxDim : 1;
+    clone.scale.setScalar(targetScale);
+    clone.updateMatrixWorld(true);
+
+    // Re-measure after scaling to place bottom on Y=0 and center on X/Z
+    const scaledBox = new THREE.Box3().setFromObject(clone);
+    const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+    clone.position.set(-scaledCenter.x, -scaledBox.min.y, -scaledCenter.z);
+    clone.updateMatrixWorld(true);
+
+    // Initialize materials once
+    clone.traverse((child) => {
+      if (!child.isMesh) return;
+      const pieceKey = getPieceKey(child.name, child.material);
+      const origMat = Array.isArray(child.material) ? child.material[0] : child.material;
+
+      const isBody = pieceKey === 'piece_carrosserie' || pieceKey === 'piece_capot' || pieceKey === 'piece_pontons' || pieceKey === 'piece_aileron';
+      const isSeat = pieceKey === 'piece_sieges';
+
+      // Default base color
+      const initialColor = (couleurs && couleurs[pieceKey])
+        ? new THREE.Color(couleurs[pieceKey])
+        : (isSeat ? new THREE.Color('#E53935') : (isBody ? new THREE.Color('#1E293B') : new THREE.Color('#334155')));
+
+      const std = new THREE.MeshStandardMaterial({
+        color: initialColor,
+        roughness: isSeat ? 0.85 : (isBody ? 0.22 : 0.45),
+        metalness: isSeat ? 0.05 : (isBody ? 0.35 : 0.65),
+        side: THREE.DoubleSide,
+      });
+
+      // Preserve normal maps for 3D surface detail while avoiding the black diffuse map
+      if (origMat && origMat.normalMap) {
+        std.normalMap = origMat.normalMap;
+        std.normalScale = new THREE.Vector2(0.8, 0.8);
+      }
+
+      child.material = std;
+      child.userData.pieceKey = pieceKey;
+      child.castShadow = true;
+      child.receiveShadow = true;
+    });
+
+    return clone;
+  }, [fbx]);
+
+  // Discover pieces once per scene load
+  const discoveredReportedRef = useRef(false);
   useEffect(() => {
-    if (onPiecesDiscovered) {
-      onPiecesDiscovered([
-        'piece_carrosserie',
-        'piece_aileron',
-        'piece_capot',
-        'piece_pontons',
-      ]);
-    }
-  }, [onPiecesDiscovered]);
+    if (!scene || !onPiecesDiscovered || discoveredReportedRef.current) return;
+    discoveredReportedRef.current = true;
+    onPiecesDiscovered([
+      'piece_carrosserie',
+      'piece_capot',
+      'piece_sieges',
+      'piece_pontons',
+      'piece_aileron',
+      'piece_jantes',
+      'piece_plaque',
+    ]);
+  }, [scene, onPiecesDiscovered]);
 
-  // Dynamic cloned materials per piece
-  const materials = useMemo(() => {
-    const defaultColor = '#E53935';
-    return {
-      carrosserie: new THREE.MeshStandardMaterial({
-        color: couleurs.piece_carrosserie || defaultColor,
-        roughness: 0.2,
-        metalness: 0.4,
-      }),
-      aileron: new THREE.MeshStandardMaterial({
-        color: couleurs.piece_aileron || '#1A1A1A',
-        roughness: 0.2,
-        metalness: 0.5,
-      }),
-      capot: new THREE.MeshStandardMaterial({
-        color: couleurs.piece_capot || couleurs.piece_carrosserie || defaultColor,
-        roughness: 0.2,
-        metalness: 0.4,
-      }),
-      pontons: new THREE.MeshStandardMaterial({
-        color: couleurs.piece_pontons || couleurs.piece_carrosserie || defaultColor,
-        roughness: 0.2,
-        metalness: 0.4,
-      }),
-      plaque: new THREE.MeshBasicMaterial({
-        map: plateTexture,
-        roughness: 0.1,
-      }),
-      chassis: new THREE.MeshStandardMaterial({ color: '#111827', roughness: 0.6 }),
-      accent: new THREE.MeshStandardMaterial({ color: '#1A1A1A', roughness: 0.4 }),
-      wheel: new THREE.MeshStandardMaterial({ color: '#18181B', roughness: 0.85 }),
-      rim: new THREE.MeshStandardMaterial({ color: '#E2E8F0', metalness: 0.8, roughness: 0.2 }),
-    };
-  }, [couleurs, plateTexture]);
+  // Dynamically update colors without touching position/scale
+  useEffect(() => {
+    if (!scene) return;
+
+    scene.traverse((child) => {
+      if (!child.isMesh || !child.material) return;
+      const pieceKey = child.userData.pieceKey;
+
+      if (pieceKey && couleurs[pieceKey]) {
+        child.material.color.set(couleurs[pieceKey]);
+      }
+    });
+  }, [scene, couleurs]);
 
   // Smooth floating animation
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.position.y = Math.sin(state.clock.getElapsedTime() * 2) * 0.02;
+      groupRef.current.position.y = Math.sin(state.clock.getElapsedTime() * 1.8) * 0.025;
     }
   });
 
+  if (!scene) return null;
   return (
-    <group ref={groupRef} position={[0, 0, 0]}>
-      {/* Chassis */}
-      <mesh name="piece_chassis" position={[0, 0.2, 0]} material={materials.chassis}>
-        <boxGeometry args={[1.2, 0.15, 2.2]} />
-      </mesh>
+    <group ref={groupRef}>
+      <primitive object={scene} />
 
-      {/* Front Nose Fairing (Capot) */}
-      <mesh name="piece_capot" position={[0, 0.3, 0.9]} material={materials.capot}>
-        <boxGeometry args={[0.9, 0.25, 0.6]} />
-      </mesh>
+      {/* ── Front Racing Number Plate (fitted onto Nassau nose fairing) ── */}
+      <group position={[0, 0.485, 0.92]} rotation={[-0.50, 0, 0]}>
+        <mesh position={[0, 0, -0.003]} castShadow>
+          <boxGeometry args={[0.30, 0.18, 0.006]} />
+          <meshStandardMaterial
+            color={couleurs.piece_plaque || '#0F172A'}
+            roughness={0.4}
+            metalness={0.2}
+          />
+        </mesh>
+        <mesh position={[0, 0, 0.003]}>
+          <planeGeometry args={[0.29, 0.17]} />
+          <meshBasicMaterial map={plateTexture} toneMapped={false} />
+        </mesh>
+      </group>
 
-      {/* Front Bumper */}
-      <mesh position={[0, 0.22, 1.25]} material={materials.accent}>
-        <boxGeometry args={[1.3, 0.12, 0.15]} />
-      </mesh>
+      {/* ── Rear Bumper Racing Plate ── */}
+      <group position={[0, 0.35, -1.35]} rotation={[0, Math.PI, 0]}>
+        <mesh position={[0, 0, -0.003]} castShadow>
+          <boxGeometry args={[0.26, 0.15, 0.006]} />
+          <meshStandardMaterial
+            color={couleurs.piece_plaque || '#0F172A'}
+            roughness={0.4}
+            metalness={0.2}
+          />
+        </mesh>
+        <mesh position={[0, 0, 0.003]}>
+          <planeGeometry args={[0.25, 0.14]} />
+          <meshBasicMaterial map={plateTexture} toneMapped={false} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
 
-      {/* Front Number Plate (piece_plaque) */}
-      <mesh
-        name="piece_plaque"
-        position={[0, 0.45, 1.15]}
-        rotation={[-0.2, 0, 0]}
-        material={materials.plaque}
-      >
-        <planeGeometry args={[0.5, 0.25]} />
-      </mesh>
+// ─── Procedural fallback (shown while FBX loads or on error) ─────────────────
+function ProceduralFallbackKart({ couleurs = {}, numeroPlaque = '07' }) {
+  const groupRef = useRef(null);
+  const plateTexture = useMemo(() => generatePlateTexture(numeroPlaque), [numeroPlaque]);
 
-      {/* Side Pods (Pontons) */}
-      <mesh name="piece_pontons" position={[-0.55, 0.28, 0]} material={materials.pontons}>
-        <boxGeometry args={[0.25, 0.3, 1.4]} />
-      </mesh>
-      <mesh name="piece_pontons" position={[0.55, 0.28, 0]} material={materials.pontons}>
-        <boxGeometry args={[0.25, 0.3, 1.4]} />
-      </mesh>
+  const mats = useMemo(() => ({
+    body:    new THREE.MeshStandardMaterial({ color: couleurs.piece_carrosserie || '#E53935', roughness: 0.2, metalness: 0.35 }),
+    wing:    new THREE.MeshStandardMaterial({ color: couleurs.piece_aileron    || '#1A1A1A', roughness: 0.2, metalness: 0.5 }),
+    chassis: new THREE.MeshStandardMaterial({ color: '#111827', roughness: 0.6 }),
+    wheel:   new THREE.MeshStandardMaterial({ color: '#18181B', roughness: 0.85 }),
+    rim:     new THREE.MeshStandardMaterial({ color: '#E2E8F0', metalness: 0.8, roughness: 0.2 }),
+    plate:   new THREE.MeshBasicMaterial({ map: plateTexture }),
+  }), [couleurs, plateTexture]);
 
-      {/* Driver Seat & Cockpit (Carrosserie) */}
-      <mesh name="piece_carrosserie" position={[0, 0.32, -0.1]} material={materials.carrosserie}>
-        <boxGeometry args={[0.8, 0.2, 0.9]} />
-      </mesh>
+  useFrame((s) => {
+    if (groupRef.current) groupRef.current.position.y = Math.sin(s.clock.getElapsedTime() * 2) * 0.02;
+  });
 
-      <mesh position={[0, 0.48, -0.2]} rotation={[-0.3, 0, 0]} material={materials.accent}>
-        <boxGeometry args={[0.5, 0.5, 0.1]} />
-      </mesh>
+  const wheelPos = [[-0.65, 0.22, 0.75], [0.65, 0.22, 0.75], [-0.7, 0.26, -0.7], [0.7, 0.26, -0.7]];
 
-      {/* Steering Wheel */}
-      <mesh position={[0, 0.4, 0.3]} rotation={[0.6, 0, 0]} material={materials.chassis}>
-        <cylinderGeometry args={[0.03, 0.03, 0.4]} />
-      </mesh>
-      <mesh position={[0, 0.55, 0.2]} rotation={[0.6, 0, 0]} material={materials.accent}>
-        <torusGeometry args={[0.12, 0.02, 8, 16]} />
-      </mesh>
-
-      {/* Rear Spoiler (Aileron) */}
-      <mesh name="piece_aileron" position={[0, 0.75, -1.0]} material={materials.aileron}>
-        <boxGeometry args={[1.1, 0.08, 0.3]} />
-      </mesh>
-      <mesh position={[-0.4, 0.55, -0.95]} material={materials.chassis}>
-        <boxGeometry args={[0.05, 0.35, 0.05]} />
-      </mesh>
-      <mesh position={[0.4, 0.55, -0.95]} material={materials.chassis}>
-        <boxGeometry args={[0.05, 0.35, 0.05]} />
-      </mesh>
-
-      {/* Rear Plate */}
-      <mesh
-        name="piece_plaque"
-        position={[0, 0.4, -1.11]}
-        rotation={[0, Math.PI, 0]}
-        material={materials.plaque}
-      >
-        <planeGeometry args={[0.4, 0.2]} />
-      </mesh>
-
-      {/* Wheels */}
-      {[
-        [-0.65, 0.22, 0.75],
-        [0.65, 0.22, 0.75],
-        [-0.7, 0.26, -0.7],
-        [0.7, 0.26, -0.7],
-      ].map(([x, y, z], i) => (
+  return (
+    <group ref={groupRef}>
+      <mesh position={[0, 0.18, 0]} material={mats.chassis}><boxGeometry args={[1.2, 0.15, 2.2]} /></mesh>
+      <mesh position={[0, 0.3, -0.1]} material={mats.body}><boxGeometry args={[0.82, 0.22, 0.95]} /></mesh>
+      <mesh position={[0, 0.3, 0.9]} material={mats.body}><boxGeometry args={[0.9, 0.2, 0.55]} /></mesh>
+      <mesh position={[-0.54, 0.27, 0]} material={mats.body}><boxGeometry args={[0.24, 0.28, 1.4]} /></mesh>
+      <mesh position={[0.54, 0.27, 0]} material={mats.body}><boxGeometry args={[0.24, 0.28, 1.4]} /></mesh>
+      <mesh position={[0, 0.72, -1.0]} material={mats.wing}><boxGeometry args={[1.1, 0.07, 0.3]} /></mesh>
+      <mesh position={[-0.38, 0.52, -0.95]} material={mats.chassis}><boxGeometry args={[0.05, 0.38, 0.05]} /></mesh>
+      <mesh position={[0.38, 0.52, -0.95]} material={mats.chassis}><boxGeometry args={[0.05, 0.38, 0.05]} /></mesh>
+      <mesh name="piece_plaque" position={[0, 0.44, 1.14]} rotation={[-0.2, 0, 0]} material={mats.plate}><planeGeometry args={[0.5, 0.25]} /></mesh>
+      {wheelPos.map(([x, y, z], i) => (
         <group key={i} position={[x, y, z]} rotation={[0, 0, Math.PI / 2]}>
-          <mesh material={materials.wheel}>
-            <cylinderGeometry args={[i >= 2 ? 0.26 : 0.22, i >= 2 ? 0.26 : 0.22, 0.22, 24]} />
-          </mesh>
-          <mesh material={materials.rim}>
-            <cylinderGeometry args={[0.13, 0.13, 0.23, 16]} />
-          </mesh>
+          <mesh material={mats.wheel}><cylinderGeometry args={[i >= 2 ? 0.26 : 0.22, i >= 2 ? 0.26 : 0.22, 0.22, 24]} /></mesh>
+          <mesh material={mats.rim}><cylinderGeometry args={[0.13, 0.13, 0.23, 16]} /></mesh>
         </group>
       ))}
     </group>
   );
 }
 
-export default function KartPreviewCanvas({
-  couleurs = {},
-  numeroPlaque = '07',
-  onPiecesDiscovered,
-}) {
+// ─── Wrapper: FBX inside Suspense + ErrorBoundary ────────────────────────────
+function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered }) {
+  return (
+    <CanvasErrorBoundary
+      fallback={<ProceduralFallbackKart couleurs={couleurs} numeroPlaque={numeroPlaque} />}
+    >
+      <Suspense fallback={<ProceduralFallbackKart couleurs={couleurs} numeroPlaque={numeroPlaque} />}>
+        <RealCarModel
+          couleurs={couleurs}
+          numeroPlaque={numeroPlaque}
+          onPiecesDiscovered={onPiecesDiscovered}
+        />
+      </Suspense>
+    </CanvasErrorBoundary>
+  );
+}
+
+// ─── Public component ─────────────────────────────────────────────────────────
+export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
   return (
     <div className="w-full h-[400px] lg:h-[480px] bg-slate-950 rounded-2xl overflow-hidden relative border border-slate-800 shadow-inner">
-      {/* Top Banner Tag */}
-      <div className="absolute top-4 start-4 z-10 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-2">
+      <div className="absolute top-4 start-4 z-10 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-2 pointer-events-none">
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span>Aperçu 3D interactif (R3F + Textures dynamiques)</span>
+        <span>Aperçu 3D — Car.fbx réel</span>
       </div>
 
       <Canvas
-        camera={{ position: [2.8, 2.2, 3.5], fov: 42 }}
+        camera={{ position: [3.5, 2.5, 4.5], fov: 40 }}
         shadows
-        gl={{ antialias: true }}
+        gl={{ antialias: true, alpha: false }}
+        onCreated={({ gl }) => { gl.setClearColor('#0f172a'); }}
       >
-        <ambientLight intensity={0.7} />
-        <directionalLight position={[6, 10, 6]} intensity={1.4} castShadow />
-        <directionalLight position={[-6, 6, -6]} intensity={0.5} color="#93c5fd" />
+        {/* Lighting */}
+        <ambientLight intensity={1.2} />
+        <directionalLight position={[5, 10, 5]}  intensity={2.0} castShadow />
+        <directionalLight position={[-5, 6, -5]} intensity={0.8} color="#93c5fd" />
+        <pointLight       position={[0, 4, 2]}   intensity={1.0} color="#ffffff" />
+        <hemisphereLight  skyColor="#1e3a5f"  groundColor="#0f172a" intensity={0.6} />
 
         <Environment preset="city" background={false} />
 
-        {/* Floor Grid */}
         <Grid
-          position={[0, -0.01, 0]}
+          position={[0, 0, 0]}
           args={[20, 20]}
           cellSize={0.5}
-          cellThickness={0.5}
+          cellThickness={0.4}
           cellColor="#334155"
           sectionSize={2}
-          sectionThickness={1}
+          sectionThickness={0.8}
           sectionColor="#475569"
-          fadeDistance={15}
+          fadeDistance={14}
           infiniteGrid
         />
 
-        <CanvasErrorBoundary fallback={null}>
-          <Suspense fallback={null}>
-            <ProceduralCustomizableKart
-              couleurs={couleurs}
-              numeroPlaque={numeroPlaque}
-              onPiecesDiscovered={onPiecesDiscovered}
-            />
-          </Suspense>
-        </CanvasErrorBoundary>
+        <CarModelLoader
+          couleurs={couleurs}
+          numeroPlaque={numeroPlaque}
+          onPiecesDiscovered={onPiecesDiscovered}
+        />
 
         <OrbitControls
           makeDefault
           enablePan={false}
-          enableZoom={true}
-          minDistance={2}
+          minDistance={1.5}
           maxDistance={10}
           maxPolarAngle={Math.PI / 2 - 0.05}
+          target={[0, 0.4, 0]}
+          autoRotate
+          autoRotateSpeed={1.5}
         />
       </Canvas>
     </div>
