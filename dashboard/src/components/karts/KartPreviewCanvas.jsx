@@ -206,54 +206,11 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
   );
 }
 
-// ─── Procedural fallback (shown while FBX loads or on error) ─────────────────
-function ProceduralFallbackKart({ couleurs = {}, numeroPlaque = '07' }) {
-  const groupRef = useRef(null);
-  const plateTexture = useMemo(() => generatePlateTexture(numeroPlaque), [numeroPlaque]);
-
-  const mats = useMemo(() => ({
-    body:    new THREE.MeshStandardMaterial({ color: couleurs.piece_carrosserie || '#E53935', roughness: 0.2, metalness: 0.35 }),
-    wing:    new THREE.MeshStandardMaterial({ color: couleurs.piece_aileron    || '#1A1A1A', roughness: 0.2, metalness: 0.5 }),
-    chassis: new THREE.MeshStandardMaterial({ color: '#111827', roughness: 0.6 }),
-    wheel:   new THREE.MeshStandardMaterial({ color: '#18181B', roughness: 0.85 }),
-    rim:     new THREE.MeshStandardMaterial({ color: '#E2E8F0', metalness: 0.8, roughness: 0.2 }),
-    plate:   new THREE.MeshBasicMaterial({ map: plateTexture }),
-  }), [couleurs, plateTexture]);
-
-  useFrame((s) => {
-    if (groupRef.current) groupRef.current.position.y = Math.sin(s.clock.getElapsedTime() * 2) * 0.02;
-  });
-
-  const wheelPos = [[-0.65, 0.22, 0.75], [0.65, 0.22, 0.75], [-0.7, 0.26, -0.7], [0.7, 0.26, -0.7]];
-
-  return (
-    <group ref={groupRef}>
-      <mesh position={[0, 0.18, 0]} material={mats.chassis}><boxGeometry args={[1.2, 0.15, 2.2]} /></mesh>
-      <mesh position={[0, 0.3, -0.1]} material={mats.body}><boxGeometry args={[0.82, 0.22, 0.95]} /></mesh>
-      <mesh position={[0, 0.3, 0.9]} material={mats.body}><boxGeometry args={[0.9, 0.2, 0.55]} /></mesh>
-      <mesh position={[-0.54, 0.27, 0]} material={mats.body}><boxGeometry args={[0.24, 0.28, 1.4]} /></mesh>
-      <mesh position={[0.54, 0.27, 0]} material={mats.body}><boxGeometry args={[0.24, 0.28, 1.4]} /></mesh>
-      <mesh position={[0, 0.72, -1.0]} material={mats.wing}><boxGeometry args={[1.1, 0.07, 0.3]} /></mesh>
-      <mesh position={[-0.38, 0.52, -0.95]} material={mats.chassis}><boxGeometry args={[0.05, 0.38, 0.05]} /></mesh>
-      <mesh position={[0.38, 0.52, -0.95]} material={mats.chassis}><boxGeometry args={[0.05, 0.38, 0.05]} /></mesh>
-      <mesh name="piece_plaque" position={[0, 0.44, 1.14]} rotation={[-0.2, 0, 0]} material={mats.plate}><planeGeometry args={[0.5, 0.25]} /></mesh>
-      {wheelPos.map(([x, y, z], i) => (
-        <group key={i} position={[x, y, z]} rotation={[0, 0, Math.PI / 2]}>
-          <mesh material={mats.wheel}><cylinderGeometry args={[i >= 2 ? 0.26 : 0.22, i >= 2 ? 0.26 : 0.22, 0.22, 24]} /></mesh>
-          <mesh material={mats.rim}><cylinderGeometry args={[0.13, 0.13, 0.23, 16]} /></mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
-
-// ─── Wrapper: FBX inside Suspense + ErrorBoundary ────────────────────────────
+// ─── Wrapper: GLB inside Suspense + ErrorBoundary ───────────────────────────
 function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered }) {
   return (
-    <CanvasErrorBoundary
-      fallback={<ProceduralFallbackKart couleurs={couleurs} numeroPlaque={numeroPlaque} />}
-    >
-      <Suspense fallback={<ProceduralFallbackKart couleurs={couleurs} numeroPlaque={numeroPlaque} />}>
+    <CanvasErrorBoundary fallback={null}>
+      <Suspense fallback={null}>
         <RealCarModel
           couleurs={couleurs}
           numeroPlaque={numeroPlaque}
@@ -267,8 +224,8 @@ function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered }) {
 // ─── Public component ─────────────────────────────────────────────────────────
 export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
   return (
-    <div className="w-full h-[400px] lg:h-[480px] bg-slate-950 rounded-2xl overflow-hidden relative border border-slate-800 shadow-inner">
-      <div className="absolute top-4 start-4 z-10 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-2 pointer-events-none">
+    <div className="w-full h-[400px] lg:h-[480px] bg-stone-950 rounded-2xl overflow-hidden relative border border-stone-800 shadow-inner">
+      <div className="absolute top-4 start-4 z-10 bg-stone-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-stone-300 flex items-center gap-2 pointer-events-none">
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
         <span>Aperçu 3D — Modèle Kart Réel</span>
       </div>
@@ -282,23 +239,33 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 0.85,
         }}
-        onCreated={({ gl }) => { gl.setClearColor('#0f172a'); }}
+        onCreated={({ gl }) => { gl.setClearColor('#292524'); }}
       >
-        {/* Soft, clean studio lighting to show pure, deep, vibrant colors without glare */}
-        <ambientLight intensity={0.40} />
+        {/* Soft, clean studio lighting */}
+        <ambientLight intensity={0.80} />
         <directionalLight position={[4, 6, 4]} intensity={0.65} castShadow />
-        <directionalLight position={[-4, 3, -3]} intensity={0.20} color="#94a3b8" />
-        <hemisphereLight skyColor="#38bdf8" groundColor="#0f172a" intensity={0.15} />
+        <directionalLight position={[-4, 3, -3]} intensity={0.20} color="#575e68" />
+        <hemisphereLight skyColor="#f59e0b" groundColor="#292524" intensity={0.15} />
+
+        {/* Sandy / Warm Gray asphalt paddock floor */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
+          <planeGeometry args={[60, 60]} />
+          <meshStandardMaterial
+            color="#8c857b"
+            roughness={0.92}
+            metalness={0.05}
+          />
+        </mesh>
 
         <Grid
           position={[0, 0, 0]}
           args={[20, 20]}
           cellSize={0.5}
-          cellThickness={0.4}
-          cellColor="#334155"
+          cellThickness={0.5}
+          cellColor="#a8a195"
           sectionSize={2}
-          sectionThickness={0.8}
-          sectionColor="#475569"
+          sectionThickness={0.9}
+          sectionColor="#c4bcaf"
           fadeDistance={14}
           infiniteGrid
         />
