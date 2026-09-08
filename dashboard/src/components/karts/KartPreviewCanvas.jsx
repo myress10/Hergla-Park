@@ -115,8 +115,8 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
 
       const std = new THREE.MeshStandardMaterial({
         color: new THREE.Color(colorHex),
-        roughness: isSeat ? 0.92 : (isBody ? 0.40 : 0.50),
-        metalness: isSeat ? 0.0 : (isBody ? 0.05 : 0.25),
+        roughness: isSeat ? 0.95 : (isBody ? 0.80 : 0.60),
+        metalness: 0.0,
         side: THREE.DoubleSide,
       });
 
@@ -225,14 +225,13 @@ function CarModelLoader({ couleurs, numeroPlaque, onPiecesDiscovered }) {
 export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
   return (
     <div className="w-full h-[400px] lg:h-[480px] bg-stone-950 rounded-2xl overflow-hidden relative border border-stone-800 shadow-inner">
-      <div className="absolute top-4 start-4 z-10 bg-stone-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-stone-300 flex items-center gap-2 pointer-events-none">
-        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+      <div className="absolute top-4 start-4 z-10 bg-stone-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-stone-300 pointer-events-none">
         <span>Aperçu 3D — Modèle Kart Réel</span>
       </div>
 
       <Canvas
         camera={{ position: [3.5, 2.5, 4.5], fov: 40 }}
-        shadows
+        shadows={false}
         gl={{
           antialias: true,
           alpha: false,
@@ -241,19 +240,16 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
         }}
         onCreated={({ gl }) => { gl.setClearColor('#292524'); }}
       >
-        {/* Soft, clean studio lighting */}
-        <ambientLight intensity={0.80} />
-        <directionalLight position={[4, 6, 4]} intensity={0.65} castShadow />
-        <directionalLight position={[-4, 3, -3]} intensity={0.20} color="#575e68" />
-        <hemisphereLight skyColor="#f59e0b" groundColor="#292524" intensity={0.15} />
+        {/* Soft, uniform ambient lighting — no harsh directional light or bright glare */}
+        <ambientLight intensity={0.70} />
 
         {/* Sandy / Warm Gray asphalt paddock floor */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
           <planeGeometry args={[60, 60]} />
           <meshStandardMaterial
             color="#8c857b"
-            roughness={0.92}
-            metalness={0.05}
+            roughness={0.95}
+            metalness={0.0}
           />
         </mesh>
 
