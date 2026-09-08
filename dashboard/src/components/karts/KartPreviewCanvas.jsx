@@ -1,6 +1,6 @@
 import React, { Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, useGLTF, Environment } from '@react-three/drei';
+import { OrbitControls, Grid, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import CanvasErrorBoundary from '../scene-editor/CanvasErrorBoundary';
 import { generatePlateTexture } from './plateTexture';
@@ -36,15 +36,22 @@ function getPieceKey(meshName, mat) {
     return 'piece_aileron';
   }
 
-  // 6. Mechanical running gear: axles, brakes, steering, pedals
-  if (m.includes('axle') || m.includes('brake') || m.includes('steering') || m.includes('pedal')) {
+  // 6. Wheels / Tires / Rims — any variant of naming
+  if (
+    m.includes('wheel') || m.includes('tire') || m.includes('tyre') ||
+    m.includes('rim') || m.includes('hub') || m.includes('rubber') ||
+    m.includes('tread') || m.includes('axle') || m.includes('brake') ||
+    m.includes('steering') || m.includes('pedal') ||
+    matName.includes('wheel') || matName.includes('tire') || matName.includes('rubber')
+  ) {
     return 'piece_jantes';
   }
 
   // General fallbacks
   if (matName.includes('body')) return 'piece_carrosserie';
   if (matName.includes('chassis')) return 'piece_jantes';
-  return 'piece_carrosserie';
+  // Unknown parts default to dark (jantes) so they never look like red body parts
+  return 'piece_jantes';
 }
 
 const DEFAULT_KART_COLORS = {
@@ -106,6 +113,9 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     // Initialize materials once
     clone.traverse((child) => {
       if (!child.isMesh) return;
+      // Debug: log mesh + material names to identify actual wheel mesh names
+      const matN = Array.isArray(child.material) ? child.material.map(m => m.name).join(',') : child.material?.name;
+      console.log('[KartGLB] mesh:', child.name, '| mat:', matN);
       const pieceKey = getPieceKey(child.name, child.material);
 
       const isBody = pieceKey === 'piece_carrosserie' || pieceKey === 'piece_capot' || pieceKey === 'piece_pontons' || pieceKey === 'piece_aileron';
@@ -244,11 +254,10 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.0,
         }}
-        onCreated={({ gl }) => { gl.setClearColor('#c9c5c0'); }}
+        onCreated={({ gl }) => { gl.setClearColor('#d6d2cc'); }}
       >
-        {/* Studio environment: even daylight from all angles, no hotspots */}
-        <Environment preset="studio" background={false} />
-        <ambientLight intensity={0.35} />
+        {/* Pure flat daylight — ambientLight only, zero directionality, no hotspot anywhere */}
+        <ambientLight intensity={1.8} />
 
         <Grid
           position={[0, 0, 0]}
