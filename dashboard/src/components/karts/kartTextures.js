@@ -47,20 +47,20 @@ export function getBodyTexture(isOriginal = true, customColor = null) {
 
   return getOrCreateTexture(cacheKey, (ctx, w, h) => {
     if (isOriginal) {
-      // ── Factory Original Livery: Dark Carbon-Titanium Motorsport Finish ──
+      // ── Factory Original Livery: Refined Carbon-Titanium Motorsport Finish ──
       const grad = ctx.createLinearGradient(0, 0, w, h);
-      grad.addColorStop(0, '#22252a');
-      grad.addColorStop(0.5, '#2c3038');
-      grad.addColorStop(1, '#1e2126');
+      grad.addColorStop(0, '#323740');
+      grad.addColorStop(0.5, '#3f4552');
+      grad.addColorStop(1, '#2c313a');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
-      // Fine Carbon Twill Weave Pattern
+      // Fine Carbon Twill Weave Pattern with clear contrast
       const step = 8;
       for (let y = 0; y < h; y += step) {
         for (let x = 0; x < w; x += step) {
           const isDiagonal = ((x / step + y / step) % 4 < 2);
-          ctx.fillStyle = isDiagonal ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.12)';
+          ctx.fillStyle = isDiagonal ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.18)';
           ctx.fillRect(x, y, step, step);
         }
       }
@@ -68,21 +68,21 @@ export function getBodyTexture(isOriginal = true, customColor = null) {
       // Factory Dual Racing Speed Stripes (Center-aligned)
       const centerX = w / 2;
       // Outer shadow for stripes
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-      ctx.fillRect(centerX - 46, 0, 92, h);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.fillRect(centerX - 52, 0, 104, h);
 
       // White outer pin-stripes
-      ctx.fillStyle = '#f8fafc';
-      ctx.fillRect(centerX - 40, 0, 6, h);
-      ctx.fillRect(centerX + 34, 0, 6, h);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(centerX - 46, 0, 8, h);
+      ctx.fillRect(centerX + 38, 0, 8, h);
 
       // Bold Racing Red Primary Stripe
-      ctx.fillStyle = '#dc2626';
-      ctx.fillRect(centerX - 28, 0, 24, h);
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(centerX - 32, 0, 30, h);
 
-      // Subtle Graphite Accent Stripe
-      ctx.fillStyle = '#e2e8f0';
-      ctx.fillRect(centerX + 4, 0, 24, h);
+      // Silver White Accent Stripe
+      ctx.fillStyle = '#f1f5f9';
+      ctx.fillRect(centerX + 4, 0, 30, h);
 
       // Aerodynamic Panel Seam Lines & Rivets
       ctx.strokeStyle = 'rgba(15, 23, 42, 0.7)';
@@ -141,25 +141,25 @@ export function getEngineTexture() {
   return getOrCreateTexture('engine_texture', (ctx, w, h) => {
     // Cast aluminum base gradient
     const grad = ctx.createLinearGradient(0, 0, 0, h);
-    grad.addColorStop(0, '#3f434c');
-    grad.addColorStop(0.5, '#525763');
-    grad.addColorStop(1, '#33373f');
+    grad.addColorStop(0, '#525764');
+    grad.addColorStop(0.5, '#687082');
+    grad.addColorStop(1, '#474c58');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
     // Cylinder Cooling Fins (horizontal machined ridges)
     const finHeight = 12;
     for (let y = 20; y < h - 40; y += finHeight * 2) {
-      // Deep shadow groove between fins
-      ctx.fillStyle = '#18191c';
+      // Shadow groove between fins
+      ctx.fillStyle = '#202227';
       ctx.fillRect(0, y, w, finHeight * 0.85);
 
       // Polished top metallic fin edge
-      ctx.fillStyle = '#8e96a5';
+      ctx.fillStyle = '#a6b0c2';
       ctx.fillRect(0, y + finHeight * 0.85, w, finHeight * 0.4);
 
       // Specular highlight line
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.fillRect(0, y + finHeight * 0.85, w, 1.5);
     }
 
@@ -167,7 +167,7 @@ export function getEngineTexture() {
     for (let i = 0; i < 4000; i++) {
       const x = Math.random() * w;
       const y = Math.random() * h;
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.12)';
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)';
       ctx.fillRect(x, y, 2, 2);
     }
 
@@ -181,18 +181,18 @@ export function getEngineTexture() {
 
     boltPositions.forEach(([bx, by]) => {
       // Hexagon / circle bolt
-      ctx.fillStyle = '#1e2025';
+      ctx.fillStyle = '#25272e';
       ctx.beginPath();
       ctx.arc(bx, by, boltRadius + 2, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = '#7a818e';
+      ctx.fillStyle = '#949eb0';
       ctx.beginPath();
       ctx.arc(bx, by, boltRadius, 0, Math.PI * 2);
       ctx.fill();
 
       // Bolt highlight
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
       ctx.beginPath();
       ctx.arc(bx - 2, by - 2, 2.5, 0, Math.PI * 2);
       ctx.fill();
@@ -206,12 +206,12 @@ export function getEngineTexture() {
  */
 export function getChassisTexture() {
   return getOrCreateTexture('chassis_texture', (ctx, w, h) => {
-    // Dark gunmetal steel
+    // Gunmetal steel
     const grad = ctx.createLinearGradient(0, 0, w, 0);
-    grad.addColorStop(0, '#1c1d20');
-    grad.addColorStop(0.3, '#2a2c32');
-    grad.addColorStop(0.7, '#24262b');
-    grad.addColorStop(1, '#18191b');
+    grad.addColorStop(0, '#26282e');
+    grad.addColorStop(0.3, '#383c45');
+    grad.addColorStop(0.7, '#31343c');
+    grad.addColorStop(1, '#222429');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
@@ -219,20 +219,20 @@ export function getChassisTexture() {
     for (let i = 0; i < 3000; i++) {
       const x = Math.random() * w;
       const y = Math.random() * h;
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.1)';
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';
       ctx.fillRect(x, y, 1.5, 1.5);
     }
 
     // Subtle Weld Seam Rings
     for (let y = 64; y < h; y += 128) {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(w, y);
       ctx.stroke();
 
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(0, y + 3);
@@ -249,19 +249,19 @@ export function getChassisTexture() {
 export function getWheelTexture() {
   return getOrCreateTexture('wheel_texture', (ctx, w, h) => {
     // Deep vulcanized rubber
-    ctx.fillStyle = '#16171a';
+    ctx.fillStyle = '#202227';
     ctx.fillRect(0, 0, w, h);
 
     // Rubber stippling
     for (let i = 0; i < 4000; i++) {
       const x = Math.random() * w;
       const y = Math.random() * h;
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.12)';
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.1)';
       ctx.fillRect(x, y, 1.5, 1.5);
     }
 
     // Semi-slick racing grooves
-    ctx.fillStyle = '#0b0b0d';
+    ctx.fillStyle = '#111215';
     const grooveW = 8;
     for (let x = 60; x < w - 60; x += 90) {
       ctx.fillRect(x, 0, grooveW, h);

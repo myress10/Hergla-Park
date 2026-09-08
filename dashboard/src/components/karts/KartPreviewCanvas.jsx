@@ -398,16 +398,16 @@ export default function KartPreviewCanvas({
           antialias: true,
           alpha: false,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.05,
+          toneMappingExposure: 1.15,
         }}
-        onCreated={({ gl }) => { gl.setClearColor('#18181b'); }}
+        onCreated={({ gl }) => { gl.setClearColor('#1e222b'); }}
       >
         {/* Soft studio lighting — reveals textures & contours clearly with zero blowout */}
-        <ambientLight intensity={0.85} />
-        <hemisphereLight skyColor="#f8fafc" groundColor="#334155" intensity={0.40} />
-        <directionalLight position={[5, 8, 4]} intensity={0.60} />
-        <directionalLight position={[-5, 4, -4]} intensity={0.35} />
-        <directionalLight position={[0, 1.5, 4]} intensity={0.25} />
+        <ambientLight intensity={1.0} />
+        <hemisphereLight skyColor="#ffffff" groundColor="#475569" intensity={0.50} />
+        <directionalLight position={[5, 8, 4]} intensity={0.75} />
+        <directionalLight position={[-5, 4, -4]} intensity={0.45} />
+        <directionalLight position={[0, 2, 4]} intensity={0.35} />
 
         <Grid
           position={[0, 0, 0]}
