@@ -1,6 +1,6 @@
 import React, { Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, Grid, useGLTF } from '@react-three/drei';
+import { OrbitControls, Grid, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import CanvasErrorBoundary from '../scene-editor/CanvasErrorBoundary';
 import { generatePlateTexture } from './plateTexture';
@@ -47,14 +47,29 @@ function getPieceKey(meshName, mat) {
   return 'piece_carrosserie';
 }
 
+const DEFAULT_KART_COLORS = {
+  piece_carrosserie: '#E53935',
+  piece_capot: '#E53935',
+  piece_pontons: '#E53935',
+  piece_aileron: '#1A1A1A',
+  piece_sieges: '#1E293B',
+  piece_jantes: '#475569',
+  piece_plaque: '#0F172A',
+};
+
 // ─── Real Car GLB loader (clean, zero texture 404s, fast) ─────────────────────
 function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
   const groupRef = useRef(null);
 
+  const effectiveCouleurs = useMemo(() => ({
+    ...DEFAULT_KART_COLORS,
+    ...couleurs,
+  }), [couleurs]);
+
   // Generate responsive plate texture whenever plate number or plate color changes
   const plateTexture = useMemo(
-    () => generatePlateTexture(numeroPlaque, couleurs.piece_plaque),
-    [numeroPlaque, couleurs.piece_plaque]
+    () => generatePlateTexture(numeroPlaque, effectiveCouleurs.piece_plaque),
+    [numeroPlaque, effectiveCouleurs.piece_plaque]
   );
 
   // Load self-contained GLB model (zero missing texture errors)
@@ -96,15 +111,12 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
       const isBody = pieceKey === 'piece_carrosserie' || pieceKey === 'piece_capot' || pieceKey === 'piece_pontons' || pieceKey === 'piece_aileron';
       const isSeat = pieceKey === 'piece_sieges';
 
-      // Default base color
-      const initialColor = (couleurs && couleurs[pieceKey])
-        ? new THREE.Color(couleurs[pieceKey])
-        : (isSeat ? new THREE.Color('#E53935') : (isBody ? new THREE.Color('#1E293B') : new THREE.Color('#334155')));
+      const colorHex = effectiveCouleurs[pieceKey] || (isSeat ? '#1E293B' : (isBody ? '#E53935' : '#334155'));
 
       const std = new THREE.MeshStandardMaterial({
-        color: initialColor,
-        roughness: isSeat ? 0.90 : (isBody ? 0.35 : 0.45),
-        metalness: isSeat ? 0.0 : (isBody ? 0.12 : 0.40),
+        color: new THREE.Color(colorHex),
+        roughness: isSeat ? 0.92 : (isBody ? 0.40 : 0.50),
+        metalness: isSeat ? 0.0 : (isBody ? 0.05 : 0.25),
         side: THREE.DoubleSide,
       });
 
@@ -115,7 +127,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     });
 
     return clone;
-  }, [rawScene]);
+  }, [rawScene, effectiveCouleurs]);
 
   // Discover pieces once per scene load
   const discoveredReportedRef = useRef(false);
@@ -141,11 +153,11 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
       if (!child.isMesh || !child.material) return;
       const pieceKey = child.userData.pieceKey;
 
-      if (pieceKey && couleurs[pieceKey]) {
-        child.material.color.set(couleurs[pieceKey]);
+      if (pieceKey && effectiveCouleurs[pieceKey]) {
+        child.material.color.set(effectiveCouleurs[pieceKey]);
       }
     });
-  }, [scene, couleurs]);
+  }, [scene, effectiveCouleurs]);
 
   // Smooth floating animation
   useFrame((state) => {
@@ -268,17 +280,15 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           antialias: true,
           alpha: false,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 0.95,
+          toneMappingExposure: 0.85,
         }}
         onCreated={({ gl }) => { gl.setClearColor('#0f172a'); }}
       >
-        {/* Balanced studio lighting for vibrant, rich colors */}
-        <ambientLight intensity={0.55} />
-        <directionalLight position={[6, 8, 5]} intensity={1.1} castShadow />
-        <directionalLight position={[-5, 4, -4]} intensity={0.35} color="#93c5fd" />
-        <hemisphereLight skyColor="#60a5fa" groundColor="#0f172a" intensity={0.25} />
-
-        <Environment preset="city" background={false} environmentIntensity={0.35} />
+        {/* Soft, clean studio lighting to show pure, deep, vibrant colors without glare */}
+        <ambientLight intensity={0.40} />
+        <directionalLight position={[4, 6, 4]} intensity={0.65} castShadow />
+        <directionalLight position={[-4, 3, -3]} intensity={0.20} color="#94a3b8" />
+        <hemisphereLight skyColor="#38bdf8" groundColor="#0f172a" intensity={0.15} />
 
         <Grid
           position={[0, 0, 0]}
