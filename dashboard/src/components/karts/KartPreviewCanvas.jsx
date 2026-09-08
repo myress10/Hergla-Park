@@ -5,52 +5,23 @@ import * as THREE from 'three';
 import CanvasErrorBoundary from '../scene-editor/CanvasErrorBoundary';
 import { generatePlateTexture } from './plateTexture';
 
-// ─── Piece name mappings for Car model ───────────────────────────────────────
+// ─── Piece name mappings — material name is ground truth (artist-assigned) ────────────────
 function getPieceKey(meshName, mat) {
   const m = (meshName || '').toLowerCase();
   const matName = (mat ? (Array.isArray(mat) ? mat[0]?.name : mat.name) : '').toLowerCase();
 
-  // 1. Seat
-  if (m === 'seat' || matName.includes('chair')) return 'piece_sieges';
+  // PRIMARY: material name (reliable — assigned by the 3D artist)
+  if (matName.includes('body'))    return 'piece_carrosserie';
+  if (matName.includes('chassis')) return 'piece_jantes'; // kart steel frame → dark
+  if (matName.includes('chair'))   return 'piece_sieges';
+  if (matName.includes('engine'))  return 'piece_pontons';
 
-  // 2. Front Nassau / Nose Cone panel
-  if (m === 'body_rear_bumper') return 'piece_capot';
+  // SECONDARY: override specific mesh names
+  if (m === 'body_rear_bumper')    return 'piece_capot';   // nose cone
+  if (m === 'seat')                return 'piece_sieges';
+  if (m.includes('front_upper') || m.includes('front_support')) return 'piece_aileron';
 
-  // 3. Main Bodywork & Side Pods (Body_Rear_Bumper001 is the main wrap-around shell)
-  if (
-    m === 'body_rear_bumper001' ||
-    m === 'body_rear_bumper002' ||
-    m.includes('frame_left_front') ||
-    m.includes('frame_left_side')
-  ) {
-    return 'piece_carrosserie';
-  }
-
-  // 4. Engine & side engine covers
-  if (m.includes('engine') || m.includes('side_panel')) {
-    return 'piece_pontons';
-  }
-
-  // 5. Aero bars & front upper supports
-  if (m.includes('front_upper') || m.includes('front_support') || m === 'rear_axle001') {
-    return 'piece_aileron';
-  }
-
-  // 6. Wheels / Tires / Rims — any variant of naming
-  if (
-    m.includes('wheel') || m.includes('tire') || m.includes('tyre') ||
-    m.includes('rim') || m.includes('hub') || m.includes('rubber') ||
-    m.includes('tread') || m.includes('axle') || m.includes('brake') ||
-    m.includes('steering') || m.includes('pedal') ||
-    matName.includes('wheel') || matName.includes('tire') || matName.includes('rubber')
-  ) {
-    return 'piece_jantes';
-  }
-
-  // General fallbacks
-  if (matName.includes('body')) return 'piece_carrosserie';
-  if (matName.includes('chassis')) return 'piece_jantes';
-  // Unknown parts default to dark (jantes) so they never look like red body parts
+  // Unknown → dark (never red)
   return 'piece_jantes';
 }
 
@@ -110,9 +81,9 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     clone.position.set(-scaledCenter.x, -scaledBox.min.y, -scaledCenter.z);
     clone.updateMatrixWorld(true);
 
-    // Initialize materials once
+    // Initialize materials on every renderable object (mesh, line, etc.)
     clone.traverse((child) => {
-      if (!child.isMesh) return;
+      if (!child.material) return; // skip non-renderable
       const pieceKey = getPieceKey(child.name, child.material);
 
       const isBody = pieceKey === 'piece_carrosserie' || pieceKey === 'piece_capot' || pieceKey === 'piece_pontons' || pieceKey === 'piece_aileron';
@@ -131,10 +102,13 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
       });
 
       child.material = std;
-      child.userData.pieceKey = pieceKey;
-      child.userData.isWheel = isWheel;
-      child.castShadow = true;
-      child.receiveShadow = true;
+      child.material.needsUpdate = true;
+      if (child.isMesh) {
+        child.userData.pieceKey = pieceKey;
+        child.userData.isWheel = isWheel;
+        child.castShadow = false;
+        child.receiveShadow = false;
+      }
     });
 
     return clone;
@@ -163,7 +137,6 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     scene.traverse((child) => {
       if (!child.isMesh || !child.material) return;
       const pieceKey = child.userData.pieceKey;
-
       // Skip wheels — they are always black, never user-colored
       if (child.userData.isWheel) return;
       if (pieceKey && effectiveCouleurs[pieceKey]) {
