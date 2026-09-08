@@ -113,10 +113,9 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
 
       const colorHex = effectiveCouleurs[pieceKey] || (isSeat ? '#1E293B' : (isBody ? '#E53935' : '#334155'));
 
-      const std = new THREE.MeshStandardMaterial({
+      // MeshBasicMaterial: ignores all scene lighting → pure vivid color output
+      const std = new THREE.MeshBasicMaterial({
         color: new THREE.Color(colorHex),
-        roughness: isSeat ? 0.95 : (isBody ? 0.80 : 0.60),
-        metalness: 0.0,
         side: THREE.DoubleSide,
       });
 
@@ -235,22 +234,17 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
         gl={{
           antialias: true,
           alpha: false,
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 0.85,
+          toneMapping: THREE.NoToneMapping,
+          toneMappingExposure: 1.0,
         }}
-        onCreated={({ gl }) => { gl.setClearColor('#292524'); }}
+        onCreated={({ gl }) => { gl.setClearColor('#1c1917'); }}
       >
-        {/* Soft, uniform ambient lighting — no harsh directional light or bright glare */}
-        <ambientLight intensity={0.70} />
+        {/* No ambient light — MeshBasicMaterial renders pure vivid colors without any light source */}
 
-        {/* Sandy / Warm Gray asphalt paddock floor */}
+        {/* Dark asphalt floor */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]}>
           <planeGeometry args={[60, 60]} />
-          <meshStandardMaterial
-            color="#8c857b"
-            roughness={0.95}
-            metalness={0.0}
-          />
+          <meshBasicMaterial color="#2a2825" />
         </mesh>
 
         <Grid
