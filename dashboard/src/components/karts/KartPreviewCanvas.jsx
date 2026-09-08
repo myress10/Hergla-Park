@@ -113,9 +113,6 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     // Initialize materials once
     clone.traverse((child) => {
       if (!child.isMesh) return;
-      // Debug: log mesh + material names to identify actual wheel mesh names
-      const matN = Array.isArray(child.material) ? child.material.map(m => m.name).join(',') : child.material?.name;
-      console.log('[KartGLB] mesh:', child.name, '| mat:', matN);
       const pieceKey = getPieceKey(child.name, child.material);
 
       const isBody = pieceKey === 'piece_carrosserie' || pieceKey === 'piece_capot' || pieceKey === 'piece_pontons' || pieceKey === 'piece_aileron';
@@ -125,10 +122,11 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
       const isWheel = pieceKey === 'piece_jantes';
       const finalColor = isWheel ? '#111111' : (effectiveCouleurs[pieceKey] || (isSeat ? '#1E293B' : (isBody ? '#E53935' : '#334155')));
 
+      // Pure matte plastic: roughness=0.95 metalness=0.0 → zero specular → no white hotspots, colors stay vivid
       const std = new THREE.MeshStandardMaterial({
         color: new THREE.Color(finalColor),
-        roughness: isWheel ? 0.90 : (isSeat ? 0.92 : (isBody ? 0.45 : 0.55)),
-        metalness: isWheel ? 0.0 : (isSeat ? 0.0 : (isBody ? 0.05 : 0.20)),
+        roughness: 0.95,
+        metalness: 0.0,
         side: THREE.DoubleSide,
       });
 
@@ -256,8 +254,9 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
         }}
         onCreated={({ gl }) => { gl.setClearColor('#d6d2cc'); }}
       >
-        {/* Pure flat daylight — ambientLight only, zero directionality, no hotspot anywhere */}
-        <ambientLight intensity={1.8} />
+        {/* Soft directional from above-front for shading depth, matte materials prevent specular blowout */}
+        <ambientLight intensity={0.55} />
+        <directionalLight position={[2, 4, 2]} intensity={0.55} />
 
         <Grid
           position={[0, 0, 0]}
