@@ -1,9 +1,43 @@
 {
   "buildCommand": "cd dashboard && npm install && npm run build",
   "outputDirectory": "dashboard/dist",
+  "headers": [
+    {
+      "source": "/(.*\\.fbx)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*\\.glb)",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf-binary" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*\\.gltf)",
+      "headers": [
+        { "key": "Content-Type", "value": "model/gltf+json" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*\\.bin)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/octet-stream" },
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/Car.fbx",
+      "destination": "/Car.fbx"
+    },
+    {
+      "source": "/((?!.*\\.(?:fbx|glb|gltf|bin|png|jpg|jpeg|svg|ico|css|js|woff|woff2|ttf|webp|mp4|webm)$).*)",
       "destination": "/index.html"
     }
   ]
