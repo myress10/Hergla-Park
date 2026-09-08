@@ -180,9 +180,35 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
   });
 
   if (!scene) return null;
+
+  // Shared dark charcoal material for cockpit interior panels
+  const interiorMat = new THREE.MeshStandardMaterial({ color: '#1a1a1e', roughness: 0.98, metalness: 0.0, side: THREE.DoubleSide });
+
   return (
     <group ref={groupRef}>
       <primitive object={scene} />
+
+      {/* ── Cockpit Interior Panels — close the hollow body shell ── */}
+      {/* Floor pan */}
+      <mesh position={[0, 0.185, -0.08]} rotation={[0, 0, 0]} material={interiorMat}>
+        <boxGeometry args={[0.72, 0.02, 1.05]} />
+      </mesh>
+      {/* Left inner wall */}
+      <mesh position={[-0.34, 0.30, -0.08]} material={interiorMat}>
+        <boxGeometry args={[0.02, 0.24, 1.00]} />
+      </mesh>
+      {/* Right inner wall */}
+      <mesh position={[0.34, 0.30, -0.08]} material={interiorMat}>
+        <boxGeometry args={[0.02, 0.24, 1.00]} />
+      </mesh>
+      {/* Front dash inner face */}
+      <mesh position={[0, 0.30, 0.50]} material={interiorMat}>
+        <boxGeometry args={[0.72, 0.26, 0.02]} />
+      </mesh>
+      {/* Rear inner bulkhead */}
+      <mesh position={[0, 0.30, -0.62]} material={interiorMat}>
+        <boxGeometry args={[0.72, 0.26, 0.02]} />
+      </mesh>
 
       {/* ── Front Racing Number Plate (fitted onto Nassau nose fairing) ── */}
       <group position={[0, 0.485, 0.92]} rotation={[-0.50, 0, 0]}>
@@ -252,11 +278,11 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.0,
         }}
-        onCreated={({ gl }) => { gl.setClearColor('#d6d2cc'); }}
+        onCreated={({ gl }) => { gl.setClearColor('#2a2725'); }}
       >
-        {/* Soft directional from above-front for shading depth, matte materials prevent specular blowout */}
-        <ambientLight intensity={0.55} />
-        <directionalLight position={[2, 4, 2]} intensity={0.55} />
+        {/* Balanced studio lighting: low enough to never wash colors, high enough for clear 3D shading */}
+        <ambientLight intensity={0.40} />
+        <directionalLight position={[2, 4, 2]} intensity={0.35} />
 
         <Grid
           position={[0, 0, 0]}
