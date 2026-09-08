@@ -103,8 +103,8 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
 
       const std = new THREE.MeshStandardMaterial({
         color: initialColor,
-        roughness: isSeat ? 0.85 : (isBody ? 0.22 : 0.45),
-        metalness: isSeat ? 0.05 : (isBody ? 0.35 : 0.65),
+        roughness: isSeat ? 0.90 : (isBody ? 0.35 : 0.45),
+        metalness: isSeat ? 0.0 : (isBody ? 0.12 : 0.40),
         side: THREE.DoubleSide,
       });
 
@@ -158,31 +158,6 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
   return (
     <group ref={groupRef}>
       <primitive object={scene} />
-
-      {/* ── 4 Realistic Racing Wheels mounted on the axles ── */}
-      {[
-        [-0.88, 0.20, 0.78],   // Front Left
-        [0.88, 0.20, 0.78],    // Front Right
-        [-0.88, 0.22, -0.85],  // Rear Left (wider rear drive axle)
-        [0.88, 0.22, -0.85],   // Rear Right
-      ].map(([x, y, z], i) => (
-        <group key={i} position={[x, y, z]} rotation={[0, 0, Math.PI / 2]}>
-          {/* Tire */}
-          <mesh castShadow receiveShadow>
-            <cylinderGeometry args={[i >= 2 ? 0.25 : 0.22, i >= 2 ? 0.25 : 0.22, 0.20, 24]} />
-            <meshStandardMaterial color="#18181B" roughness={0.85} />
-          </mesh>
-          {/* Rim with dynamic piece_jantes color */}
-          <mesh castShadow>
-            <cylinderGeometry args={[0.12, 0.12, 0.21, 16]} />
-            <meshStandardMaterial
-              color={couleurs.piece_jantes || '#E2E8F0'}
-              metalness={0.85}
-              roughness={0.2}
-            />
-          </mesh>
-        </group>
-      ))}
 
       {/* ── Front Racing Number Plate (fitted onto Nassau nose fairing) ── */}
       <group position={[0, 0.485, 0.92]} rotation={[-0.50, 0, 0]}>
@@ -289,17 +264,21 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
       <Canvas
         camera={{ position: [3.5, 2.5, 4.5], fov: 40 }}
         shadows
-        gl={{ antialias: true, alpha: false }}
+        gl={{
+          antialias: true,
+          alpha: false,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 0.95,
+        }}
         onCreated={({ gl }) => { gl.setClearColor('#0f172a'); }}
       >
-        {/* Lighting */}
-        <ambientLight intensity={1.2} />
-        <directionalLight position={[5, 10, 5]}  intensity={2.0} castShadow />
-        <directionalLight position={[-5, 6, -5]} intensity={0.8} color="#93c5fd" />
-        <pointLight       position={[0, 4, 2]}   intensity={1.0} color="#ffffff" />
-        <hemisphereLight  skyColor="#1e3a5f"  groundColor="#0f172a" intensity={0.6} />
+        {/* Balanced studio lighting for vibrant, rich colors */}
+        <ambientLight intensity={0.55} />
+        <directionalLight position={[6, 8, 5]} intensity={1.1} castShadow />
+        <directionalLight position={[-5, 4, -4]} intensity={0.35} color="#93c5fd" />
+        <hemisphereLight skyColor="#60a5fa" groundColor="#0f172a" intensity={0.25} />
 
-        <Environment preset="city" background={false} />
+        <Environment preset="city" background={false} environmentIntensity={0.35} />
 
         <Grid
           position={[0, 0, 0]}
