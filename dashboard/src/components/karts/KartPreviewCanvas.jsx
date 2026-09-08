@@ -241,10 +241,9 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
         }}
         onCreated={({ gl }) => { gl.setClearColor('#0f172a'); }}
       >
-        {/* Very low studio lighting: just enough to see 3D shape + texture without washing out colors */}
-        <ambientLight intensity={0.25} />
-        <directionalLight position={[3, 5, 3]} intensity={0.30} />
-        <directionalLight position={[-3, 2, -2]} intensity={0.10} />
+        {/* Room-wide even lighting: no spotlight, no hotspot on the car */}
+        <ambientLight intensity={0.30} />
+        <hemisphereLight skyColor="#ffffff" groundColor="#1a1a2e" intensity={0.45} />
 
         <Grid
           position={[0, 0, 0]}
