@@ -4,4 +4,4 @@
 *.gltf filter=lfs diff=lfs merge=lfs -text
 
 # Dashboard public 3D assets must NOT use LFS so Vercel can serve them
-dashboard/public/Car.fbx -filter -diff -merge text=auto
+dashboard/public/** -filter -diff -merge text=auto

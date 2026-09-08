@@ -1,11 +1,11 @@
 import React, { Suspense, useMemo, useRef, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Environment, Grid, useFBX } from '@react-three/drei';
+import { OrbitControls, Environment, Grid, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import CanvasErrorBoundary from '../scene-editor/CanvasErrorBoundary';
 import { generatePlateTexture } from './plateTexture';
 
-// ─── Piece name mappings for Car.fbx ──────────────────────────────────────────
+// ─── Piece name mappings for Car model ───────────────────────────────────────
 function getPieceKey(meshName, mat) {
   const m = (meshName || '').toLowerCase();
   const matName = (mat ? (Array.isArray(mat) ? mat[0]?.name : mat.name) : '').toLowerCase();
@@ -47,7 +47,7 @@ function getPieceKey(meshName, mat) {
   return 'piece_carrosserie';
 }
 
-// ─── Real Car.fbx loader ─────────────────────────────────────────────────────
+// ─── Real Car GLB loader (clean, zero texture 404s, fast) ─────────────────────
 function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }) {
   const groupRef = useRef(null);
 
@@ -57,13 +57,14 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     [numeroPlaque, couleurs.piece_plaque]
   );
 
-  // Load raw FBX from public/Car.fbx (D:\visite virtuelle\unity\Assets\Prefabs\Car.fbx)
-  const fbx = useFBX('/Car.fbx');
+  // Load self-contained GLB model (zero missing texture errors)
+  const gltf = useGLTF('/Car.glb');
+  const rawScene = gltf?.scene;
 
-  // Deep-clone and compute normalized scale & center ONCE when fbx changes
+  // Deep-clone and compute normalized scale & center ONCE when model loads
   const scene = useMemo(() => {
-    if (!fbx) return null;
-    const clone = fbx.clone(true);
+    if (!rawScene) return null;
+    const clone = rawScene.clone(true);
 
     // Reset initial transform
     clone.position.set(0, 0, 0);
@@ -91,7 +92,6 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     clone.traverse((child) => {
       if (!child.isMesh) return;
       const pieceKey = getPieceKey(child.name, child.material);
-      const origMat = Array.isArray(child.material) ? child.material[0] : child.material;
 
       const isBody = pieceKey === 'piece_carrosserie' || pieceKey === 'piece_capot' || pieceKey === 'piece_pontons' || pieceKey === 'piece_aileron';
       const isSeat = pieceKey === 'piece_sieges';
@@ -108,12 +108,6 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
         side: THREE.DoubleSide,
       });
 
-      // Preserve normal maps for 3D surface detail while avoiding the black diffuse map
-      if (origMat && origMat.normalMap) {
-        std.normalMap = origMat.normalMap;
-        std.normalScale = new THREE.Vector2(0.8, 0.8);
-      }
-
       child.material = std;
       child.userData.pieceKey = pieceKey;
       child.castShadow = true;
@@ -121,7 +115,7 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
     });
 
     return clone;
-  }, [fbx]);
+  }, [rawScene]);
 
   // Discover pieces once per scene load
   const discoveredReportedRef = useRef(false);
@@ -164,6 +158,31 @@ function RealCarModel({ couleurs = {}, numeroPlaque = '07', onPiecesDiscovered }
   return (
     <group ref={groupRef}>
       <primitive object={scene} />
+
+      {/* ── 4 Realistic Racing Wheels mounted on the axles ── */}
+      {[
+        [-0.88, 0.20, 0.78],   // Front Left
+        [0.88, 0.20, 0.78],    // Front Right
+        [-0.88, 0.22, -0.85],  // Rear Left (wider rear drive axle)
+        [0.88, 0.22, -0.85],   // Rear Right
+      ].map(([x, y, z], i) => (
+        <group key={i} position={[x, y, z]} rotation={[0, 0, Math.PI / 2]}>
+          {/* Tire */}
+          <mesh castShadow receiveShadow>
+            <cylinderGeometry args={[i >= 2 ? 0.25 : 0.22, i >= 2 ? 0.25 : 0.22, 0.20, 24]} />
+            <meshStandardMaterial color="#18181B" roughness={0.85} />
+          </mesh>
+          {/* Rim with dynamic piece_jantes color */}
+          <mesh castShadow>
+            <cylinderGeometry args={[0.12, 0.12, 0.21, 16]} />
+            <meshStandardMaterial
+              color={couleurs.piece_jantes || '#E2E8F0'}
+              metalness={0.85}
+              roughness={0.2}
+            />
+          </mesh>
+        </group>
+      ))}
 
       {/* ── Front Racing Number Plate (fitted onto Nassau nose fairing) ── */}
       <group position={[0, 0.485, 0.92]} rotation={[-0.50, 0, 0]}>
@@ -264,7 +283,7 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
     <div className="w-full h-[400px] lg:h-[480px] bg-slate-950 rounded-2xl overflow-hidden relative border border-slate-800 shadow-inner">
       <div className="absolute top-4 start-4 z-10 bg-slate-900/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 text-xs font-semibold text-slate-300 flex items-center gap-2 pointer-events-none">
         <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-        <span>Aperçu 3D — Car.fbx réel</span>
+        <span>Aperçu 3D — Modèle Kart Réel</span>
       </div>
 
       <Canvas
@@ -315,3 +334,6 @@ export default function KartPreviewCanvas({ couleurs = {}, numeroPlaque = '07', 
     </div>
   );
 }
+
+useGLTF.preload('/Car.glb');
+
