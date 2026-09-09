@@ -1,9 +1,29 @@
 fileFormatVersion: 2
-guid: d6eadfab1b61e8840a7a5b36f99a84a0
+guid: a04052929fe2934448f0d9d9bbf849e5
 ModelImporter:
   serializedVersion: 24200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: body_color
+    second: {fileID: 2100000, guid: 94e61ff92246e304d8e5c6545803c8be, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: chairMateria
+    second: {fileID: 2100000, guid: f1f087064dd171c48b5b076a6f868b49, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: chassis_color
+    second: {fileID: 2100000, guid: b1bf64363d7ca0f48873a81ccff833ac, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: engine_bake
+    second: {fileID: 2100000, guid: 244c571d0d9ffef46bec16036cc74092, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

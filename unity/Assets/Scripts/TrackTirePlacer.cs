@@ -137,51 +137,6 @@ namespace HerglaPark
             }
         }
 
-        [ContextMenu("Configurer MeshCollider Non-Convexe")]
-        public void SetupTrackCollider()
-        {
-            if (trackObject == null)
-            {
-                trackObject = GameObject.Find("track_hergla");
-                if (trackObject == null) trackObject = gameObject;
-            }
-
-            if (trackObject == null)
-            {
-                Debug.LogError("[TrackTirePlacer] Objet 'track_hergla' introuvable.");
-                return;
-            }
-
-            MeshFilter[] meshFilters = trackObject.GetComponentsInChildren<MeshFilter>();
-            int added = 0;
-
-            foreach (MeshFilter mf in meshFilters)
-            {
-                GameObject obj = mf.gameObject;
-                Collider col = obj.GetComponent<Collider>();
-                if (col == null)
-                {
-#if UNITY_EDITOR
-                    MeshCollider mc = Undo.AddComponent<MeshCollider>(obj);
-#else
-                    MeshCollider mc = obj.AddComponent<MeshCollider>();
-#endif
-                    mc.sharedMesh = mf.sharedMesh;
-                    mc.convex = false;
-                    added++;
-                }
-                else if (col is MeshCollider mc && mc.convex)
-                {
-#if UNITY_EDITOR
-                    Undo.RecordObject(mc, "Uncheck Convex");
-#endif
-                    mc.convex = false;
-                }
-            }
-
-            Debug.Log($"[TrackTirePlacer] Configuration MeshCollider terminée ({added} nouveau(x) collider(s) ajouté(s)).");
-        }
-
         private void PrepareContainer()
         {
             if (tiresContainer == null)
